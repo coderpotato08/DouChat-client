@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "downlevelIteration": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": "./src",
+    "paths": {  
+      "@pages/*": ["pages/*"],
+      "@components/*": ["components/*"],
+      "@assets/*": ["assets/*"],
+      "@store/*": ["store/*"],
+      "@router/*": ["router/*"],
+      "@hooks/*": ["hooks/*"],
+      "@helper/*": ["helper/*"],
+      "@constant/*": ["constant/*"],
+    }  
+  },
+  "include": [
+    "src", 
+    "electron"
+  ],
+  "exclude": [
+    "./src/setupProxy.js",
+    "./config/*",
+  ]
+}
