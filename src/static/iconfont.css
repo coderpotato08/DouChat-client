@@ -1,0 +1,82 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4362129 */
+  src: url('//at.alicdn.com/t/c/font_4362129_oeori8w5zw.woff2?t=1705568115118') format('woff2'),
+       url('//at.alicdn.com/t/c/font_4362129_oeori8w5zw.woff?t=1705568115118') format('woff'),
+       url('//at.alicdn.com/t/c/font_4362129_oeori8w5zw.ttf?t=1705568115118') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-members:before {
+  content: "\e606";
+}
+
+.icon-invite:before {
+  content: "\e65e";
+}
+
+.icon-audio:before {
+  content: "\e62a";
+}
+
+.icon-audio-static:before {
+  content: "\e62b";
+}
+
+.icon-camera-static:before {
+  content: "\eca5";
+}
+
+.icon-camera:before {
+  content: "\eca6";
+}
+
+.icon-screen-share:before {
+  content: "\e7c4";
+}
+
+.icon-guaduan:before {
+  content: "\e600";
+}
+
+.icon-audio-fill:before {
+  content: "\e823";
+}
+
+.icon-video-meeting:before {
+  content: "\e6af";
+}
+
+.icon-add_friends:before {
+  content: "\e685";
+}
+
+.icon-more:before {
+  content: "\e773";
+}
+
+.icon-message:before {
+  content: "\e78a";
+}
+
+.icon-message-fill:before {
+  content: "\e84a";
+}
+
+.icon-yuyin:before {
+  content: "\e66b";
+}
+
+.icon-tianjia:before {
+  content: "\e62d";
+}
+
+.icon-addmessage:before {
+  content: "\e743";
+}
