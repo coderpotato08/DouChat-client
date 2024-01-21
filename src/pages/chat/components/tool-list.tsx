@@ -1,9 +1,10 @@
-import { Popover } from "antd"
+import { Badge, Popover } from "antd"
 import { useCallback, useState } from "react";
 import CIcon from "@components/c-icon";
 import { styled } from "styled-components";
 import CreateMeetingModal from "@components/create-meeting-modal";
 import { usePopup } from "@hooks/usePopup";
+import AddFriendModal from "@components/add-friend-modal";
 
 enum ToolType {
   ADD_FRIEND = 'add-friend',
@@ -17,7 +18,8 @@ const toolList = [
 const ToolList = () => {
   const [open, setOpen] = useState<boolean>(false);
   // const [open: createMeetingMdoal_open] = usePopup();
-  const [createMeetingMdoal_open, createMeetingMdoalPopup] = usePopup();
+  const [createMeetingMdoal_open, createMeetingMdoalPopup] = usePopup();  // 创建会议
+  const [addFriendModal_open, addFriendModalPopup] = usePopup();  // 添加好友
 
   const renderToolListContent = useCallback(() => {
     return <ToolWrapper>
@@ -34,8 +36,10 @@ const ToolList = () => {
   }, [])
 
   const onClickTool = useCallback((type: ToolType) => {
+    setOpen(false)
     switch(type) {
       case ToolType.ADD_FRIEND:
+        addFriendModalPopup();
         break;
       case ToolType.CREATE_MEETING:
         createMeetingMdoalPopup();
@@ -50,14 +54,18 @@ const ToolList = () => {
              overlayInnerStyle={{padding: 0}}
              content={renderToolListContent}
              open={open}>
-      <CIcon style={{cursor: 'pointer'}} 
-             value="icon-more" 
-             size={24} 
-             color="#000"
-             onClick={() => setOpen(!open)}/>
+      <Badge count={5} size={"small"}>
+        <CIcon style={{cursor: 'pointer'}} 
+              value="icon-more" 
+              size={24} 
+              color="#000"
+              onClick={() => setOpen(!open)}/>
+      </Badge>
     </Popover>
     <CreateMeetingModal visible={createMeetingMdoal_open}
                         onCancel={createMeetingMdoalPopup}/>
+    <AddFriendModal visible={addFriendModal_open}
+                    onCancel={addFriendModalPopup}/>
   </>
 }
 

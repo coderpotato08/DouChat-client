@@ -24,14 +24,14 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
   const userInfo = useAppSelector(userSelector);
   const [receiveMessage, setReceiveMessage] = useState(null);
   const [messageList, setMessageList] = useState<any[]>([]);
-
-  useEffect(() => {
-    socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
-  }, []);
   
   useEffect(() => {
+    socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
     if (!isEmpty(selectedChat)) {
       loadMessageList(selectedChat.sender, selectedChat.receiver);
+    }
+    return () => {
+      socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
     }
   }, [selectedChat]);
 
@@ -41,7 +41,8 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({
-      behaviour: "smooth" 
+      block: "end",
+      behaviour: "smooth",
     })
   }, [messageList])
 
@@ -93,7 +94,7 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
       </div>
     </ContainerHeader>
     {/* 消息部分 */}
-    <ContainerContent>
+    <ContainerContent ref={scrollRef}>
       <Flex vertical gap={10}>
         {
           messageList.map((info: any) => {
@@ -142,10 +143,10 @@ const ContainerHeader = styled.div`
 `
 const ContainerContent = styled.div`
   & {
-    flex: 1;
     box-sizing: border-box;
     overflow-y: scroll;
     width: 100%;
+    height: calc(100vh - 70px - 68px);
     background: #F3F3F3;
     padding: 12px; 
   }

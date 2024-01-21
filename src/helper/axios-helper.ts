@@ -32,7 +32,7 @@ axiosInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return Promise.reject(error);
 })
 // 响应拦截器
-axiosInstance.interceptors.response.use((response: AxiosResponse) => {
+axiosInstance.interceptors.response.use((response: AxiosResponse<Result<any>>) => {
   const { code, msg, data }:Result<any> = response.data;
   if (code === 10000) {
     return data
@@ -58,7 +58,7 @@ export const AxiosHelper = {
   get(url: string, config?:AxiosRequestConfig) {
     return axiosInstance.get(url, config);
   },
-  post(url: string, params?: any, config?:AxiosRequestConfig) {
-    return axiosInstance.post(url, params, config);
+  post<T>(url: string, params?: any, config?:AxiosRequestConfig) {
+    return axiosInstance.post<Result<T>>(url, params, config);
   },
 }

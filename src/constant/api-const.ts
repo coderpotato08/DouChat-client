@@ -3,6 +3,8 @@ export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
 
 export enum ApiEnum {
   LOGIN = "/user/login", // 登陆
+  SEARCH_USERS = "/user/search", // 查找用户
+  ADD_FRIEND = "/user/add-friend", // 添加用户
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
   LOAD_USER_CONTACT = '/contacts/user-contact-list',  // 聊天栏用户列表
@@ -28,4 +30,14 @@ export interface CreateMeetingParamsType {
 
 export interface LoadMeetingInfoParamsType {
   meetingId: string
+}
+
+export interface SearchUserParamsType {
+  keyWord: string,
+  currUserId: string
+}
+
+export interface AddFriendParamsType {
+  userId: string,
+  friendId: string,
 }

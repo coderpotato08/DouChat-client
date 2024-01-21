@@ -15,7 +15,7 @@ const menuList = [
     key: 'message',
     route: 'message',
     icon: 'icon-message',
-  }
+  },
 ]
 const Chat:FC = () => {
   const socket = useSocket();

@@ -57,7 +57,8 @@ const CreateMeetingModal:FC<CreateMeetingModalProps> = (props: CreateMeetingModa
   const [ userList, setUserList ] = useState<any[]>([]);
 
   const onHandleCancel = useCallback(() => {
-    props.onCancel()
+    props.onCancel();
+    form.resetFields();
   }, [props.visible])
 
   const onCreateMeeting = () => {

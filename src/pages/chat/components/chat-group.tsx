@@ -12,7 +12,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { list, selectedId, onChangeChat } = props;
   
   const renderGroupItem = (item: any): ReactNode => {
-    const { receiver, unreadNum, _id: chatId } = item;
+    const { receiver, _id: chatId, recentMesage } = item;
     return <div key={chatId}
                 className={selectedId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
@@ -23,8 +23,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
           <span className="date">12:45</span>
         </div>
         <div className="msg-line">
-          <div className="msg">hello my name is coder potato</div>
-          {unreadNum && <Badge count={unreadNum} size="small"/>}
+          <div className="msg">{recentMesage && recentMesage.msgContent}</div>
         </div>
       </div>
     </div>

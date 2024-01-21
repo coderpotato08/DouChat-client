@@ -4,6 +4,8 @@ import {
   CreateMeetingParamsType,
   UserContactsParamsType,
   UserMsgListParamsType,
+  SearchUserParamsType,
+  AddFriendParamsType,
 } from "../constant/api-const"
 import { AxiosHelper } from "./axios-helper"
 
@@ -18,6 +20,14 @@ export class ApiHelper {
     return AxiosHelper.post(ApiEnum.LOAD_MEETING_INFO, params)
   }
   // --------------- 聊天室 ----------------------
+  // 查找用户
+  public static searchUsers = (params: SearchUserParamsType) => {
+    return AxiosHelper.post(ApiEnum.SEARCH_USERS, params)
+  }
+  // 申请添加好友
+  public static addFriend = (params: AddFriendParamsType) => {
+    return AxiosHelper.post(ApiEnum.ADD_FRIEND, params)
+  }
   // 加载聊天栏用户列表
   public static loadUserContacts = (params: UserContactsParamsType) => {
     return AxiosHelper.post(ApiEnum.LOAD_USER_CONTACT, params)

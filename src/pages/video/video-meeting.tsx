@@ -70,7 +70,6 @@ const UserAvator = (props: {
 }
 
 const VideoMeeting = () => {
-  console.log(useLocation())
   const userInfo = useAppSelector(userSelector);
   const { role } = getQuery();
   const { id: meetingId } = useParams();
@@ -84,7 +83,6 @@ const VideoMeeting = () => {
   const [ meetingInfo, setMeetingInfo ] = useState<any>({});
   const [ memberList, setMemberList ] = useState<UsersList>([]);  // 用户列表
   const { creator = {}, meetingName, isJoinedMuted } = meetingInfo;
-  console.log(useParams())
   const joinedMemberList = useMemo(() => {
     if(memberList && memberList.length > 0) {
       return memberList.filter((member) => member.status === UserStatus.JOINED)
