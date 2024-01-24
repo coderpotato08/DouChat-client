@@ -1,3 +1,4 @@
+import { FriendApplyStatusEnum } from '@constant/friend-const';
 export const socketHost = "http://localhost:3040" // 聊天室socket
 export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
 
@@ -5,6 +6,9 @@ export enum ApiEnum {
   LOGIN = "/user/login", // 登陆
   SEARCH_USERS = "/user/search", // 查找用户
   ADD_FRIEND = "/user/add-friend", // 添加用户
+  FRIEND_NOTIFICATION = "/user/friend/notification",  // 好友通知
+  FRIEND_LIST = "/user/friend/list", // 好友列表
+  CHANGE_FRIEND_STATUS = "/user/friend/changeStatus",  // 同意/拒绝 好友申请
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
   LOAD_USER_CONTACT = '/contacts/user-contact-list',  // 聊天栏用户列表
@@ -41,3 +45,11 @@ export interface AddFriendParamsType {
   userId: string,
   friendId: string,
 }
+
+export interface ChangeFriendStatusParamsType {
+  id: string,
+  changeStatus: FriendApplyStatusEnum
+}
+
+export interface loadFriendListParamsType extends UserContactsParamsType {}
+export interface loadFriendNotificationsParamsType extends UserContactsParamsType {}

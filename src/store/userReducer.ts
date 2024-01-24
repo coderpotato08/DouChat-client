@@ -2,6 +2,13 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 import { LocalStorageHelper, StorageKeys } from '../helper/storage-helper';
 
+export interface UserState {
+  onlineUser: any,
+  onlineNum: number,
+  userInfo: any,
+  friendNoteNum: number
+}
+
 const saveOnlineStorage = (onlineUser: Record<string, any>, num: number) => {
   LocalStorageHelper.setItem(StorageKeys.ONLINE_USER, onlineUser);
   LocalStorageHelper.setItem(StorageKeys.ONLINE_NUM, num);
@@ -12,6 +19,8 @@ const userSlice = createSlice({
     onlineUser: LocalStorageHelper.getItem(StorageKeys.ONLINE_USER) || {},
     onlineNum: LocalStorageHelper.getItem(StorageKeys.ONLINE_NUM) || 0,
     userInfo: LocalStorageHelper.getItem(StorageKeys.USER_INFO) || {},
+
+    friendNoteNum: 0,
   },
   reducers: {
     setUserInfo: (state, action:PayloadAction<any>) => ({
@@ -38,6 +47,25 @@ const userSlice = createSlice({
         onlineUser: newOnlineUser,
         onlineNum: newNum,
       }
+    },
+    setFriendNoteNum: (state, action:PayloadAction<{num: number}>) => {
+      const { payload: { num } } = action;
+      return {
+        ...state,
+        friendNoteNum: num
+      }
+    },
+    addFriendNoteNum: (state) => {
+      return {
+        ...state,
+        friendNoteNum: state.friendNoteNum + 1
+      }
+    },
+    subFriendNoteNum: (state) => {
+      return {
+        ...state,
+        friendNoteNum: state.friendNoteNum - 1
+      }
     }
   }
 })
@@ -45,9 +73,15 @@ const userSlice = createSlice({
 export const { 
   setUserInfo,
   addUser,
-  deleteUser, 
+  deleteUser,
+  setFriendNoteNum,
+  addFriendNoteNum,
+  subFriendNoteNum,
 } = userSlice.actions;
 export const userSelector = (state: any) => state.user.userInfo;
+export const notificationMapSelector = (state: any) => ({
+  friendNoteNum: state.user.friendNoteNum
+})
 export const onlineInfoSelector = (state: any) => ({
   onlineUser: state.user.onlineUser,
   onlineNum: state.user.onlineNum,

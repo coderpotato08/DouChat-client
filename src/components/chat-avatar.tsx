@@ -27,7 +27,6 @@ const UserAvatar = styled.img`
     height: 46px;
     border-radius: 50%;
     border: 2px solid #ECECEC;
-    background-color: red;
   }
 `
 

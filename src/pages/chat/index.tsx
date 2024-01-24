@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useMemo, CSSProperties, useCallback } from 'react';
 import styled from 'styled-components';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
 import { Avatar, Button, notification } from 'antd';
 import { useAppSelector } from '../../store/hooks';
@@ -16,19 +16,24 @@ const menuList = [
     route: 'message',
     icon: 'icon-message',
   },
+  {
+    key: 'friend',
+    route: 'friend',
+    icon: 'icon-friend',
+  },
 ]
+const btnStyle:CSSProperties = {
+  position: "absolute",
+  bottom: "12px",
+  right: "12px",
+}
 const Chat:FC = () => {
+  const { pathname } = useLocation();
   const socket = useSocket();
   const userInfo = useAppSelector(userSelector);
   const navigate = useNavigate();
   const [api, contextHolder] = notification.useNotification()
   const [selectedKey, setSelectedKey] = useState('message');
-
-  const btnStyle = useMemo<CSSProperties>(() => ({
-    position: "absolute",
-    bottom: "12px",
-    right: "12px",
-  }), []);
 
   const onClickMenu = (item: any) => {
     setSelectedKey(item.key)
@@ -78,6 +83,12 @@ const Chat:FC = () => {
   useEffect(() => {
     socket.on(EventType.INVITE_MEETING, onReceiveInviteMeeting);
   }, []);
+
+  useEffect(() => {
+    const splitPath = pathname.split("/");
+    const curPath = splitPath[splitPath.length - 1];
+    setSelectedKey(curPath);
+  }, [pathname])
 
   return (
     <ChatWrapper>

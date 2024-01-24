@@ -17,7 +17,7 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
     marginRight: isSelf ? "0" : "64px",
   }), [isSelf]);
  
-  return <Wrapper>
+  return <Wrapper id={messageInfo._id || messageInfo.uid}>
     <Flex style={lineStyle} justify={isSelf ? "flex-end" : "flex-start"} gap={15}>
       {!isSelf && <Avatar src={sender.avatarImage} size={48}/>}
       <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>

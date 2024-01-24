@@ -10,6 +10,7 @@ import { SocketProvider, useSocket } from "../../store/context/createContext";
 import ChatTitle from "./components/chat-title";
 import ChatGroup from "./components/chat-group";
 import ChatContainer from "./components/chat-container";
+import { ContainerWrapper, GroupWrapper } from "@components/custom-styles";
 
 const Message = () => {
   const socket = useSocket();
@@ -47,13 +48,11 @@ const Message = () => {
           selectedId={selectedChat._id}
           onChangeChat={setSelectedChat}/>
       </GroupWrapper>
-      {
-        selectedChat._id && <ContainerWrapper>
-          <ChatContainer
-            selectedChat={selectedChat}
-          />
-        </ContainerWrapper>
-      }
+      <ContainerWrapper>
+        {
+          selectedChat._id && <ChatContainer selectedChat={selectedChat}/>
+        }
+      </ContainerWrapper>
     </Wrapper>
   </SocketProvider>
 }
@@ -65,24 +64,5 @@ const Wrapper = styled.div`
     display: flex;
     width: 100%;
     height: 100vh;
-  }
-`
-const GroupWrapper = styled.div`
-  & {
-    display: flex;
-    flex-direction: column;
-    width: 30%;
-    min-width: 310px;
-    height: 100vh;
-    border-right: 2px solid #ececec;
-    box-shadow: 0px 0 15px 5px rgba(0,0,0,.2);
-  }
-`
-const ContainerWrapper = styled.div`
-  & {
-    position: relative;
-    width: calc(100vw - 345px);
-    height: 100vh;
-    background: #F3F3F3;
   }
 `

@@ -40,10 +40,16 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
   }, [receiveMessage]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({
-      block: "end",
-      behaviour: "smooth",
-    })
+    const len = messageList.length;
+    const id = messageList[len-1] ? (messageList[len-1]._id || messageList[len-1].uid) : ""
+    const ele = document.getElementById(id);
+    if(ele) {
+      ele.scrollIntoView({
+        block: "end",
+        inline: "nearest", 
+        behavior: "smooth",
+      })
+    }
   }, [messageList])
 
   const loadMessageList = (from: any, to: any) => {
@@ -84,13 +90,14 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
       uid: createUidV4(),
     })
   }
-
+  const { sender, receiver } = selectedChat;
+  const headerInfo = sender._id === userInfo._id ? receiver : sender
   return <ChatContainerWrapper>
     {/* 头部 */}
     <ContainerHeader>
       <div className="header-user-info">
-        <ChatAvatar isGroup={false}/>
-        <span>群聊1</span>
+        <ChatAvatar isGroup={false} imgUrl={headerInfo.avatarImage}/>
+        <span>{headerInfo.nickname}</span>
       </div>
     </ContainerHeader>
     {/* 消息部分 */}

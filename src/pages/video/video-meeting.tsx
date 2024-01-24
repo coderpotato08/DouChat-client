@@ -428,7 +428,6 @@ const VideoMeeting = () => {
         !isEmpty(memberList) && memberList.map((member: UserData) => {
           const isJoined = member.status === UserStatus.JOINED;
           const videoId = formatPeerId(member._id, userInfo._id);
-          console.log(member.nickname, isJoined, member.cameraEnable, (!isJoined || !member.cameraEnable));
           return <MemberItem key={member._id}>
             <video id={videoId} autoPlay/>
             {(!isJoined || !member.cameraEnable) && <MemberNoVideo>

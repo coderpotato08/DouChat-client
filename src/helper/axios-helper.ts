@@ -58,7 +58,7 @@ export const AxiosHelper = {
   get(url: string, config?:AxiosRequestConfig) {
     return axiosInstance.get(url, config);
   },
-  post<T>(url: string, params?: any, config?:AxiosRequestConfig) {
-    return axiosInstance.post<Result<T>>(url, params, config);
+  post<T>(url: string, params?: any, config?:AxiosRequestConfig): Promise<T> {
+    return axiosInstance.post(url, params, config);
   },
 }

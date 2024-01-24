@@ -4,7 +4,7 @@ import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
 import { Avatar, Button, Input, Modal, message } from "antd"
 import { debounce, isEmpty } from "lodash";
-import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
 interface AddFriendModalProps {
@@ -24,7 +24,7 @@ const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
 
   const onChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { target: { value } } = e;
-    setKeyWord(() => value);
+    setKeyWord(value);
   }
 
   const onSearch = useMemo(() => {
