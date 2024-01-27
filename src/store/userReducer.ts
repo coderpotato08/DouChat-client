@@ -2,13 +2,6 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 import { LocalStorageHelper, StorageKeys } from '../helper/storage-helper';
 
-export interface UserState {
-  onlineUser: any,
-  onlineNum: number,
-  userInfo: any,
-  friendNoteNum: number
-}
-
 const saveOnlineStorage = (onlineUser: Record<string, any>, num: number) => {
   LocalStorageHelper.setItem(StorageKeys.ONLINE_USER, onlineUser);
   LocalStorageHelper.setItem(StorageKeys.ONLINE_NUM, num);
@@ -79,9 +72,7 @@ export const {
   subFriendNoteNum,
 } = userSlice.actions;
 export const userSelector = (state: any) => state.user.userInfo;
-export const notificationMapSelector = (state: any) => ({
-  friendNoteNum: state.user.friendNoteNum
-})
+export const friendNoteNumSelector = (state: any) => (state.user.friendNoteNum)
 export const onlineInfoSelector = (state: any) => ({
   onlineUser: state.user.onlineUser,
   onlineNum: state.user.onlineNum,

@@ -1,14 +1,14 @@
 import { Form, Input, Modal, Select, Space, Switch } from "antd";
-import { CreateMeetingParamsType } from "@constant/api-const";
+import { CreateMeetingParamsType } from "@constant/api-types";
 import { FC, useCallback, useEffect, useState } from "react";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
 import { styled } from "styled-components";
 import { ApiHelper } from "@helper/api-helper";
 import { useNavigate } from "react-router-dom";
-import { RoleType } from "@constant/meeting-const";
+import { RoleType } from "@constant/meeting-types";
 import { useSocket } from "@store/context/createContext";
-import { EventType } from "@constant/socket-const";
+import { EventType } from "@constant/socket-types";
 import { formLayout } from "@helper/common-helper";
 
 const FormItemLayout = formLayout(6, 16);

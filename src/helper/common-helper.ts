@@ -1,4 +1,10 @@
+import dayjs from "dayjs";
 import { createUidV4 } from "./uuid-helper";
+import { isEmpty } from "lodash";
+
+const REMOVE_HTML_TAG_REGEXP = /<.*?>/g
+const FORMAT_IMG_TAG_TO_TEXT = /<img.*?>/g
+const weekdayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
 export const getQuery = () => {
   const urlParams = new URLSearchParams(window.location.search);  
@@ -6,7 +12,6 @@ export const getQuery = () => {
   for (let param of urlParams.entries()) {  
       params[param[0]] = param[1];  
   }  
-
   return params; 
 }
 
@@ -15,6 +20,56 @@ export const formLayout = (labelSpan: number, wrapperSpan: number) => {
     labelCol: { span: labelSpan },
     wrapperCol: { span: wrapperSpan },
   }
+}
+
+export const formatShowMessage = (content: string): string => { // 处理左侧聊天栏最近一条消息文本
+  if (content == '' && !content) return ''
+  let str = content;
+  str = str.replace(FORMAT_IMG_TAG_TO_TEXT, "[图片]");
+  str = str.replace(REMOVE_HTML_TAG_REGEXP, "");
+  return str
+}
+
+export const getReceiverAndSender = (users: any, currentUserId: string) => {
+  if (isEmpty(users)) {
+    return {receiver: {}, sender: {}}
+  }
+  return {
+    receiver: users[0]._id === currentUserId ? users[1] : users[0],
+    sender: users[0]._id === currentUserId ? users[1] : users[0],
+  }
+}
+
+export const formatMessageTime = (curTime: string) => {  // 处理消息发送时间
+  if(!curTime) return ""
+  const curDate = dayjs(curTime), nowDate = dayjs();
+  const diffDay = nowDate.diff(curDate, "day"),
+    diffYear = nowDate.diff(curDate, "year");
+  const timeStr = curDate.format("HH:mm");
+  let str = "";
+  if(diffDay < 1) {  // 展示具体时间
+    if (curDate.isSame(nowDate, 'day')) {
+      str = `${timeStr}`
+    } else {
+      str = `昨天 ${timeStr}`
+    }
+  } else if (diffDay >= 1 && diffDay < 3) { // 展示昨天/前天 xx:xx
+    const dayStr = diffDay === 1 ? "昨天" : "前天"
+    str = `${dayStr} ${timeStr}`
+    // str = `${dayStr} ${timeStr}`
+  } else if (diffDay >=3 && diffDay < 7) { // 展示星期 xx:xx
+    const weekday = curDate.day();
+    str = `${weekdayNames[weekday]} ${timeStr}`
+  } else if (diffDay >= 7 && diffYear < 1) {  // 展示日期 xx:xx
+    if (curDate.isSame(nowDate, 'year')) {
+      str = curDate.format("MM-DD HH:mm");
+    } else {
+      str = curDate.format("YYYY-MM-DD HH:mm");
+    }
+  } else {  // 展示 年月日
+    str = curDate.format("YYYY-MM-DD HH:mm");
+  }
+  return str;
 }
 
 export const textFormat = (content: string): string => {
@@ -43,6 +98,7 @@ export const removeExtraHtml = (content: string): string => {
 }
 
 export const base64ToImageFile = <T extends string>(base64: T): {file: File, key: T} => {
+  console.log(base64)
   let arr = base64.split(",");
   let mime = arr[0].match(/:(.*?);/)![1];
   let type = mime.match(/image\/(.+)/)![1];

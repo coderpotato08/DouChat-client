@@ -1,5 +1,5 @@
 import React, { ReactNode, useContext } from "react";
-import { socketHost } from "@constant/api-const";
+import { socketHost } from "@constant/api-types";
 import { io, Socket } from "socket.io-client";
 
 export const socket = io(socketHost, {

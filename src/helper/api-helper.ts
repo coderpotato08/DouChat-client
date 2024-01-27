@@ -6,12 +6,15 @@ import {
   UserMsgListParamsType,
   SearchUserParamsType,
   AddFriendParamsType,
-  loadFriendNotificationsParamsType,
+  LoadFriendNotificationsParamsType,
   ChangeFriendStatusParamsType,
-  loadFriendListParamsType,
-} from "@constant/api-const"
+  LoadFriendListParamsType,
+  LoadUserInfoParamsType,
+  LoadUserContactParamsType,
+} from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
-import { FriendApplyStatusEnum } from "@constant/friend-const"
+import { FriendApplyStatusEnum } from "@constant/friend-types"
+import { ContactInfoType, UserInfoType } from "@constant/user-types"
 
 export class ApiHelper {
   // --------------- 视频聊天 ----------------------
@@ -24,7 +27,10 @@ export class ApiHelper {
     return AxiosHelper.post(ApiEnum.LOAD_MEETING_INFO, params)
   }
   // --------------- 聊天室 ----------------------
-  // 查找用户
+  // 模糊查询用户
+  public static loadUserInfo = (params: LoadUserInfoParamsType) => {
+    return AxiosHelper.post<UserInfoType>(ApiEnum.LOAD_USER_INFO, params)
+  }
   public static searchUsers = (params: SearchUserParamsType) => {
     return AxiosHelper.post(ApiEnum.SEARCH_USERS, params)
   }
@@ -40,7 +46,7 @@ export class ApiHelper {
     }>(ApiEnum.CHANGE_FRIEND_STATUS, params)
   }
   // 好友通知列表
-  public static loadFriendNotifications = (params: loadFriendNotificationsParamsType) => {
+  public static loadFriendNotifications = (params: LoadFriendNotificationsParamsType) => {
     return AxiosHelper.post<{
       friendList: Array<{
         userId: any,
@@ -51,7 +57,7 @@ export class ApiHelper {
     }>(ApiEnum.FRIEND_NOTIFICATION, params)
   }
   // 好友列表
-  public static loadFriendList = (params: loadFriendListParamsType) => {
+  public static loadFriendList = (params: LoadFriendListParamsType) => {
     return AxiosHelper.post<{
       friendList: Array<{
         userId: any,
@@ -62,10 +68,13 @@ export class ApiHelper {
     }>(ApiEnum.FRIEND_LIST, params)
   }
   // 加载聊天栏用户列表
-  public static loadUserContacts = (params: UserContactsParamsType) => {
-    return AxiosHelper.post(ApiEnum.LOAD_USER_CONTACT, params)
+  public static loadUserContactList = (params: UserContactsParamsType) => {
+    return AxiosHelper.post<Array<ContactInfoType>>(ApiEnum.LOAD_USER_CONTACT_LIST, params)
   }
-
+  // 加载某个聊天栏
+  public static loadUserContact = (params: LoadUserContactParamsType) => {
+    return AxiosHelper.post<ContactInfoType>(ApiEnum.LOAD_USER_CONTACT, params)
+  }
   // 加载用户聊天记录
   public static loadUserMsgList = (params: UserMsgListParamsType) => {
     return AxiosHelper.post(ApiEnum.LOAD_USER_MESSAGE_LIST, params)

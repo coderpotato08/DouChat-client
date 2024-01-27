@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { EventType } from "@constant/socket-const";
+import { EventType } from "@constant/socket-types";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
 import { 
@@ -23,7 +23,7 @@ import {
   UserData, 
   UsersList,
   UserStatus,
-} from "@constant/meeting-const";
+} from "@constant/meeting-types";
 import { ApiHelper } from "@helper/api-helper";
 import { isEmpty } from "lodash"
 import { Avatar, Button, Modal, message } from "antd";

@@ -18,7 +18,6 @@ const EmojiPicker = (props: EmojiPickerProps) => {
   const [open, setOpen] = useState<boolean>(false);
 
   const onSelectEmoji = useCallback((emojiInfo: any, event: PointerEvent) => {
-    setOpen(false)
     onSelect(emojiInfo, event)
   }, [])
 

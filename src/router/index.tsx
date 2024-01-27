@@ -5,6 +5,7 @@ import VideoMeeting from '@pages/video/video-meeting';
 import Test from '@pages/video/test';
 import { RouteObject, Navigate } from 'react-router-dom';
 import Friend from '@pages/chat/friend';
+import ChatContainer from '@pages/chat/components/chat-container';
 
 const router: RouteObject[] = [
   {
@@ -22,6 +23,12 @@ const router: RouteObject[] = [
       {
         path: "message",
         element: <Message/>,
+        children: [
+          {
+            path: ":id",
+            element: <ChatContainer/>,
+          },
+        ]
       },
       {
         path: "friend",

@@ -15,4 +15,5 @@ export enum EventType {
   ADD_USER = "add-user",
   SEND_MESSAGE = "send-message",
   RECEIVE_MESSAGE = "receive-message",
+  READ_MESSAGE = "read-message",
 }

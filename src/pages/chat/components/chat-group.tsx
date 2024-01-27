@@ -1,5 +1,8 @@
-import { Avatar, Input, Badge } from "antd";
-import React, { FC, ReactNode, useCallback } from "react";
+import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
+import { useAppSelector } from "@store/hooks";
+import { userSelector } from "@store/userReducer";
+import { Avatar, Badge, Input } from "antd";
+import React, { FC, ReactNode } from "react";
 import styled from 'styled-components';
 
 interface ChatGroupProps {
@@ -9,21 +12,25 @@ interface ChatGroupProps {
 }
 
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
+  const userInfo = useAppSelector(userSelector);
   const { list, selectedId, onChangeChat } = props;
   
   const renderGroupItem = (item: any): ReactNode => {
-    const { receiver, _id: chatId, recentMesage } = item;
-    return <div key={chatId}
-                className={selectedId === chatId ? "group-item active" : "group-item"}
+    const { users, contactId, recentMessage = {}, unreadNum = 0 } = item;
+    const { msgContent = "", time } = recentMessage;
+    const receiver = users[0]._id === userInfo._id ? users[1] : users[0]
+    return <div key={contactId}
+                className={selectedId === contactId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
       <Avatar style={{flexShrink: 0}} size={48} src={receiver.avatarImage}/>
       <div className="info">
         <div className="name-line">
           <span className="name">{receiver.username}</span>
-          <span className="date">12:45</span>
+          <span className="date">{formatMessageTime(time)}</span>
         </div>
         <div className="msg-line">
-          <div className="msg">{recentMesage && recentMesage.msgContent}</div>
+          <div className="msg">{formatShowMessage(msgContent)}</div>
+          <Badge size="small" count={unreadNum}/>
         </div>
       </div>
     </div>
@@ -74,6 +81,7 @@ const GroupWrapper = styled.div`
       .info {
         margin-left: 12px;
         flex: 1;
+        overflow: hidden;
         .name-line {
           display: flex;
           height: 24px;
@@ -84,6 +92,8 @@ const GroupWrapper = styled.div`
             flex: 1;
           }
           .date {
+            font-size: 12px;
+            color: #666;
             margin-left: auto;
           }
         }

@@ -15,6 +15,7 @@ export const ContainerWrapper = styled.div`
   & {
     position: relative;
     width: calc(100vw - 345px);
+    overflow-y: scroll;
     height: 100vh;
     background: #F3F3F3;
   }

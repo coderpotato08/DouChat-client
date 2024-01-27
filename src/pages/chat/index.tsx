@@ -6,9 +6,9 @@ import { Avatar, Button, notification } from 'antd';
 import { useAppSelector } from '../../store/hooks';
 import { userSelector } from '../../store';
 import { useSocket } from '@store/context/createContext';
-import { EventType } from '@constant/socket-const';
-import { CreateMeetingParamsType } from '@constant/api-const';
-import { RoleType } from '@constant/meeting-const';
+import { EventType } from '@constant/socket-types';
+import { CreateMeetingParamsType } from '@constant/api-types';
+import { RoleType } from '@constant/meeting-types';
 
 const menuList = [
   {
@@ -85,9 +85,13 @@ const Chat:FC = () => {
   }, []);
 
   useEffect(() => {
-    const splitPath = pathname.split("/");
-    const curPath = splitPath[splitPath.length - 1];
-    setSelectedKey(curPath);
+    if(pathname.includes("message")) {
+      setSelectedKey("message");
+    } else {
+      const splitPath = pathname.split("/");
+      const curPath = splitPath[splitPath.length - 1];
+      setSelectedKey(curPath);
+    }
   }, [pathname])
 
   return (

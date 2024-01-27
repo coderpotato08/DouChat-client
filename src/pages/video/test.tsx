@@ -1,6 +1,6 @@
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
-import { RoleType } from "../../constant/meeting-const";
+import { RoleType } from "../../constant/meeting-types";
 import { useState } from "react";
 import CreateMeetingModal from "../../components/create-meeting-modal";
 

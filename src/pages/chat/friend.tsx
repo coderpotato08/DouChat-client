@@ -5,11 +5,12 @@ import styled from "styled-components";
 import ChatTitle from "./components/chat-title";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
-import { notificationMapSelector, setFriendNoteNum, subFriendNoteNum, userSelector } from "@store/userReducer";
+import { friendNoteNumSelector, setFriendNoteNum, subFriendNoteNum, userSelector } from "@store/userReducer";
 import { Avatar, Badge, Menu, MenuProps, Button, message } from "antd";
-import { FriendApplyStatusEnum } from "@constant/friend-const";
+import { FriendApplyStatusEnum } from "@constant/friend-types";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import dayjs from "dayjs";
+import FriendInfo from "./components/friend-info";
 
 enum TabKeys {
   FRIEND_NOTIFICATION = "FRIEND_NOTIFICATION",
@@ -42,14 +43,14 @@ const items: MenuProps['items'] = [
 
 const Friend: FC = () => {
   const userInfo = useAppSelector(userSelector);
-  const { friendNoteNum } = useAppSelector(notificationMapSelector)
+  const friendNoteNum = useAppSelector(friendNoteNumSelector);
   const dispatch = useAppDispatch();
   const [currentMenu, setCurrentMenu] = useState<string>(MenuKeys.FRIEND);
-  const [currentKey, setCurrentKey] = useState<TabKeys>()
-  const [currentInfo, setCurrentInfo] = useState<any>()
-  const [friendList, setFriendList] = useState<any[]>([])
-  const [friendNotificationList, setFriendNotificationList] = useState<any[]>([])
-  const [groupList, setGroupList] = useState<any[]>([])
+  const [currentKey, setCurrentKey] = useState<TabKeys>();
+  const [curFriendId, setCurFriendId] = useState<any>();
+  const [friendList, setFriendList] = useState<any[]>([]);
+  const [friendNotificationList, setFriendNotificationList] = useState<any[]>([]);
+  const [groupList, setGroupList] = useState<any[]>([]);
 
   const onClickMenu: MenuProps['onClick'] = (e) => {
     setCurrentMenu(e.key);
@@ -57,6 +58,12 @@ const Friend: FC = () => {
 
   const onClickItem = (key: TabKeys) => {
     setCurrentKey(key);
+  }
+
+  const onClickFriend = (friendInfo: any) => {
+    const { _id } = friendInfo;
+    setCurrentKey(TabKeys.FRIEND_INFO);
+    setCurFriendId(_id)
   }
 
   const handleFriendApply = (id: string, status: FriendApplyStatusEnum, index: number) => {
@@ -115,8 +122,8 @@ const Friend: FC = () => {
               {
                 friendList.length > 0 ? 
                 friendList.map((friend) => {
-                  const { avatarImage, nickname } = friend._id === userInfo._id ? friend.friendId : friend.userId;
-                  return <FriendItem key={friend._id}>
+                  const { avatarImage, nickname } = friend.friendInfo
+                  return <FriendItem key={friend._id} onClick={() => onClickFriend(friend.friendInfo)}>
                     <Avatar size={48} src={avatarImage}/>
                     <div className="friend-info">
                       <div>{nickname}</div>
@@ -139,7 +146,10 @@ const Friend: FC = () => {
         </ListBox>
       </GroupWrapper>
       <ContainerWrapper>
-        {currentKey && <ContainerTitle>{TabTitle[currentKey]}</ContainerTitle>}
+        {
+          currentKey && currentKey !== TabKeys.FRIEND_INFO && 
+            <ContainerTitle>{TabTitle[currentKey]}</ContainerTitle>
+        }
         {
           currentKey === TabKeys.FRIEND_NOTIFICATION && <FriendNotification>
             <TransitionGroup>
@@ -181,6 +191,9 @@ const Friend: FC = () => {
             </TransitionGroup>
           </FriendNotification>
         }
+        {
+          currentKey === TabKeys.FRIEND_INFO && <FriendInfo friendId={curFriendId}/>
+        }
       </ContainerWrapper>
     </Wrapper>
   </SocketProvider>
@@ -220,6 +233,7 @@ const ListBox = styled.div`
 `
 const BaseItem = styled.div`
   & {
+    cursor: pointer;
     box-sizing: border-box;
     display: flex;
     align-items: center;

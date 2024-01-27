@@ -3,40 +3,62 @@ import ChatAvatar from "../../../components/chat-avatar";
 import { Flex } from "antd";
 import MessageBox from "./message-box";
 import { useState, useEffect, useRef, FC } from "react";
-import { useAppSelector } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { userSelector } from "../../../store";
 import ChatInput from "./chat-input";
-import { EventType } from "../../../constant/socket-const";
+import { EventType } from "../../../constant/socket-types";
 import { isEmpty } from "lodash";
-import { UserMsgListParamsType } from "../../../constant/api-const";
+import { UserMsgListParamsType } from "../../../constant/api-types";
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
+import { ContactInfoType } from "@constant/user-types";
+import { useParams } from "react-router-dom";
+import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
+import { getReceiverAndSender } from "@helper/common-helper";
 
-interface ChatContainerProps {
-  selectedChat: any
-}
-
-const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
-  const { selectedChat } = props;
+const ChatContainer:FC = () => {
   const socket = useSocket();
+  const dispatch = useAppDispatch();
   const scrollRef: any = useRef(null);
   const userInfo = useAppSelector(userSelector);
+  const messageList = useAppSelector(messageListSelector);
+  const { id } = useParams();
   const [receiveMessage, setReceiveMessage] = useState(null);
-  const [messageList, setMessageList] = useState<any[]>([]);
-  
+  // const [messageList, setMessageList] = useState<any[]>([]);
+  const [selectedChat, setSelectedChat] = useState<ContactInfoType>();
+
+  useEffect(() => {
+    ApiHelper.loadUserContact({ contactId: id! })
+      .then((res) => {
+        setSelectedChat(res);
+      })
+  }, [id])
+
   useEffect(() => {
     socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
     if (!isEmpty(selectedChat)) {
-      loadMessageList(selectedChat.sender, selectedChat.receiver);
+      const { users } = selectedChat || {};
+      loadMessageList(users[0], users[1]);
     }
     return () => {
       socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+      id && dispatch(cacheMessageList({contactId: id}));
     }
   }, [selectedChat]);
 
   useEffect(() => {
-    receiveMessage && setMessageList((prev) => [...prev, receiveMessage])
+    if (receiveMessage) {
+      const { fromId, toId }: { fromId: any, toId: any } = receiveMessage;
+      const contactId = [fromId._id, toId._id].sort().join("_");
+      if(contactId === id) {
+        dispatch(addMessage({ message: receiveMessage }))
+        socket.emit(EventType.READ_MESSAGE, {
+          fromId: fromId._id,
+          toId: toId._id
+        });
+      }
+    }
   }, [receiveMessage]);
 
   useEffect(() => {
@@ -59,12 +81,13 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
     }
     ApiHelper.loadUserMsgList(params)
       .then((res: any) => {
-        setMessageList(res.messageList || [])
+        dispatch(pushMessageList({messageList: res.messageList}));
       })
   }
   
   const onSubmitMessage = (value: string) => {
-    const { receiver } = selectedChat;
+    const { users } = selectedChat || {};
+    const { receiver } = getReceiverAndSender(users, userInfo._id)
     const params = {
       fromId: userInfo._id,
       toId: receiver._id,
@@ -73,24 +96,24 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
       time: new Date(),
     };
     socket!.emit(EventType.SEND_MESSAGE, params);
-    setMessageList([...messageList, {
+    const message = {
       ...params,
       uid: createUidV4(),
       fromId: userInfo,
       toId: receiver,
-    }])
+    }
+    dispatch(addMessage({ message }))
   }
 
   const onReceiveMessage = (msgData: any) => {
-    const { receiver } = selectedChat;
     setReceiveMessage({
       ...msgData,
-      fromId: receiver,
-      toId: userInfo,
       uid: createUidV4(),
     })
   }
-  const { sender, receiver } = selectedChat;
+
+  const { users } = selectedChat || {};
+  const { receiver = {}, sender = {} } = getReceiverAndSender(users, userInfo._id);
   const headerInfo = sender._id === userInfo._id ? receiver : sender
   return <ChatContainerWrapper>
     {/* 头部 */}
@@ -104,12 +127,14 @@ const ChatContainer:FC<ChatContainerProps> = (props: ChatContainerProps) => {
     <ContainerContent ref={scrollRef}>
       <Flex vertical gap={10}>
         {
-          messageList.map((info: any) => {
+          !isEmpty(messageList) && messageList.map((info: any, index) => {
             const { fromId: sender } = info;
-            const isSelt = sender._id === userInfo._id;
+            const isSelf = sender._id === userInfo._id;
+            const prevTime = index > 0 ? messageList[index-1].time : null;
             return <MessageBox key={info.uid || info._id}
+                               prevTime={prevTime}
                                messageInfo={info} 
-                               isSelf={isSelt}/>
+                               isSelf={isSelf}/>
           })
         }
       </Flex>

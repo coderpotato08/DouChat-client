@@ -1,4 +1,4 @@
-import { AddFriendParamsType, SearchUserParamsType } from "@constant/api-const";
+import { AddFriendParamsType, SearchUserParamsType } from "@constant/api-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
