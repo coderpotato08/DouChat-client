@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4362129 */
-  src: url('//at.alicdn.com/t/c/font_4362129_8y7vbr97ypi.woff2?t=1705919036406') format('woff2'),
-       url('//at.alicdn.com/t/c/font_4362129_8y7vbr97ypi.woff?t=1705919036406') format('woff'),
-       url('//at.alicdn.com/t/c/font_4362129_8y7vbr97ypi.ttf?t=1705919036406') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_4362129_q0znxks5bwr.woff2?t=1706434596506') format('woff2'),
+       url('//at.alicdn.com/t/c/font_4362129_q0znxks5bwr.woff?t=1706434596506') format('woff'),
+       url('//at.alicdn.com/t/c/font_4362129_q0znxks5bwr.ttf?t=1706434596506') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,18 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-guanbi:before {
+  content: "\e6c6";
+}
+
+.icon-faqiqunliao:before {
+  content: "\e609";
+}
+
+.icon-quanbu:before {
+  content: "\e60b";
 }
 
 .icon-friend-fill:before {
@@ -81,6 +93,6 @@
   content: "\e62d";
 }
 
-.icon-addmessage:before {
+.icon-add-group:before {
   content: "\e743";
 }

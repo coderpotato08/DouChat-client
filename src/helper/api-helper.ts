@@ -11,9 +11,10 @@ import {
   LoadFriendListParamsType,
   LoadUserInfoParamsType,
   LoadUserContactParamsType,
+  CreateGroupParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
-import { FriendApplyStatusEnum } from "@constant/friend-types"
+import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
 import { ContactInfoType, UserInfoType } from "@constant/user-types"
 
 export class ApiHelper {
@@ -26,7 +27,15 @@ export class ApiHelper {
   public static loadMeetingInfo = (params: LoadMeetingInfoParamsType) => {
     return AxiosHelper.post(ApiEnum.LOAD_MEETING_INFO, params)
   }
-  // --------------- 聊天室 ----------------------
+  // --------------- 群聊聊天 -----------------------
+  // 创建群聊
+  public static createGroup = (params: CreateGroupParamsType) => {
+    return AxiosHelper.post<{
+      groupId: string,
+      status: "success" | "fail"
+    }>(ApiEnum.CREATE_GROUP, params);
+  }
+  // --------------- 私人聊天 -----------------------
   // 模糊查询用户
   public static loadUserInfo = (params: LoadUserInfoParamsType) => {
     return AxiosHelper.post<UserInfoType>(ApiEnum.LOAD_USER_INFO, params)
@@ -60,8 +69,7 @@ export class ApiHelper {
   public static loadFriendList = (params: LoadFriendListParamsType) => {
     return AxiosHelper.post<{
       friendList: Array<{
-        userId: any,
-        friendId: string,
+        friendInfo: FriendInfoType
         status: FriendApplyStatusEnum,
         createTime: Date,
       }>
