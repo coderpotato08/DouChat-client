@@ -16,6 +16,7 @@ import { ContactInfoType } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
 import { getReceiverAndSender } from "@helper/common-helper";
+import dayjs from "dayjs";
 
 const ChatContainer:FC = () => {
   const socket = useSocket();
@@ -93,7 +94,7 @@ const ChatContainer:FC = () => {
       toId: receiver._id,
       msgType: 0,
       msgContent: value,
-      time: new Date(),
+      time: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     };
     socket!.emit(EventType.SEND_MESSAGE, params);
     const message = {

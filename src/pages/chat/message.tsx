@@ -27,38 +27,11 @@ const Message = () => {
   const [selectedChat, setSelectedChat] = useState<any>({});
   const [chatList, setChatList] = useState([]);
 
-  useEffect(() => {
-    socket.emit(EventType.ADD_USER, userInfo);
-    dispatch(addUser({
-      [userInfo.username]: userInfo
-    }));
-    loadUserChatList();
-  }, []);
-
-  useEffect(() => {
-    socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
-    return () => {
-      socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
-    }
-  }, [selectedChat])
-
-  useEffect(() => {
-    if(!isEmpty(recentSubmitMessage)) {
-      const newChatList = cloneDeep(chatList);
-      newChatList.forEach((chat: any) => {
-        if(chat.contactId === id) {
-          chat.recentMessage = recentSubmitMessage
-        }
-      })
-      setChatList(newChatList);
-    }
-  }, [recentSubmitMessage])
-
-  const onReceiveMessage = (msgData: any) => {
+  const onReceiveMessage = useCallback((msgData: any) => {
     const { fromId, toId } = msgData;
     const receiveContactId = [fromId._id, toId._id].sort().join("_");
     if(receiveContactId !== selectedChat.contactId) {
-      const newChatList = cloneDeep(chatList)
+      const newChatList = cloneDeep(chatList);
       newChatList.forEach((chat: any) => {
         if(chat.contactId === receiveContactId) {
           chat.recentMessage = {
@@ -70,7 +43,7 @@ const Message = () => {
       })
       setChatList(newChatList);
     }
-  }
+  }, [selectedChat, chatList])
 
   const onClickContact = (item: any) => {
     const users = item.contactId.split("_");
@@ -105,6 +78,33 @@ const Message = () => {
         }
       })
   }
+
+  useEffect(() => {
+    socket.emit(EventType.ADD_USER, userInfo);
+    dispatch(addUser({
+      [userInfo.username]: userInfo
+    }));
+    loadUserChatList();
+  }, []);
+
+  useEffect(() => {
+    socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    return () => {
+      socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    }
+  }, [onReceiveMessage])
+
+  useEffect(() => {
+    if(!isEmpty(recentSubmitMessage)) {
+      const newChatList = cloneDeep(chatList);
+      newChatList.forEach((chat: any) => {
+        if(chat.contactId === id) {
+          chat.recentMessage = recentSubmitMessage
+        }
+      })
+      setChatList(newChatList);
+    }
+  }, [recentSubmitMessage])
 
   return <SocketProvider>
     <Wrapper>
