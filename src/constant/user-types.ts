@@ -6,7 +6,7 @@ export type UserInfoType = {
   avatarImage?: string,
   token?: string,
   updatedAt?: Date,
-  createdAt: Date,
+  createdAt?: Date,
 }
 
 export type ContactInfoType = {

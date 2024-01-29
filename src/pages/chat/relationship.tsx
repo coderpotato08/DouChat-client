@@ -11,16 +11,20 @@ import { FriendApplyStatusEnum } from "@constant/friend-types";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import dayjs from "dayjs";
 import FriendInfo from "./components/friend-info";
+import ChatAvatar from "@components/chat-avatar";
+import GroupInfo from "./components/group-info";
 
 enum TabKeys {
   FRIEND_NOTIFICATION = "FRIEND_NOTIFICATION",
   GROUP_NOTIFICATION = "GROUP_NOTIFICATION",
   FRIEND_INFO = "FRIEND_INFO",
+  GROUP_INFO = "GROUP_INFO",
 }
 const TabTitle = {
   [TabKeys.FRIEND_NOTIFICATION]: "好友通知",
   [TabKeys.GROUP_NOTIFICATION]: "群通知",
   [TabKeys.FRIEND_INFO]: "好友信息",
+  [TabKeys.GROUP_INFO]: "群信息",
 }
 
 enum MenuKeys {
@@ -41,13 +45,14 @@ const items: MenuProps['items'] = [
   },
 ]
 
-const Friend: FC = () => {
+const Relationship: FC = () => {
   const userInfo = useAppSelector(userSelector);
   const friendNoteNum = useAppSelector(friendNoteNumSelector);
   const dispatch = useAppDispatch();
   const [currentMenu, setCurrentMenu] = useState<string>(MenuKeys.FRIEND);
   const [currentKey, setCurrentKey] = useState<TabKeys>();
   const [curFriendId, setCurFriendId] = useState<any>();
+  const [curGroupInfo, setCurGroupInfo] = useState<any>();
   const [friendList, setFriendList] = useState<any[]>([]);
   const [friendNotificationList, setFriendNotificationList] = useState<any[]>([]);
   const [groupList, setGroupList] = useState<any[]>([]);
@@ -64,6 +69,11 @@ const Friend: FC = () => {
     const { _id } = friendInfo;
     setCurrentKey(TabKeys.FRIEND_INFO);
     setCurFriendId(_id)
+  }
+
+  const onClickGroup = (groupInfo: any) => {
+    setCurrentKey(TabKeys.GROUP_INFO);
+    setCurGroupInfo(groupInfo);
   }
 
   const handleFriendApply = (id: string, status: FriendApplyStatusEnum, index: number) => {
@@ -89,6 +99,22 @@ const Friend: FC = () => {
         setFriendList(friendList);
       })
   }
+  
+  const loadGroupList = () => {
+    ApiHelper.loadGroupList({userId: userInfo._id})
+      .then((list) => {
+        setGroupList(list);
+      })
+  }
+
+  useEffect(() => {
+    if(!currentMenu) return;
+    if(currentMenu === MenuKeys.FRIEND) {
+      loadFriendList();
+    } else {
+      loadGroupList();
+    }
+  }, [currentMenu])
 
   useEffect(() => {
     ApiHelper.loadFriendNotifications({userId: userInfo._id})
@@ -96,7 +122,6 @@ const Friend: FC = () => {
         dispatch(setFriendNoteNum({ num: friendList.length }));
         setFriendNotificationList(friendList);
       })
-    loadFriendList();
   }, []);
 
   return <SocketProvider>
@@ -123,13 +148,13 @@ const Friend: FC = () => {
                 friendList.length > 0 ? 
                 friendList.map((friend) => {
                   const { avatarImage, nickname } = friend.friendInfo
-                  return <FriendItem key={friend._id} onClick={() => onClickFriend(friend.friendInfo)}>
+                  return <BaseItem key={friend._id} onClick={() => onClickFriend(friend.friendInfo)}>
                     <Avatar size={48} src={avatarImage}/>
-                    <div className="friend-info">
+                    <div className="info">
                       <div>{nickname}</div>
                       <div>{"这个人很懒什么都没留下～"}</div>
                     </div>
-                  </FriendItem>
+                  </BaseItem>
                 }) : <>暂无好友</>
               }
             </>
@@ -138,8 +163,16 @@ const Friend: FC = () => {
             currentMenu === MenuKeys.GROUP && <>
               {
                 groupList.length > 0 ? 
-                groupList.map((friend) => <GroupItem key={friend._id}>
-                </GroupItem>) : <>暂无群聊</>
+                groupList.map((group) => {
+                  const { groupInfo, _id } = group;
+                  return <BaseItem key={_id} onClick={() => onClickGroup(groupInfo)}>
+                    <ChatAvatar isGroup groupImgList={groupInfo.usersAvaterList}/>
+                    <div className="info">
+                      <div>{groupInfo.groupName}</div>
+                      <div>{groupInfo.sign}</div>
+                    </div>
+                  </BaseItem>
+                }) : <NoData>暂无群聊</NoData>
               }
             </>
           }
@@ -147,7 +180,7 @@ const Friend: FC = () => {
       </GroupWrapper>
       <ContainerWrapper>
         {
-          currentKey && currentKey !== TabKeys.FRIEND_INFO && 
+          currentKey && currentKey === TabKeys.FRIEND_NOTIFICATION && 
             <ContainerTitle>{TabTitle[currentKey]}</ContainerTitle>
         }
         {
@@ -191,15 +224,14 @@ const Friend: FC = () => {
             </TransitionGroup>
           </FriendNotification>
         }
-        {
-          currentKey === TabKeys.FRIEND_INFO && <FriendInfo friendId={curFriendId}/>
-        }
+        {currentKey === TabKeys.FRIEND_INFO && <FriendInfo friendId={curFriendId}/>}
+        {currentKey === TabKeys.GROUP_INFO && <GroupInfo groupInfo={curGroupInfo}/>}
       </ContainerWrapper>
     </Wrapper>
   </SocketProvider>
 }
 
-export default Friend;
+export default Relationship;
 
 const Wrapper = styled.div`
   & {
@@ -241,23 +273,20 @@ const BaseItem = styled.div`
     width: 100%;
     padding: 0 12px;
     transition: all .4s;
-  }
-  &:hover {
-    background: #f2f2f2;
-  }
-`
-const FriendItem = styled(BaseItem)`
-  & {
-    .friend-info {
+    overflow: hidden;
+    .info {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      flex: 1;
+      width: calc(100% - 50px);
       height: 64px;
       div {
         margin-left: 12px;
         height: 20px;
         line-height: 20px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
       > div:nth-child(1) {
         font-size: 14px;
@@ -269,9 +298,8 @@ const FriendItem = styled(BaseItem)`
       }
     }
   }
-`
-const GroupItem = styled(BaseItem)`
-  & {
+  &:hover {
+    background: #f2f2f2;
   }
 `
 const ContainerTitle = styled.div`
@@ -345,3 +373,15 @@ const NotificationItem = styled(ShadowFloatBox)`
     }
   }
 `
+const NoData = styled.div`
+  & {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #666;
+    width: 100%;
+    height: 80px;
+  }
+` 

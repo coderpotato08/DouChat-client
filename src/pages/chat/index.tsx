@@ -17,8 +17,8 @@ const menuList = [
     icon: 'icon-message',
   },
   {
-    key: 'friend',
-    route: 'friend',
+    key: 'relationship',
+    route: 'relationship',
     icon: 'icon-friend',
   },
 ]

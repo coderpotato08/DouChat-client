@@ -4,7 +4,7 @@ import Login from "@pages/login";
 import VideoMeeting from '@pages/video/video-meeting';
 import Test from '@pages/video/test';
 import { RouteObject, Navigate } from 'react-router-dom';
-import Friend from '@pages/chat/friend';
+import Relationship from '@pages/chat/relationship';
 import ChatContainer from '@pages/chat/components/chat-container';
 
 const router: RouteObject[] = [
@@ -31,8 +31,8 @@ const router: RouteObject[] = [
         ]
       },
       {
-        path: "friend",
-        element: <Friend/>
+        path: "relationship",
+        element: <Relationship/>
       }
     ]
   },

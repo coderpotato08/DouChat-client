@@ -62,8 +62,6 @@ const AddGroupModal:FC<AddGroupModalProps> = (props: AddGroupModalProps) => {
         if(status === "success") {
           message.success(`${values.groupName} 群聊创建成功`);
           onCancel();
-        } else {
-          message.success(`群聊创建失败`)
         }
       })
       .catch(() => {})

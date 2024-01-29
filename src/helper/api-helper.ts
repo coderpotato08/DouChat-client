@@ -12,10 +12,13 @@ import {
   LoadUserInfoParamsType,
   LoadUserContactParamsType,
   CreateGroupParamsType,
+  LoadGroupListParamsType,
+  LoadGroupUsersParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
 import { ContactInfoType, UserInfoType } from "@constant/user-types"
+import { GroupApplyStatusEnum, GroupInfoType } from "@constant/group-types"
 
 export class ApiHelper {
   // --------------- 视频聊天 ----------------------
@@ -34,6 +37,19 @@ export class ApiHelper {
       groupId: string,
       status: "success" | "fail"
     }>(ApiEnum.CREATE_GROUP, params);
+  }
+  // 加载群聊列表
+  public static loadGroupList = (params: LoadGroupListParamsType) => {
+    return AxiosHelper.post<Array<{
+      state: GroupApplyStatusEnum,
+      time: string,
+      userInfo: UserInfoType,
+      groupInfo: GroupInfoType,
+    }>>(ApiEnum.LOAD_GROUP_LIST, params)
+  }
+  // 加载群用户列表
+  public static loadGroupUsers = (params: LoadGroupUsersParamsType) => {
+    return AxiosHelper.post<Array<UserInfoType>>(ApiEnum.LOAD_GROUP_USERS, params)
   }
   // --------------- 私人聊天 -----------------------
   // 模糊查询用户

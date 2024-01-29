@@ -17,6 +17,8 @@ export enum ApiEnum {
   LOAD_USER_MESSAGE_LIST = '/message/user-list', // 用户-消息记录
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   CREATE_GROUP = '/group/create', // 创建群聊
+  LOAD_GROUP_LIST = '/group/loadGroupList', // 加载群聊
+  LOAD_GROUP_USERS = '/group/loadGroupUsers', // 加载群用户列表
 }
 
 export interface UserContactsParamsType {
@@ -66,6 +68,11 @@ export interface CreateGroupParamsType {
   sign?: string,
 }
 
+export interface LoadGroupUsersParamsType {
+  groupId: string,
+}
+
 export interface LoadUserInfoParamsType extends UserContactsParamsType {}
 export interface LoadFriendListParamsType extends UserContactsParamsType {}
 export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}
+export interface LoadGroupListParamsType extends UserContactsParamsType {}

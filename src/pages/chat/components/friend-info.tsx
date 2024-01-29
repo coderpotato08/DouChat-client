@@ -1,9 +1,12 @@
+import InfoBox from "@components/info-box";
 import { UserInfoType } from "@constant/user-types";
 import { ApiHelper } from "@helper/api-helper";
+import { formLayout } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Button } from "antd";
-import React from "react";
+import { Avatar, Button, Col, Divider, Form, Row } from "antd";
+import dayjs from "dayjs";
+import React, { ReactNode } from "react";
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -11,10 +14,11 @@ import styled from "styled-components";
 interface FriendInfoProps {
   friendId: string
 }
+const FormLayout = formLayout(8, 16)
 const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
   const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
-  const [ friendInfo, setFriendInfo ] = useState<any>();
+  const [ friendInfo, setFriendInfo ] = useState<any>({});
 
   useEffect(() => {
     ApiHelper.loadUserInfo({ userId: props.friendId })
@@ -29,35 +33,65 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
     navigate(`/chat/message/${contactId}`);
   }
 
-  return <Wrapper>
-    <HeaderInfo>
-      
-    </HeaderInfo>
-    <OptionsWrapper>
+  const renderOptions = ():ReactNode => {
+    return <OptionsWrapper>
+      <Button size="large"
+              className="btn"
+              danger
+              type={"primary"}>移除好友</Button>
       <Button size="large" 
+              className={"btn"}
               type={"primary"}
               onClick={onClickSendMessage}>发消息</Button>
     </OptionsWrapper>
-  </Wrapper>
+  }
+
+  return <InfoBox title={"好友信息"} optionsNode={renderOptions()}>
+    <HeaderInfo>
+      <Avatar size={108} src={friendInfo.avatarImage}/>
+      <div className={"nickname"}>{friendInfo.nickname}</div>
+      <div className={"sign"}>{friendInfo.sign || "这个人很懒什么都没留下～"}</div>
+      <Divider orientation="center">个人信息</Divider>
+      <Row className={"personal-info"}>
+        <Col span={8}>
+          <Form.Item {...FormLayout} label={"用户账号"}>{friendInfo.username}</Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item {...FormLayout} label={"用户邮箱"}>{friendInfo.email}</Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item {...FormLayout} label={"创建时间"}>
+            {dayjs(friendInfo.createdAt).format("YYYY-MM-DD HH:mm:ss")}
+          </Form.Item>
+        </Col>
+      </Row>
+    </HeaderInfo>
+  </InfoBox>
 }
 
 export default React.memo(FriendInfo);
 
-const Wrapper = styled.div`
-  & {
-    position: relative;
-    margin: 48px;
-    width: calc(100% - 96px);
-    height: calc(100% - 96px);
-    min-height: 480px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 3px 3px rgba(0,0,0,.2);
-  }
-`
 const HeaderInfo = styled.div`
   & {
+    position: relative;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 60px;
+    width: 100%;
+    .nickname {
+      font-size: 24px;
+      margin: 12px 0 12px;
+    }
+    .sign {
+      width: 50%;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+    .personal-info {
+      width: 70%;
+    }
   }
 `
 const OptionsWrapper = styled.div`
@@ -67,9 +101,13 @@ const OptionsWrapper = styled.div`
     justify-content: center;
     gap: 24px;
     width: 100%;
-    height: 60px;
+    padding-bottom: 24px;
     position: absolute;
-    bottom: 24px;
+    bottom: 0;
     left: 0;
+    background: #fff;
+    .btn {
+      width: 105px;
+    }
   }
 `
