@@ -14,6 +14,7 @@ import {
   CreateGroupParamsType,
   LoadGroupListParamsType,
   LoadGroupUsersParamsType,
+  RegisterParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
@@ -102,6 +103,12 @@ export class ApiHelper {
   // 加载用户聊天记录
   public static loadUserMsgList = (params: UserMsgListParamsType) => {
     return AxiosHelper.post(ApiEnum.LOAD_USER_MESSAGE_LIST, params)
+  }
+  // 注册
+  public static register = (params: RegisterParamsType) => {
+    return AxiosHelper.post<{
+      status: "success" | "fail",
+    }>(ApiEnum.REIGSTER, params)
   }
 
   // 上传图片

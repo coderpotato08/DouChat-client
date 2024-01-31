@@ -155,7 +155,7 @@ const Relationship: FC = () => {
                       <div>{"这个人很懒什么都没留下～"}</div>
                     </div>
                   </BaseItem>
-                }) : <>暂无好友</>
+                }) : <NoData>暂无好友</NoData>
               }
             </>
           }

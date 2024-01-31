@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4362129 */
-  src: url('//at.alicdn.com/t/c/font_4362129_kljnjfc30er.woff2?t=1706539722722') format('woff2'),
-       url('//at.alicdn.com/t/c/font_4362129_kljnjfc30er.woff?t=1706539722722') format('woff'),
-       url('//at.alicdn.com/t/c/font_4362129_kljnjfc30er.ttf?t=1706539722722') format('truetype');
+  src: url('//at.alicdn.com/t/c/font_4362129_k8qo5mdmzik.woff2?t=1706608799363') format('woff2'),
+       url('//at.alicdn.com/t/c/font_4362129_k8qo5mdmzik.woff?t=1706608799363') format('woff'),
+       url('//at.alicdn.com/t/c/font_4362129_k8qo5mdmzik.ttf?t=1706608799363') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,18 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-login:before {
+  content: "\e624";
+}
+
+.icon-gender-girl:before {
+  content: "\e60a";
+}
+
+.icon-gender-man:before {
+  content: "\ebed";
 }
 
 .icon-add-user:before {

@@ -1,9 +1,11 @@
 import { FriendApplyStatusEnum } from '@constant/friend-types';
+import { GenderEnum } from './user-types';
 export const socketHost = "http://localhost:3040" // 聊天室socket
 export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
-
+export const avatarUrl = "https://api.multiavatar.com"   // multiavatar 获取随机头像
 export enum ApiEnum {
   LOGIN = "/user/login", // 登陆
+  REIGSTER = "/user/register",  // 注册
   SEARCH_USERS = "/user/search", // 模糊查询用户
   LOAD_USER_INFO = "/user/loadUserInfo", // 加载用户信息
   ADD_FRIEND = "/user/add-friend", // 添加用户
@@ -25,6 +27,15 @@ export interface UserContactsParamsType {
   userId: string
 }
 
+export interface RegisterParamsType {
+  nickname: string,
+  username: string,
+  password: string,
+  gender: GenderEnum,
+  avatarImage: string,
+  email?: string,
+  phoneNumber?: string,
+}
 export interface UserMsgListParamsType {
   fromId: string
   toId: string

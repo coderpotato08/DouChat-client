@@ -15,3 +15,8 @@ export type ContactInfoType = {
   users: [UserInfoType, UserInfoType],
   createTime: Date,
 }
+
+export enum GenderEnum {
+  MAN = 'man',
+  GIRL = 'girl',
+}

@@ -2,10 +2,10 @@ import Chat from '@pages/chat';
 import Message from '@pages/chat/message';
 import Login from "@pages/login";
 import VideoMeeting from '@pages/video/video-meeting';
-import Test from '@pages/video/test';
 import { RouteObject, Navigate } from 'react-router-dom';
 import Relationship from '@pages/chat/relationship';
 import ChatContainer from '@pages/chat/components/chat-container';
+import Register from '@pages/register';
 
 const router: RouteObject[] = [
   {
@@ -41,8 +41,8 @@ const router: RouteObject[] = [
     element: <VideoMeeting/>
   },
   {
-    path: "/test",
-    element: <Test/>
+    path: "/register",
+    element: <Register/>
   }
 ]
 

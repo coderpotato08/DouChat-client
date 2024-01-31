@@ -24,7 +24,6 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const [showMore, setShowMore] = useState<boolean>(false);
 
   const showUserList = useMemo(() => {
-    console.log(showMore, userList)
     return showMore ? userList : userList.slice(0, 19)
   }, [showMore, userList]);
 
@@ -55,17 +54,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     if (groupId) {
       ApiHelper.loadGroupUsers({groupId})
         .then((list) => {
-          const newList = [
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-            ...list, ...list, ...list, ...list, ...list,
-          ]
-          // const newList = list
-          setUserList(newList)
+          setUserList(list)
         })
     }
   }, [groupId]);
@@ -85,7 +74,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       </Row>
     </HeaderInfo>
     <Divider orientation="center">群用户</Divider>
-    <UserBox showMore={showMore}>
+    <UserBox $showMore={showMore}>
       {
         showUserList.map((user: UserInfoType) => <UserItem key={user._id}>
           <div className={"icon"}>
@@ -102,9 +91,12 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         <div className="label">添加</div>
       </UserItem>
     </UserBox>
-    <ExpandBtn ref={expandRef} onClick={() => setShowMore(!showMore)}>
-      {showMore ? "收起" : "展开"}
-    </ExpandBtn>
+    {
+      userList.length > 20 &&
+      <ExpandBtn ref={expandRef} onClick={() => setShowMore(!showMore)}>
+        {showMore ? "收起" : "展开"}
+      </ExpandBtn>
+    }
   </InfoBox>
 }
 
@@ -133,7 +125,7 @@ const HeaderInfo = styled.div`
   }
 `
 const UserBox = styled.div<{
-  showMore?: boolean
+  $showMore?: boolean
 }>`
   & {
     position: relative;
@@ -141,7 +133,7 @@ const UserBox = styled.div<{
     flex-wrap: wrap;
     padding: 0 72px;
     gap: 12px;
-    height: ${props => props.showMore ? "auto" : "142px"};
+    height: ${props => props.$showMore ? "auto" : "142px"};
     overflow: hidden;
   }
 `
