@@ -224,8 +224,15 @@ const Relationship: FC = () => {
             </TransitionGroup>
           </FriendNotification>
         }
-        {currentKey === TabKeys.FRIEND_INFO && <FriendInfo friendId={curFriendId}/>}
-        {currentKey === TabKeys.GROUP_INFO && <GroupInfo groupInfo={curGroupInfo}/>}
+        {
+          currentKey === TabKeys.FRIEND_INFO && 
+            <FriendInfo friendId={curFriendId}/>
+        }
+        {
+          currentKey === TabKeys.GROUP_INFO && 
+            <GroupInfo groupInfo={curGroupInfo}
+                       cleanInfo={() => setCurGroupInfo({})}/>
+        }
       </ContainerWrapper>
     </Wrapper>
   </SocketProvider>

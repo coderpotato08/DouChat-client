@@ -14,6 +14,7 @@ const FormLayout = formLayout(8, 16)
 
 interface GroupInfoProps {
   groupInfo: any
+  cleanInfo: () => void
 }
 const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const expandRef = useRef<any>(null);
@@ -22,6 +23,10 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const userInfo = useAppSelector(userSelector);
   const [userList, setUserList] = useState<any[]>([]);
   const [showMore, setShowMore] = useState<boolean>(false);
+
+  const isCreator = useMemo(() => {
+    return groupInfo && groupInfo.creator._id === userInfo._id;
+  }, [groupInfo]);
 
   const showUserList = useMemo(() => {
     return showMore ? userList : userList.slice(0, 19)
@@ -42,7 +47,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       <Button size="large"
               className="btn"
               danger
-              type={"primary"}>退出群聊</Button>
+              type={"primary"}>{isCreator ? "解散群聊" : "退出群聊"}</Button>
       <Button size="large" 
               className="btn"
               type={"primary"}

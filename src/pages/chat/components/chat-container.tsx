@@ -51,7 +51,7 @@ const ChatContainer:FC = () => {
   useEffect(() => {
     if (receiveMessage) {
       const { fromId, toId }: { fromId: any, toId: any } = receiveMessage;
-      const contactId = [fromId._id, toId._id].sort().join("_");
+      const contactId = [toId._id, fromId._id].join("_");
       if(contactId === id) {
         dispatch(addMessage({ message: receiveMessage }))
         socket.emit(EventType.READ_MESSAGE, {

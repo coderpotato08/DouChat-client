@@ -37,7 +37,7 @@ const ChatTitleWrapper = styled.div`
         left: 0;
         width: 48px;
         height: 48px;
-        animation: potato 1s linear infinite;
+        animation: potato 3s linear infinite;
       }
     }
 

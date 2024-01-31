@@ -29,7 +29,7 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
 
   const onClickSendMessage = () => {
     const arr = [userInfo._id, friendInfo._id]
-    const contactId = arr.sort().join("_");
+    const contactId = arr.join("_");
     navigate(`/chat/message/${contactId}`);
   }
 
