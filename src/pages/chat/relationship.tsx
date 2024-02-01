@@ -50,7 +50,7 @@ const Relationship: FC = () => {
   const friendNoteNum = useAppSelector(friendNoteNumSelector);
   const dispatch = useAppDispatch();
   const [currentMenu, setCurrentMenu] = useState<string>(MenuKeys.FRIEND);
-  const [currentKey, setCurrentKey] = useState<TabKeys>();
+  const [currentKey, setCurrentKey] = useState<string>();
   const [curFriendId, setCurFriendId] = useState<any>();
   const [curGroupInfo, setCurGroupInfo] = useState<any>();
   const [friendList, setFriendList] = useState<any[]>([]);
@@ -105,6 +105,18 @@ const Relationship: FC = () => {
       .then((list) => {
         setGroupList(list);
       })
+  }
+
+  const refreshGroupInfo = () => {
+    setCurrentKey("");
+    setCurGroupInfo({});
+    loadGroupList();
+  }
+
+  const refreshFriendInfo = () => {
+    setCurrentKey("");
+    setCurFriendId({});
+    loadFriendList();
   }
 
   useEffect(() => {
@@ -226,12 +238,13 @@ const Relationship: FC = () => {
         }
         {
           currentKey === TabKeys.FRIEND_INFO && 
-            <FriendInfo friendId={curFriendId}/>
+            <FriendInfo friendId={curFriendId}
+                        refreshFriendInfo={refreshFriendInfo}/>
         }
         {
           currentKey === TabKeys.GROUP_INFO && 
             <GroupInfo groupInfo={curGroupInfo}
-                       cleanInfo={() => setCurGroupInfo({})}/>
+                       refreshGroupInfo={refreshGroupInfo}/>
         }
       </ContainerWrapper>
     </Wrapper>

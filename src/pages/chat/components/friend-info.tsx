@@ -4,7 +4,7 @@ import { ApiHelper } from "@helper/api-helper";
 import { formLayout } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Button, Col, Divider, Form, Row } from "antd";
+import { Avatar, Button, Col, Divider, Form, Popconfirm, Row, message } from "antd";
 import dayjs from "dayjs";
 import React, { ReactNode } from "react";
 import { FC, useEffect, useState } from "react";
@@ -12,7 +12,8 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 interface FriendInfoProps {
-  friendId: string
+  friendId: string,
+  refreshFriendInfo: () => void,
 }
 const FormLayout = formLayout(8, 16)
 const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
@@ -33,12 +34,29 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
     navigate(`/chat/message/${contactId}`);
   }
 
+  const onDeleteFriend = () => {
+    ApiHelper.deleteFriend({
+      userId: userInfo._id,
+      friendId: friendInfo._id
+    })
+      .then(() => {
+        message.success(`已移除好友 ${friendInfo.nickname}`, 1.5, props.refreshFriendInfo)
+      })
+  }
+
   const renderOptions = ():ReactNode => {
     return <OptionsWrapper>
-      <Button size="large"
+      <Popconfirm
+        title={`是否要移除好友？`}
+        onConfirm={onDeleteFriend}
+        onCancel={() => {}}
+        okText="确定"
+        cancelText="取消">
+        <Button size="large"
               className="btn"
               danger
               type={"primary"}>移除好友</Button>
+      </Popconfirm>
       <Button size="large" 
               className={"btn"}
               type={"primary"}

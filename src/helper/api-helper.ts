@@ -15,6 +15,9 @@ import {
   LoadGroupListParamsType,
   LoadGroupUsersParamsType,
   RegisterParamsType,
+  QuitGroupParamsType,
+  DisbandGroupParamsType,
+  DeleteFriendParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
@@ -52,6 +55,14 @@ export class ApiHelper {
   public static loadGroupUsers = (params: LoadGroupUsersParamsType) => {
     return AxiosHelper.post<Array<UserInfoType>>(ApiEnum.LOAD_GROUP_USERS, params)
   }
+  // 退出群聊
+  public static quitGroup = (params: QuitGroupParamsType) => {
+    return AxiosHelper.post(ApiEnum.QUIT_GROUP, params)
+  }
+  // 解散群聊
+  public static disbandGroup = (params: DisbandGroupParamsType) => {
+    return AxiosHelper.post(ApiEnum.DISBANED_GROUP, params)
+  }
   // --------------- 私人聊天 -----------------------
   // 模糊查询用户
   public static loadUserInfo = (params: LoadUserInfoParamsType) => {
@@ -70,6 +81,12 @@ export class ApiHelper {
       status: "success" | "fail",
       relationship: any
     }>(ApiEnum.CHANGE_FRIEND_STATUS, params)
+  }
+  // 移除好友
+  public static deleteFriend = (params: DeleteFriendParamsType) => {
+    return AxiosHelper.post<{
+      status: "success" | "fail",
+    }>(ApiEnum.DELETE_FRIEND, params)
   }
   // 好友通知列表
   public static loadFriendNotifications = (params: LoadFriendNotificationsParamsType) => {

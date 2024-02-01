@@ -6,15 +6,15 @@ import { ApiHelper } from "@helper/api-helper"
 import { formLayout } from "@helper/common-helper"
 import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
-import { Avatar, Button, Col, Divider, Form, Row } from "antd"
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { Avatar, Button, Col, Divider, Form, Popconfirm, Row, message } from "antd"
+import { FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 
 const FormLayout = formLayout(8, 16)
 
 interface GroupInfoProps {
   groupInfo: any
-  cleanInfo: () => void
+  refreshGroupInfo: () => void
 }
 const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const expandRef = useRef<any>(null);
@@ -40,14 +40,39 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         behavior: "smooth",
       })
     }
-  }, [showMore])
+  }, [showMore]);
+
+  const onQuitGroup = () => {
+    console.log(groupInfo);
+    if(isCreator) {
+      ApiHelper.disbandGroup({groupId: groupInfo._id})
+        .then(() => {
+          message.success(`${groupInfo.groupName} 已解散成功`, 1.5, props.refreshGroupInfo)
+        })
+    } else {
+      ApiHelper.quitGroup({
+        groupId: groupInfo._id,
+        userId: userInfo._id
+      })
+        .then(() => {
+          message.success(`已退出群聊`, 1.5, props.refreshGroupInfo)
+        })
+    }
+  }
 
   const renderOptions = ():ReactNode => {
     return <OptionsWrapper>
-      <Button size="large"
-              className="btn"
-              danger
-              type={"primary"}>{isCreator ? "解散群聊" : "退出群聊"}</Button>
+      <Popconfirm
+        title={`是否${isCreator ? "解散" : "退出"}群聊？`}
+        onConfirm={onQuitGroup}
+        onCancel={() => {}}
+        okText="确定"
+        cancelText="取消">
+        <Button size="large"
+                className="btn"
+                danger
+                type={"primary"}>{isCreator ? "解散群聊" : "退出群聊"}</Button>
+      </Popconfirm>
       <Button size="large" 
               className="btn"
               type={"primary"}
@@ -84,6 +109,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         showUserList.map((user: UserInfoType) => <UserItem key={user._id}>
           <div className={"icon"}>
             <Avatar size={48} src={user.avatarImage}/>
+            {user._id === userInfo._id && <div className={"me-tag"}>我</div>}
             {user._id === creator._id && <div className={"creator-tag"}>群主</div>}
           </div>
           <div className="label">{user.nickname}</div>
@@ -144,6 +170,7 @@ const UserBox = styled.div<{
 `
 const UserItem = styled.div`
   & {
+    cursor: pointer;
     width: 74px;
     display: flex;
     flex-direction: column;
@@ -153,6 +180,19 @@ const UserItem = styled.div`
       position: relative;
       width: 48px;
       height: 48px;
+    }
+    .me-tag {
+      position: absolute;
+      left: -8px;
+      top: 0;
+      width: 18px;
+      height: 18px;
+      text-align: center;
+      line-height: 18px;
+      border-radius: 50%;
+      font-size: 12px;
+      color: #fff;
+      background: rgb(37, 222, 0)
     }
     .creator-tag {
       position: absolute;

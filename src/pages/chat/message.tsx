@@ -74,6 +74,7 @@ const Message = () => {
         setChatList(contactList)
         if(id) {
           const selected = contactList.find((contact: any) => contact.contactId === id);
+          console.log(selected)
           setSelectedChat(selected || {})
         }
       })
