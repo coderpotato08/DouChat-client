@@ -6,10 +6,11 @@ import { ApiHelper } from "@helper/api-helper"
 import { formLayout } from "@helper/common-helper"
 import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
-import { Avatar, Button, Col, Divider, Form, Popconfirm, Row, message } from "antd"
-import { FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Avatar, Button, Col, Divider, Form, GlobalToken, Popconfirm, Row, message, theme } from "antd"
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import styled from "styled-components"
 
+const { useToken } = theme;
 const FormLayout = formLayout(8, 16)
 
 interface GroupInfoProps {
@@ -17,8 +18,9 @@ interface GroupInfoProps {
   refreshGroupInfo: () => void
 }
 const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
-  const expandRef = useRef<any>(null);
+  const { token } = useToken();
   const { groupInfo = {} } = props;
+  const expandRef = useRef<any>(null);
   const { usersAvaterList, groupName, groupNumber, sign, _id: groupId, creator } = groupInfo;
   const userInfo = useAppSelector(userSelector);
   const [userList, setUserList] = useState<any[]>([]);
@@ -106,7 +108,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     <Divider orientation="center">群用户</Divider>
     <UserBox $showMore={showMore}>
       {
-        showUserList.map((user: UserInfoType) => <UserItem key={user._id}>
+        showUserList.map((user: UserInfoType) => <UserItem $token={token} key={user._id}>
           <div className={"icon"}>
             <Avatar size={48} src={user.avatarImage}/>
             {user._id === userInfo._id && <div className={"me-tag"}>我</div>}
@@ -115,7 +117,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
           <div className="label">{user.nickname}</div>
         </UserItem>)
       }
-      <UserItem>
+      <UserItem $token={token}>
         <div className={"icon"}>
           <CIcon size={48} value={"icon-add-user"} color="#666"/>
         </div>
@@ -168,7 +170,9 @@ const UserBox = styled.div<{
     overflow: hidden;
   }
 `
-const UserItem = styled.div`
+const UserItem = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     cursor: pointer;
     width: 74px;
@@ -202,7 +206,7 @@ const UserItem = styled.div`
       border-radius: 4px;
       font-size: 12px;
       color: #fff;
-      background: rgb(22, 119, 255)
+      background: ${props => props.$token.colorPrimary}
     }
     .label {
       width: 100%;

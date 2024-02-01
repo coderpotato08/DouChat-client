@@ -1,12 +1,13 @@
 import CIcon from "../../../components/c-icon";
 import styled from "styled-components";
-import { Flex, Button } from "antd";
+import { Flex, Button, theme, GlobalToken } from "antd";
 import { ClipboardEvent, FC, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { base64ToImageFile } from "../../../helper/common-helper";
 import { debounce } from "lodash";
 import EmojiPicker from "../../../components/emoji-picker";
 import { ApiHelper } from "../../../helper/api-helper";
 
+const { useToken } = theme;
 interface ChatInputProps {
   onSubmit: (value: string) => void
 }
@@ -14,6 +15,7 @@ interface ChatInputProps {
 const imgMap = new Map(); // base64 => file
 
 const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
+  const { token } = useToken();
   const messageInputRef = useRef<HTMLInputElement>(null);
   const inputChildNodes = useRef<any>([]);
   const [message, setMessage] = useState("");
@@ -96,7 +98,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
     }
   }, [messageInputRef.current?.innerHTML])
 
-  return <InputContainer>
+  return <InputContainer $token={token}>
     <Flex className="wrapper" gap={10} align="flexStart">
       <div className="add-option">
         <CIcon value="icon-tianjia" size={24} color={"#666"}/>
@@ -125,7 +127,9 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
 
 export default ChatInput;
 
-const InputContainer = styled.div`
+const InputContainer = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     flex-shrink: 0;
     box-sizing: border-box;
@@ -155,7 +159,7 @@ const InputContainer = styled.div`
       overflow-y: scroll;
       transition: all .4;
       &:focus-visible {
-        border-color: rgb(22, 119, 255);
+        border-color: ${props => props.$token.colorPrimary};
       }
     }
     .add-option {

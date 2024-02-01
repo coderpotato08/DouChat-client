@@ -2,16 +2,18 @@ import { AddFriendParamsType, SearchUserParamsType } from "@constant/api-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Button, Input, Modal, message } from "antd"
+import { Avatar, Button, GlobalToken, Input, Modal, message, theme } from "antd"
 import { debounce, isEmpty } from "lodash";
 import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
+const { useToken } = theme;
 interface AddFriendModalProps {
   visible: boolean,
   onCancel: () => void,
 }
 const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
+  const { token } = useToken()
   const userInfo = useAppSelector(userSelector);
   const [keyWord, setKeyWord] = useState<string>("");
   const [userList, setUserList] = useState<any[]>([]);
@@ -73,7 +75,7 @@ const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
                 open={props.visible} 
                 onCancel={onCancel}
                 footer={null}>
-    <Wrapper>
+    <Wrapper $token={token}>
       <SearchWrapper>
         <Input placeholder={"请输入昵称或账号"}
                value={keyWord}
@@ -86,7 +88,7 @@ const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
         keyWord && <UserListWrapper>
           {
             !isEmpty(userList) ? userList.map((user) => {
-              return user._id !== userInfo._id ? <UserItem key={user._id}>
+              return user._id !== userInfo._id ? <UserItem key={user._id} $token={token}>
                 <Avatar className={"avatar"} src={user.avatarImage} size={42}/>
                 <div>{user.nickname}</div>
                 <div className={"tags"}>
@@ -113,14 +115,16 @@ const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
 
 export default AddFriendModal;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     .tips {
       font-size: 12px;
       margin-bottom: 8px;
       > span:nth-child(1) {
         font-weight: 600;
-        color: rgb(22, 119, 255)
+        color: ${props => props.$token.colorPrimary}
       }
     }
   }
@@ -143,7 +147,9 @@ const UserListWrapper = styled.div`
     overflow-y: scroll;
   }
 `
-const UserItem = styled.div`
+const UserItem = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     box-sizing: border-box;
     display: flex;
@@ -168,8 +174,8 @@ const UserItem = styled.div`
     }
   }
   &:hover {
-    background-color: rgb(22, 119, 255, .1);
-    border-color: rgb(22, 119, 255);
+    background-color: ${props => props.$token.colorPrimaryBg};
+    border-color: ${props => props.$token.colorPrimary};
   }
 `
 const NoUserData = styled.div`

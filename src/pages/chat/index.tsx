@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useMemo, CSSProperties, useCallback } from 're
 import styled from 'styled-components';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
-import { Avatar, Button, notification } from 'antd';
+import { Avatar, Button, notification, theme } from 'antd';
 import { useAppSelector } from '../../store/hooks';
 import { userSelector } from '../../store';
 import { useSocket } from '@store/context/createContext';
@@ -10,6 +10,7 @@ import { EventType } from '@constant/socket-types';
 import { CreateMeetingParamsType } from '@constant/api-types';
 import { RoleType } from '@constant/meeting-types';
 
+const { useToken } = theme;
 const menuList = [
   {
     key: 'message',
@@ -29,6 +30,7 @@ const btnStyle:CSSProperties = {
 }
 const Chat:FC = () => {
   const { pathname } = useLocation();
+  const { token } = useToken();
   const socket = useSocket();
   const userInfo = useAppSelector(userSelector);
   const navigate = useNavigate();
@@ -107,7 +109,7 @@ const Chat:FC = () => {
             return <MenuItem key={item.key} onClick={() => onClickMenu(item)}>
               <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`} 
                     size={28} 
-                    color={isActive ? '#1677ff' : '#666'}/>
+                    color={isActive ? token.colorPrimary : '#666'}/>
             </MenuItem>
           })
         }

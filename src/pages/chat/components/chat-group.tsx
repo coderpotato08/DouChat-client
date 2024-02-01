@@ -1,10 +1,11 @@
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Badge, Input } from "antd";
+import { Avatar, Badge, GlobalToken, Input, theme } from "antd";
 import React, { FC, ReactNode } from "react";
 import styled from 'styled-components';
 
+const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
   selectedId: any,
@@ -12,8 +13,13 @@ interface ChatGroupProps {
 }
 
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
+  const { 
+    list,
+    selectedId,
+    onChangeChat 
+  } = props;
+  const { token } = useToken();
   const userInfo = useAppSelector(userSelector);
-  const { list, selectedId, onChangeChat } = props;
   
   const renderGroupItem = (item: any): ReactNode => {
     const { users, contactId, recentMessage = {}, unreadNum = 0 } = item;
@@ -40,7 +46,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     <SearchWrapper>
       <Input placeholder="Search Message"/>
     </SearchWrapper>
-    <GroupWrapper>
+    <GroupWrapper $token={token}>
       {
         list.map((item) => renderGroupItem(item))
       }
@@ -67,7 +73,9 @@ const SearchWrapper = styled.div`
     height: 45px;
   }
 `
-const GroupWrapper = styled.div`
+const GroupWrapper = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     flex: 1;
     overflow-y: scroll;
@@ -127,7 +135,7 @@ const GroupWrapper = styled.div`
       top: 0;
       bottom: 0;
       width: 2px;
-      background: rgb(22, 119, 255);
+      background: ${props => props.$token.colorPrimary};
     }
   }
 `

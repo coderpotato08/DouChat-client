@@ -1,14 +1,21 @@
+import { GlobalToken, theme } from 'antd';
 import React, { FC, PropsWithChildren, ReactNode } from 'react'
 import styled from 'styled-components'
+
+const { useToken } = theme;
 
 interface InfoBoxProps {
   title: string,
   optionsNode: ReactNode
 }
 const InfoBox:FC<PropsWithChildren<InfoBoxProps>> = (props: PropsWithChildren<InfoBoxProps>) => {
-  const { title, optionsNode } = props
+  const { 
+    title, 
+    optionsNode 
+  } = props;
+  const { token } = useToken();
   return (
-    <Wrapper>
+    <Wrapper $token={token}>
       <div className='title-wrapper'>
         <div className={"title"}>{title}</div>
       </div>
@@ -22,7 +29,9 @@ const InfoBox:FC<PropsWithChildren<InfoBoxProps>> = (props: PropsWithChildren<In
 
 export default InfoBox
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{
+  $token: GlobalToken
+}>`
   & {
     box-sizing: border-box;
     overflow: hidden;
@@ -58,7 +67,7 @@ const Wrapper = styled.div`
       right: 0;
       bottom: -4px;
       border-radius: 2px;
-      background: rgb(22, 119, 255);
+      background: ${props => props.$token.colorPrimary};
     }
   }
 `
