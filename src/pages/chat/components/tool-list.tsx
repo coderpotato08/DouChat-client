@@ -1,11 +1,11 @@
 import { Badge, Popover } from "antd"
-import { useCallback, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import CIcon from "@components/c-icon";
 import { styled } from "styled-components";
 import CreateMeetingModal from "@components/create-meeting-modal";
 import { usePopup } from "@hooks/usePopup";
 import AddFriendModal from "@components/add-friend-modal";
-import CreateGroupModal from "@components/create-group-modal";
+import AddGroupModal from "@components/add-group-modal";
 
 enum ToolType {
   ADD_FRIEND = 'add-friend',
@@ -18,7 +18,17 @@ const toolList = [
   {key: ToolType.CREATE_GROUP, name: "创建群聊", icon: "icon-add-group"},
 ]
 
-const ToolList = () => {
+export interface ToolListProps {
+  createMeetingCallback?: () => void
+  addFriendCallback?: () => void
+  addGroupCallback?: () => void
+}
+const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
+  const {
+    createMeetingCallback,
+    addFriendCallback,
+    addGroupCallback,
+  } = props;
   const [createMeetingMdoal_open, createMeetingMdoalPopup] = usePopup();  // 创建会议
   const [addFriendModal_open, addFriendModalPopup] = usePopup();  // 添加好友
   const [addGroupModal_open, addGroupModalPopup] = usePopup();  // 添加好友
@@ -65,11 +75,14 @@ const ToolList = () => {
       </Badge>
     </Popover>
     <CreateMeetingModal visible={createMeetingMdoal_open}
-                        onCancel={createMeetingMdoalPopup}/>
+                        onCancel={createMeetingMdoalPopup}
+                        confirmCallback={createMeetingCallback}/>
     <AddFriendModal visible={addFriendModal_open}
-                    onCancel={addFriendModalPopup}/>
-    <CreateGroupModal visible={addGroupModal_open}
-                      onCancel={addGroupModalPopup}/>
+                    onCancel={addFriendModalPopup}
+                    confirmCallback={addFriendCallback}/>
+    <AddGroupModal visible={addGroupModal_open}
+                   onCancel={addGroupModalPopup}
+                   confirmCallback={addGroupCallback}/>
   </>
 }
 

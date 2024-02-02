@@ -6,7 +6,6 @@ import './index.css';
 import './static/iconfont.css'
 import App from './App';
 import { SocketProvider } from '@store/context/createContext';
-import { ConfigProvider } from 'antd';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,13 +13,7 @@ const root = ReactDOM.createRoot(
 root.render(<BrowserRouter>
   <Provider store={store}>
     <SocketProvider>
-      <ConfigProvider theme={{
-        token: {
-          colorPrimary: '#1677ff',
-        },
-      }}>
-        <App />
-      </ConfigProvider>
+      <App />
     </SocketProvider>
   </Provider>
 </BrowserRouter>);

@@ -7,7 +7,7 @@ import {
   recentSubmitMessageSelector,
   userSelector 
 } from "@store/index";
-import { UserContactsParamsType } from "../../constant/api-types";
+import { LoadGroupContactListParamsType, UserContactsParamsType } from "../../constant/api-types";
 import { ApiHelper } from "@helper/api-helper";
 import { SocketProvider, useSocket } from "@store/context/createContext";
 import ChatTitle from "./components/chat-title";
@@ -25,7 +25,7 @@ const Message = () => {
   const recentSubmitMessage = useAppSelector(recentSubmitMessageSelector);
   const { id } = useParams();
   const [selectedChat, setSelectedChat] = useState<any>({});
-  const [chatList, setChatList] = useState([]);
+  const [chatList, setChatList] = useState<any[]>([]);
 
   const onReceiveMessage = useCallback((msgData: any) => {
     const { fromId, toId } = msgData;
@@ -64,20 +64,26 @@ const Message = () => {
     navigate(`/chat/message/${item.contactId}`)
   }
 
-  const loadUserChatList = () => {
-    const params:UserContactsParamsType = {
+  const loadUserChatList = async () => {
+    const params: UserContactsParamsType = {
       userId: userInfo._id
     }
-    ApiHelper.loadUserContactList(params)
-      .then((res: any) => {
-        const { contactList } = res;
-        setChatList(contactList)
-        if(id) {
-          const selected = contactList.find((contact: any) => contact.contactId === id);
-          console.log(selected)
-          setSelectedChat(selected || {})
-        }
-      })
+    const contactList = await ApiHelper.loadUserContactList(params)
+    setChatList(contactList);
+    if(id) {
+      const selected = contactList.find((contact: any) => contact.contactId === id);
+      console.log(selected)
+      setSelectedChat(selected || {})
+    }
+    return contactList
+  }
+
+  const loadGroupChatList = async () => {
+    const params: LoadGroupContactListParamsType = {
+      userId: userInfo._id
+    }
+    const groupContactList = await ApiHelper.loadGroupContactList(params);
+    return groupContactList;
   }
 
   useEffect(() => {
@@ -86,6 +92,7 @@ const Message = () => {
       [userInfo.username]: userInfo
     }));
     loadUserChatList();
+    loadGroupChatList();
   }, []);
 
   useEffect(() => {

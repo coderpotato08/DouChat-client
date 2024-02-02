@@ -1,15 +1,21 @@
 import { FC } from "react";
 import styled from 'styled-components';
-import ToolList from "./tool-list";
+import ToolList, { ToolListProps } from "./tool-list";
 const potato_image = require('@assets/imgs/potato.png');
 
-const ChatTitle:FC = () => {
+interface ChatTitleProps extends ToolListProps {
+
+}
+const ChatTitle:FC<ChatTitleProps> = (props: ChatTitleProps) => {
+  const {
+    ...callbacks
+  } = props;
   return <ChatTitleWrapper>
     <div className="title">
       <img src={potato_image} alt="🥔"/>
       DouChat
     </div>
-    <ToolList/>
+    <ToolList {...callbacks}/>
   </ChatTitleWrapper>
 }
 

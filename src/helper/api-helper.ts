@@ -18,6 +18,8 @@ import {
   QuitGroupParamsType,
   DisbandGroupParamsType,
   DeleteFriendParamsType,
+  CreateGroupContactParamsType,
+  LoadGroupContactListParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
@@ -41,6 +43,20 @@ export class ApiHelper {
       groupId: string,
       status: "success" | "fail"
     }>(ApiEnum.CREATE_GROUP, params);
+  }
+  // 创建用户 => 群聊 1对1 关系
+  public static createGroupContact = (params: CreateGroupContactParamsType) => {
+    return AxiosHelper.post<{
+      groupId: string,
+      status: "success" | "fail"
+    }>(ApiEnum.CREATE_GROUP_CONTACT, params);
+  }
+  // 加载群聊天栏列表
+  public static loadGroupContactList = (params: LoadGroupContactListParamsType) => {
+    return AxiosHelper.post<Array<{
+      groupId: string,
+      status: "success" | "fail"
+    }>>(ApiEnum.LOAD_GROUP_CONTACT_LIST, params);
   }
   // 加载群聊列表
   public static loadGroupList = (params: LoadGroupListParamsType) => {

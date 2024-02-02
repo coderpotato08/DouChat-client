@@ -8,6 +8,7 @@ import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
 import { Avatar, Button, Col, Divider, Form, GlobalToken, Popconfirm, Row, message, theme } from "antd"
 import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import styled from "styled-components"
 
 const { useToken } = theme;
@@ -18,8 +19,11 @@ interface GroupInfoProps {
   refreshGroupInfo: () => void
 }
 const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
+  const { 
+    groupInfo = {} 
+  } = props;
   const { token } = useToken();
-  const { groupInfo = {} } = props;
+  const navigate = useNavigate();
   const expandRef = useRef<any>(null);
   const { usersAvaterList, groupName, groupNumber, sign, _id: groupId, creator } = groupInfo;
   const userInfo = useAppSelector(userSelector);
@@ -62,6 +66,16 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     }
   }
 
+  const onClickSendMessage = () => {
+    ApiHelper.createGroupContact({
+      userId: userInfo._id,
+      groupId: groupInfo._id,
+    })
+      .then(() => {
+        navigate('/chat/message')
+      })
+  }
+
   const renderOptions = ():ReactNode => {
     return <OptionsWrapper>
       <Popconfirm
@@ -78,7 +92,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       <Button size="large" 
               className="btn"
               type={"primary"}
-              onClick={() => {}}>发消息</Button>
+              onClick={onClickSendMessage}>发消息</Button>
     </OptionsWrapper>
   }
 

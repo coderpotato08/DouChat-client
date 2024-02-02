@@ -139,7 +139,7 @@ const Relationship: FC = () => {
   return <SocketProvider>
     <Wrapper>
       <GroupWrapper>
-        <ChatTitle/>
+        <ChatTitle addGroupCallback={loadGroupList}/>
         <NotificationWrapper>
           <NotificationBox onClick={() => onClickItem(TabKeys.FRIEND_NOTIFICATION)}>
             好友通知
@@ -192,8 +192,11 @@ const Relationship: FC = () => {
       </GroupWrapper>
       <ContainerWrapper>
         {
-          currentKey && currentKey === TabKeys.FRIEND_NOTIFICATION && 
-            <ContainerTitle>{TabTitle[currentKey]}</ContainerTitle>
+          currentKey && [
+            TabKeys.FRIEND_NOTIFICATION,
+            TabKeys.GROUP_NOTIFICATION
+          ].includes(currentKey as TabKeys) && 
+            <ContainerTitle>{TabTitle[currentKey as TabKeys]}</ContainerTitle>
         }
         {
           currentKey === TabKeys.FRIEND_NOTIFICATION && <FriendNotification>

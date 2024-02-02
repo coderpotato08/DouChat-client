@@ -126,7 +126,7 @@ const GroupWrapper = styled.div<{
       background: #f2f2f2;
     }
     .active, .active:hover  {
-      background: #e6f4ff;
+      background: ${props => props.$token.colorPrimaryBg};
     }
     .active::before {
       content: '';

@@ -39,12 +39,16 @@ const Login:FC = () => {
         })
       })
   }
+
+  const onGoToRegister = () => {
+    navigate("/register");
+  }
   
   return <Wrapper>
     <h1>Login</h1>
     <div className='tips'>
       <span>Don't have an account? </span>
-      <span>Create your account</span>
+      <span onClick={onGoToRegister}>Create your account</span>
       <span>, it takes less than a minute</span>
     </div>
     <div className='form'>

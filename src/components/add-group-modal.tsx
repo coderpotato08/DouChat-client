@@ -11,11 +11,8 @@ import { CreateGroupParamsType } from "@constant/api-types";
 import Avatar from "antd/es/avatar/avatar";
 import CIcon from "./c-icon";
 import { cloneDeep } from "lodash";
+import { BaseModalProps } from "@constant/common-types";
 
-interface AddGroupModalProps {
-  visible: boolean,
-  onCancel: () => void,
-}
 
 const ModelBaseConfig: ModalProps = {
   footer: null,
@@ -23,17 +20,22 @@ const ModelBaseConfig: ModalProps = {
 const FormItemLayout = formLayout(6, 16);
 type FormTypes = Partial<Omit<CreateGroupParamsType, 'users' | 'creator'>>
 
-const AddGroupModal:FC<AddGroupModalProps> = (props: AddGroupModalProps) => {
+const AddGroupModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+  const {
+    visible,
+    onCancel,
+    confirmCallback
+  } = props;
   const userInfo = useAppSelector(userSelector);
   const [ form ] = Form.useForm();
   const [selectedUsers, setSelectedUsers] = useState<FriendInfoType[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<(string | number)[]>([]);
 
-  const onCancel = () => {
+  const onHandleCancel = () => {
     form.resetFields();
     setSelectedUsers([]);
     setSelectedUserId([]);
-    props.onCancel()
+    onCancel()
   }
 
   const onSelectUser = (value: any[], options: FriendInfoType[]) => {
@@ -61,7 +63,8 @@ const AddGroupModal:FC<AddGroupModalProps> = (props: AddGroupModalProps) => {
         const { groupId, status } = await ApiHelper.createGroup(params)
         if(status === "success") {
           message.success(`${values.groupName} 群聊创建成功`);
-          onCancel();
+          confirmCallback && confirmCallback();
+          onHandleCancel();
         }
       })
       .catch(() => {})
@@ -71,8 +74,8 @@ const AddGroupModal:FC<AddGroupModalProps> = (props: AddGroupModalProps) => {
                 destroyOnClose
                 width={850}
                 centered
-                onCancel={onCancel}
-                open={props.visible} 
+                onCancel={onHandleCancel}
+                open={visible} 
                 {...ModelBaseConfig}>
     <Flex gap={10}>
       <LeftWrapper>
@@ -125,7 +128,7 @@ const AddGroupModal:FC<AddGroupModalProps> = (props: AddGroupModalProps) => {
           <Button danger 
                   type="primary" 
                   className={"footer-btn"}
-                  onClick={onCancel}>取消</Button>
+                  onClick={onHandleCancel}>取消</Button>
           <Button type="primary" 
                   className={"footer-btn"} 
                   disabled={selectedUserId.length <= 0}

@@ -10,6 +10,7 @@ import { RoleType } from "@constant/meeting-types";
 import { useSocket } from "@store/context/createContext";
 import { EventType } from "@constant/socket-types";
 import { formLayout } from "@helper/common-helper";
+import { BaseModalProps } from "@constant/common-types";
 
 const FormItemLayout = formLayout(6, 16);
 const temp_userList = [
@@ -44,11 +45,13 @@ const temp_userList = [
 
 ]
 type FormTypes = Partial<Omit<CreateMeetingParamsType, "creator" | "createTime">>
-interface CreateMeetingModalProps {
-  visible: boolean,
-  onCancel: () => void,
-}
-const CreateMeetingModal:FC<CreateMeetingModalProps> = (props: CreateMeetingModalProps) => {
+
+const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+  const {
+    visible,
+    onCancel,
+    confirmCallback
+  } = props;
   const navigate = useNavigate();
   const socket = useSocket();
   const { nickname, _id } = useAppSelector(userSelector);
@@ -57,9 +60,9 @@ const CreateMeetingModal:FC<CreateMeetingModalProps> = (props: CreateMeetingModa
   const [ userList, setUserList ] = useState<any[]>([]);
 
   const onHandleCancel = useCallback(() => {
-    props.onCancel();
+    onCancel();
     form.resetFields();
-  }, [props.visible])
+  }, [visible])
 
   const onCreateMeeting = () => {
     const confirmValue: Required<FormTypes> = form.getFieldsValue();
@@ -74,7 +77,8 @@ const CreateMeetingModal:FC<CreateMeetingModalProps> = (props: CreateMeetingModa
           meetingId: res.meetingId,
           ...params,
         })
-        props.onCancel()
+        confirmCallback && confirmCallback();
+        onCancel();
         navigate(`/video-meeting/${res.meetingId}?role=${RoleType.CREATOR}`, {
           state: {
             role: RoleType.CREATOR,
@@ -98,7 +102,7 @@ const CreateMeetingModal:FC<CreateMeetingModalProps> = (props: CreateMeetingModa
                 okText={"创建会议"}
                 onOk={onCreateMeeting}
                 onCancel={onHandleCancel}
-                open={props.visible}
+                open={visible}
                 maskClosable={false}>
     <ModalWrapper>
       <Form {...FormItemLayout}

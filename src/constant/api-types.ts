@@ -13,17 +13,24 @@ export enum ApiEnum {
   FRIEND_LIST = "/user/friend/list", // 好友列表
   CHANGE_FRIEND_STATUS = "/user/friend/changeStatus",  // 同意/拒绝 好友申请
   DELETE_FRIEND = "/user/friend/deleteFriend",  // 删除好友
-  CREATE_MEETING = "/meeting/create", // 创建会议
-  LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
-  LOAD_USER_CONTACT_LIST = '/contacts/user-contact-list',  // 聊天栏用户列表
-  LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
-  LOAD_USER_MESSAGE_LIST = '/message/userMessageList', // 用户-消息记录
-  UPLOAD_IMAGE = '/upload/image', // 上传图片
+
   CREATE_GROUP = '/group/create', // 创建群聊
   LOAD_GROUP_LIST = '/group/loadGroupList', // 加载群聊
   LOAD_GROUP_USERS = '/group/loadGroupUsers', // 加载群用户列表
   QUIT_GROUP = '/group/quitGroup', // 退出群聊
   DISBANED_GROUP = '/group/disbandGroup', // 解散群聊
+
+  CREATE_MEETING = "/meeting/create", // 创建会议
+  LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
+
+  LOAD_USER_CONTACT_LIST = '/contacts/user-contact-list',  // 聊天栏用户列表
+  LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
+  CREATE_GROUP_CONTACT = '/contacts/createGroupContact', // 创建用户 => 群聊 1对1 关系
+  LOAD_GROUP_CONTACT_LIST = '/contacts/loadGroupContactList', // 加载群聊天栏列表
+
+  LOAD_USER_MESSAGE_LIST = '/message/userMessageList', // 用户-消息记录
+
+  UPLOAD_IMAGE = '/upload/image', // 上传图片
 }
 
 export interface UserContactsParamsType {
@@ -93,7 +100,9 @@ export interface DeleteFriendParamsType {
   userId: string,
   friendId: string,
 }
+export interface CreateGroupContactParamsType extends QuitGroupParamsType {}
 export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
+export interface LoadGroupContactListParamsType extends UserContactsParamsType {}
 export interface LoadUserInfoParamsType extends UserContactsParamsType {}
 export interface LoadFriendListParamsType extends UserContactsParamsType {}
 export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}

@@ -1,4 +1,5 @@
 import { AddFriendParamsType, SearchUserParamsType } from "@constant/api-types";
+import { BaseModalProps } from "@constant/common-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
@@ -8,20 +9,21 @@ import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
 const { useToken } = theme;
-interface AddFriendModalProps {
-  visible: boolean,
-  onCancel: () => void,
-}
-const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
+
+const AddFriendModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+  const {
+    visible,
+    onCancel,
+  } = props;
   const { token } = useToken()
   const userInfo = useAppSelector(userSelector);
   const [keyWord, setKeyWord] = useState<string>("");
   const [userList, setUserList] = useState<any[]>([]);
 
-  const onCancel = () => {
+  const onHandleCancel = () => {
     setKeyWord("")
     setUserList([])
-    props.onCancel()
+    onCancel()
   }
 
   const onChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
@@ -72,8 +74,8 @@ const AddFriendModal:FC<AddFriendModalProps> = (props: AddFriendModalProps) => {
   }, [keyWord])
 
   return <Modal title={"添加好友"}
-                open={props.visible} 
-                onCancel={onCancel}
+                open={visible} 
+                onCancel={onHandleCancel}
                 footer={null}>
     <Wrapper $token={token}>
       <SearchWrapper>
