@@ -8,57 +8,81 @@ import { userSelector } from "../../../store";
 import ChatInput from "./chat-input";
 import { EventType } from "../../../constant/socket-types";
 import { isEmpty } from "lodash";
-import { UserMsgListParamsType } from "../../../constant/api-types";
+import { LoadGroupMsgListParamsType, UserMsgListParamsType } from "../../../constant/api-types";
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
 import { ContactInfoType } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
-import { getReceiverAndSender } from "@helper/common-helper";
+import { getQuery, getReceiverAndSender } from "@helper/common-helper";
 import dayjs from "dayjs";
+import { GroupInfoType } from "@constant/group-types";
 
 const ChatContainer:FC = () => {
   const socket = useSocket();
+  const { id } = useParams();
+  const { type } = getQuery();
+  const isGroup = type === "group";
   const dispatch = useAppDispatch();
   const scrollRef: any = useRef(null);
   const userInfo = useAppSelector(userSelector);
   const messageList = useAppSelector(messageListSelector);
-  const { id } = useParams();
   const [receiveMessage, setReceiveMessage] = useState(null);
-  // const [messageList, setMessageList] = useState<any[]>([]);
-  const [selectedChat, setSelectedChat] = useState<ContactInfoType>();
+  const [selectedChat, setSelectedChat] = useState<any>();
 
   useEffect(() => {
-    ApiHelper.loadUserContact({ contactId: id! })
-      .then((res) => {
-        setSelectedChat(res);
+    if (isGroup) {
+      ApiHelper.loadGroupContact({
+        userId: userInfo._id,
+        groupId: id!, 
       })
+        .then((res) => {
+          setSelectedChat(res);
+        })
+    } else {
+      ApiHelper.loadUserContact({ contactId: id! })
+        .then((res) => {
+          setSelectedChat(res);
+        })
+    }
   }, [id])
 
+  const handleSocketEvent = (type: "on" | "off", isGroup: boolean) => {
+    socket[type](EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
+  }
+
   useEffect(() => {
-    socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    handleSocketEvent("on", isGroup);
     if (!isEmpty(selectedChat)) {
-      const { users } = selectedChat || {};
-      loadMessageList(users[0], users[1]);
+      if(isGroup) {
+        loadGroupMessageList(selectedChat.groupId);
+      } else {
+        const { users } = selectedChat || {};
+        loadMessageList(users[0], users[1]);
+      } 
     }
     return () => {
-      socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+      handleSocketEvent("off", isGroup);
       id && dispatch(cacheMessageList({contactId: id}));
     }
   }, [selectedChat]);
 
   useEffect(() => {
-    if (receiveMessage) {
-      const { fromId, toId }: { fromId: any, toId: any } = receiveMessage;
-      const contactId = [toId._id, fromId._id].join("_");
-      if(contactId === id) {
-        dispatch(addMessage({ message: receiveMessage }))
-        socket.emit(EventType.READ_MESSAGE, {
-          fromId: fromId._id,
-          toId: toId._id
-        });
-      }
+    if (!receiveMessage) return;
+    const { 
+      groupId,
+      fromId = {},
+      toId = {}
+    } = receiveMessage as any;
+    const contactId = isGroup ? groupId : [toId._id, fromId._id].join("_");
+    if(contactId === id) {
+      dispatch(addMessage({ message: receiveMessage }))
+      socket.emit(EventType.READ_MESSAGE, {
+        fromId: fromId._id,
+        toId: toId._id
+      });
     }
   }, [receiveMessage]);
 
@@ -79,30 +103,45 @@ const ChatContainer:FC = () => {
     const params:UserMsgListParamsType = {
       fromId: from._id,
       toId: to._id,
-    }
+    };
     ApiHelper.loadUserMsgList(params)
       .then((res: any) => {
-        dispatch(pushMessageList({messageList: res.messageList}));
+        dispatch(pushMessageList({messageList: res}));
+      })
+  }
+
+  const loadGroupMessageList = (groupId: string) => {
+    const params: LoadGroupMsgListParamsType = {
+      groupId: id!,
+    };
+    ApiHelper.loadGroupMsgList(params)
+      .then((res: any) => {
+        dispatch(pushMessageList({messageList: res}));
       })
   }
   
   const onSubmitMessage = (value: string) => {
-    const { users } = selectedChat || {};
-    const { receiver } = getReceiverAndSender(users, userInfo._id)
-    const params = {
+    const { users = [] } = selectedChat || {};
+    const { receiver } = getReceiverAndSender(users, userInfo._id);
+    const params: any = {
       fromId: userInfo._id,
-      toId: receiver._id,
       msgType: 0,
       msgContent: value,
       time: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     };
-    socket!.emit(EventType.SEND_MESSAGE, params);
-    const message = {
+    const message: any = {
       ...params,
       uid: createUidV4(),
       fromId: userInfo,
-      toId: receiver,
     }
+    if (isGroup) {
+      params['groupId'] = id;
+      message['groupId'] = id;
+    } else {
+      params['toId'] = receiver._id;
+      message['toId'] = receiver;
+    }
+    socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, params);
     dispatch(addMessage({ message }))
   }
 
@@ -113,26 +152,31 @@ const ChatContainer:FC = () => {
     })
   }
 
-  const { users } = selectedChat || {};
+  const { users, groupInfo = {} } = selectedChat || {};
+  const { usersAvaterList = [], groupName } = groupInfo;
   const { receiver = {}, sender = {} } = getReceiverAndSender(users, userInfo._id);
   const headerInfo = sender._id === userInfo._id ? receiver : sender
   return <ChatContainerWrapper>
     {/* 头部 */}
     <ContainerHeader>
       <div className="header-user-info">
-        <ChatAvatar isGroup={false} imgUrl={headerInfo.avatarImage}/>
-        <span>{headerInfo.nickname}</span>
+        <ChatAvatar 
+          isGroup={isGroup} 
+          groupImgList={usersAvaterList}
+          imgUrl={headerInfo.avatarImage}/>
+        <span>{isGroup ? groupName : headerInfo.nickname}</span>
       </div>
     </ContainerHeader>
     {/* 消息部分 */}
     <ContainerContent ref={scrollRef}>
-      <Flex vertical gap={10}>
+      <Flex vertical gap={14}>
         {
           !isEmpty(messageList) && messageList.map((info: any, index) => {
             const { fromId: sender } = info;
             const isSelf = sender._id === userInfo._id;
             const prevTime = index > 0 ? messageList[index-1].time : null;
             return <MessageBox key={info.uid || info._id}
+                               isGroup={isGroup}
                                prevTime={prevTime}
                                messageInfo={info} 
                                isSelf={isSelf}/>

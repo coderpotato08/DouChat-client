@@ -169,7 +169,6 @@ const InputContainer = styled.div<{
       border-radius: 50%;
     }
     .wrapper {
-      width: 100%;
       padding: 10px;
       background: #FFFFFF;
       border-radius: 4px;

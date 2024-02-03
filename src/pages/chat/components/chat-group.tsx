@@ -1,7 +1,9 @@
+import ChatAvatar from "@components/chat-avatar";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
 import { Avatar, Badge, GlobalToken, Input, theme } from "antd";
+import { isEmpty } from "lodash";
 import React, { FC, ReactNode } from "react";
 import styled from 'styled-components';
 
@@ -9,7 +11,7 @@ const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
   selectedId: any,
-  onChangeChat: (chatId: string) => void
+  onChangeChat: (chatItem: any) => void
 }
 
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
@@ -20,18 +22,36 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   } = props;
   const { token } = useToken();
   const userInfo = useAppSelector(userSelector);
-  
   const renderGroupItem = (item: any): ReactNode => {
-    const { users, contactId, recentMessage = {}, unreadNum = 0 } = item;
-    const { msgContent = "", time } = recentMessage;
-    const receiver = users[0]._id === userInfo._id ? users[1] : users[0]
-    return <div key={contactId}
-                className={selectedId === contactId ? "group-item active" : "group-item"}
+    const {  
+      contactId, 
+      groupId, 
+      users = [],
+      recentMessage = {}, 
+      unreadNum = 0,
+      groupInfo = {},
+    } = item;
+    const {
+      groupName,
+      usersAvaterList = [], 
+    } = groupInfo
+    const { 
+      time, 
+      msgContent = ""
+    } = recentMessage;
+    const isGroup = !isEmpty(groupId);
+    const chatId = isGroup ? groupId : contactId;
+    const receiver = (users[0] || {})._id === userInfo._id ? (users[1] || {}) : (users[0] || {})
+    return <div key={chatId}
+                className={selectedId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
-      <Avatar style={{flexShrink: 0}} size={48} src={receiver.avatarImage}/>
+      <ChatAvatar 
+        isGroup={isGroup} 
+        groupImgList={usersAvaterList} 
+        imgUrl={receiver.avatarImage}/>
       <div className="info">
         <div className="name-line">
-          <span className="name">{receiver.username}</span>
+          <span className="name">{isGroup ? groupName : receiver.nickname}</span>
           <span className="date">{formatMessageTime(time)}</span>
         </div>
         <div className="msg-line">
@@ -95,7 +115,7 @@ const GroupWrapper = styled.div<{
           height: 24px;
           align-items: center;
           .name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             flex: 1;
           }

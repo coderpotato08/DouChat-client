@@ -16,6 +16,12 @@ export type ContactInfoType = {
   createTime: Date,
 }
 
+export enum MessageTypeEnum {
+  TEXT,
+  IMAGE,
+  VIDEO,
+}
+
 export enum GenderEnum {
   MAN = 'man',
   GIRL = 'girl',

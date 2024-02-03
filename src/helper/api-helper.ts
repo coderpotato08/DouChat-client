@@ -20,10 +20,12 @@ import {
   DeleteFriendParamsType,
   CreateGroupContactParamsType,
   LoadGroupContactListParamsType,
+  LoadGroupContactParamsType,
+  LoadGroupMsgListParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
-import { ContactInfoType, UserInfoType } from "@constant/user-types"
+import { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types"
 import { GroupApplyStatusEnum, GroupInfoType } from "@constant/group-types"
 
 export class ApiHelper {
@@ -54,9 +56,22 @@ export class ApiHelper {
   // 加载群聊天栏列表
   public static loadGroupContactList = (params: LoadGroupContactListParamsType) => {
     return AxiosHelper.post<Array<{
+      createTime: string,
       groupId: string,
-      status: "success" | "fail"
+      groupInfo: GroupInfoType,
+      unreadNum: number,
+      userId: string,
     }>>(ApiEnum.LOAD_GROUP_CONTACT_LIST, params);
+  }
+  // 加载群聊天栏 群聊 1对1 关系
+  public static loadGroupContact = (params: LoadGroupContactParamsType) => {
+    return AxiosHelper.post<{
+      createTime: string,
+      groupId: string,
+      groupInfo: GroupInfoType,
+      unreadNum: number,
+      userId: string,
+    }>(ApiEnum.LOAD_GROUP_CONTACT, params);
   }
   // 加载群聊列表
   public static loadGroupList = (params: LoadGroupListParamsType) => {
@@ -136,6 +151,16 @@ export class ApiHelper {
   // 加载用户聊天记录
   public static loadUserMsgList = (params: UserMsgListParamsType) => {
     return AxiosHelper.post(ApiEnum.LOAD_USER_MESSAGE_LIST, params)
+  }
+  // 加载群聊天记录
+  public static loadGroupMsgList = (params: LoadGroupMsgListParamsType) => {
+    return AxiosHelper.post<Array<{
+      fromId: UserInfoType,
+      groupId: string,
+      msgType: MessageTypeEnum,
+      msgContent: any,
+      time: string,
+    }>>(ApiEnum.LOAD_GROUP_MESSAGE_LIST, params)
   }
   // 注册
   public static register = (params: RegisterParamsType) => {

@@ -5,6 +5,7 @@ import React, { useMemo, CSSProperties, FC } from "react";
 import styled from "styled-components"
 
 interface MessageBoxProps {
+  isGroup: boolean,
   prevTime: string
   messageInfo: any,
   isSelf: boolean,
@@ -18,7 +19,11 @@ const formatTime = (prevTime: string | null, curTime: string) => {
 
 const lineStyle: CSSProperties = {width: "100%"}
 const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
-  const { isSelf, messageInfo } = props;
+  const { 
+    isSelf, 
+    isGroup,
+    messageInfo 
+  } = props;
   const { fromId: sender } = messageInfo;
 
   const boxStyle: CSSProperties = useMemo(() => ({
@@ -33,9 +38,15 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
     {showTime && <div className="time">{showTime}</div>}
     <Flex style={lineStyle} justify={isSelf ? "flex-end" : "flex-start"} gap={15}>
       {!isSelf && <Avatar src={sender.avatarImage} size={48}/>}
-      <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
-        <div dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
-      </MessageBoxWrapper>
+      <div>
+        {isGroup && <div className={"nickname"}
+                         style={{marginLeft: isSelf ? "auto" : 0}}>
+          {sender.nickname}
+        </div>}
+        <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
+          <div dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
+        </MessageBoxWrapper>
+      </div>
       {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
     </Flex>
   </Wrapper>
@@ -52,6 +63,10 @@ const Wrapper = styled.div`
       color: #666;
       margin-bottom: 8px;
     }
+    .nickname {
+      width: fit-content;
+      font-size: 12px;
+    }
     .ant-avatar {
       flex-shrink: 0;
     }
@@ -59,11 +74,13 @@ const Wrapper = styled.div`
 `
 const MessageBoxWrapper = styled.div<any>`
   & {
+    margin-top: 4px;
     position: relative;
     max-width: 83%;
-    padding: 12px;
+    padding: 0 12px;
     font-size: 16px;
-    line-height: 18px;
+    line-height: 42px;
+    height: 42px;
     border-radius: 4px;
     word-break: break-all;
     color: ${prop => prop.theme.isSelf ? "#fff" : "#000"};
@@ -71,7 +88,8 @@ const MessageBoxWrapper = styled.div<any>`
   &::after {
     content: '';
     position: absolute;
-    top: 15px;
+    top: 50%;
+    transform: translateY(-50%);
     left: ${prop => prop.theme.isSelf ? "unset" : "-20px"};
     right: ${prop => prop.theme.isSelf ? "-20px" : "unset"};
     border-width: 8px 10px 8px 10px;

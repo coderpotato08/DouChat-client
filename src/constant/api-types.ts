@@ -27,8 +27,10 @@ export enum ApiEnum {
   LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
   CREATE_GROUP_CONTACT = '/contacts/createGroupContact', // 创建用户 => 群聊 1对1 关系
   LOAD_GROUP_CONTACT_LIST = '/contacts/loadGroupContactList', // 加载群聊天栏列表
+  LOAD_GROUP_CONTACT = '/contacts/loadGroupContact',// 加载群聊天栏 群聊 1对1 关系
 
-  LOAD_USER_MESSAGE_LIST = '/message/userMessageList', // 用户-消息记录
+  LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
+  LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
 }
@@ -36,6 +38,11 @@ export enum ApiEnum {
 export interface UserContactsParamsType {
   userId: string
 }
+export interface LoadGroupContactListParamsType extends UserContactsParamsType {}
+export interface LoadUserInfoParamsType extends UserContactsParamsType {}
+export interface LoadFriendListParamsType extends UserContactsParamsType {}
+export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}
+export interface LoadGroupListParamsType extends UserContactsParamsType {}
 
 export interface RegisterParamsType {
   nickname: string,
@@ -92,18 +99,14 @@ export interface CreateGroupParamsType {
 export interface LoadGroupUsersParamsType {
   groupId: string,
 }
-
+export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
+export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {}
 export interface QuitGroupParamsType extends LoadGroupUsersParamsType {
   userId: string
 }
+export interface CreateGroupContactParamsType extends QuitGroupParamsType {}
+export interface LoadGroupContactParamsType extends QuitGroupParamsType {}
 export interface DeleteFriendParamsType {
   userId: string,
   friendId: string,
 }
-export interface CreateGroupContactParamsType extends QuitGroupParamsType {}
-export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
-export interface LoadGroupContactListParamsType extends UserContactsParamsType {}
-export interface LoadUserInfoParamsType extends UserContactsParamsType {}
-export interface LoadFriendListParamsType extends UserContactsParamsType {}
-export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}
-export interface LoadGroupListParamsType extends UserContactsParamsType {}

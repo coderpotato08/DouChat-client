@@ -16,6 +16,8 @@ import { ContainerWrapper, GroupWrapper } from "@components/custom-styles";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
 import { cloneDeep, isEmpty } from "lodash";
+import dayjs from "dayjs";
+import { getQuery } from "@helper/common-helper";
 
 const Message = () => {
   const socket = useSocket();
@@ -24,16 +26,22 @@ const Message = () => {
   const userInfo = useAppSelector(userSelector);
   const recentSubmitMessage = useAppSelector(recentSubmitMessageSelector);
   const { id } = useParams();
+  const { type } = getQuery();
+  const isGroup = type === "group";
   const [selectedChat, setSelectedChat] = useState<any>({});
   const [chatList, setChatList] = useState<any[]>([]);
 
   const onReceiveMessage = useCallback((msgData: any) => {
-    const { fromId, toId } = msgData;
-    const receiveContactId = [fromId._id, toId._id].sort().join("_");
-    if(receiveContactId !== selectedChat.contactId) {
+    const { fromId, toId, groupId } = msgData;
+    const isReceiveGroup = !isEmpty(groupId);
+    const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
+    const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
+    console.log(receiveContactId, selectedChatId);
+    if(receiveContactId !== selectedChatId) {
       const newChatList = cloneDeep(chatList);
       newChatList.forEach((chat: any) => {
-        if(chat.contactId === receiveContactId) {
+        const curContactId = isReceiveGroup ? chat.groupId : chat.contactId
+        if(curContactId === receiveContactId) {
           chat.recentMessage = {
             ...msgData,
             uid: createUidV4(),
@@ -46,22 +54,29 @@ const Message = () => {
   }, [selectedChat, chatList])
 
   const onClickContact = (item: any) => {
-    const users = item.contactId.split("_");
-    const fromId = users[0] === userInfo._id ? users[1] : users[0];
-    const toId = users[0] !== userInfo._id ? users[1] : users[0];
-    socket.emit(EventType.READ_MESSAGE, {
-      fromId,
-      toId,
-    });
-    const newChatList = cloneDeep(chatList);
-    newChatList.forEach((chat: any) => {
-      if(chat.contactId === item.contactId) {
-        chat.unreadNum = 0
-      }
-    });
-    setChatList(newChatList)
-    setSelectedChat(item);
-    navigate(`/chat/message/${item.contactId}`)
+    const { groupId } = item;
+    if (groupId) {
+      socket.emit(EventType.ADD_GROUOP_USER, {groupId, userId: userInfo._id})
+      setSelectedChat(item);
+      navigate(`/chat/message/${groupId}?type=group`)
+    } else {
+      const users = item.contactId.split("_");
+      const fromId = users[0] === userInfo._id ? users[1] : users[0];
+      const toId = users[0] !== userInfo._id ? users[1] : users[0];
+      socket.emit(EventType.READ_MESSAGE, {
+        fromId,
+        toId,
+      });
+      const newChatList = cloneDeep(chatList);
+      newChatList.forEach((chat: any) => {
+        if(chat.contactId === item.contactId) {
+          chat.unreadNum = 0
+        }
+      });
+      setChatList(newChatList)
+      setSelectedChat(item);
+      navigate(`/chat/message/${item.contactId}?type=user`)
+    }
   }
 
   const loadUserChatList = async () => {
@@ -69,12 +84,6 @@ const Message = () => {
       userId: userInfo._id
     }
     const contactList = await ApiHelper.loadUserContactList(params)
-    setChatList(contactList);
-    if(id) {
-      const selected = contactList.find((contact: any) => contact.contactId === id);
-      console.log(selected)
-      setSelectedChat(selected || {})
-    }
     return contactList
   }
 
@@ -91,8 +100,20 @@ const Message = () => {
     dispatch(addUser({
       [userInfo.username]: userInfo
     }));
-    loadUserChatList();
-    loadGroupChatList();
+    Promise.all([
+      loadUserChatList(),
+      loadGroupChatList(),
+    ]).then((res) => {
+      const [userChatList, groupChatList] = res;
+      const chatList = [...userChatList, ...groupChatList]
+        .sort((a, b) => dayjs(b.createTime).diff(dayjs(a.createTime)))
+      // console.log(chatList)
+      setChatList(chatList);
+      if(id) {
+        const selected = chatList.find((chat: any) => (chat.contactId || chat.groupId) === id);
+        setSelectedChat(selected || {})
+      }
+    })
   }, []);
 
   useEffect(() => {
@@ -106,7 +127,8 @@ const Message = () => {
     if(!isEmpty(recentSubmitMessage)) {
       const newChatList = cloneDeep(chatList);
       newChatList.forEach((chat: any) => {
-        if(chat.contactId === id) {
+        const contactId = isGroup ? chat.groupId : chat.contactId
+        if(contactId === id) {
           chat.recentMessage = recentSubmitMessage
         }
       })
@@ -120,7 +142,7 @@ const Message = () => {
         <ChatTitle/>
         <ChatGroup
           list={chatList}
-          selectedId={selectedChat.contactId || ""}
+          selectedId={selectedChat.contactId || selectedChat.groupId || ""}
           onChangeChat={onClickContact}/>
       </GroupWrapper>
       <ContainerWrapper>
