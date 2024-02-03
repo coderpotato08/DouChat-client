@@ -56,6 +56,7 @@ export default React.memo(MessageBox)
 
 const Wrapper = styled.div`
   & {
+    padding-bottom: 14px;
     .time {
       width: 100%;
       font-size: 12px;
@@ -74,13 +75,13 @@ const Wrapper = styled.div`
 `
 const MessageBoxWrapper = styled.div<any>`
   & {
+    box-sizing: border-box;
     margin-top: 4px;
     position: relative;
     max-width: 83%;
-    padding: 0 12px;
+    padding: 12px;
     font-size: 16px;
-    line-height: 42px;
-    height: 42px;
+    min-height: 42px;
     border-radius: 4px;
     word-break: break-all;
     color: ${prop => prop.theme.isSelf ? "#fff" : "#000"};

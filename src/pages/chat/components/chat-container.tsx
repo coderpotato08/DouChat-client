@@ -12,7 +12,7 @@ import { LoadGroupMsgListParamsType, UserMsgListParamsType } from "../../../cons
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
-import { ContactInfoType } from "@constant/user-types";
+import { ContactInfoType, MessageTypeEnum } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
 import { getQuery, getReceiverAndSender } from "@helper/common-helper";
@@ -79,7 +79,7 @@ const ChatContainer:FC = () => {
     const contactId = isGroup ? groupId : [toId._id, fromId._id].join("_");
     if(contactId === id) {
       dispatch(addMessage({ message: receiveMessage }))
-      socket.emit(EventType.READ_MESSAGE, {
+      socket.emit(isGroup ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, {
         fromId: fromId._id,
         toId: toId._id
       });
@@ -125,7 +125,7 @@ const ChatContainer:FC = () => {
     const { receiver } = getReceiverAndSender(users, userInfo._id);
     const params: any = {
       fromId: userInfo._id,
-      msgType: 0,
+      msgType: MessageTypeEnum.TEXT,
       msgContent: value,
       time: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     };
@@ -169,7 +169,7 @@ const ChatContainer:FC = () => {
     </ContainerHeader>
     {/* 消息部分 */}
     <ContainerContent ref={scrollRef}>
-      <Flex vertical gap={14}>
+      <Flex vertical>
         {
           !isEmpty(messageList) && messageList.map((info: any, index) => {
             const { fromId: sender } = info;

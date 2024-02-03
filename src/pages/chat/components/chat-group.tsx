@@ -2,7 +2,7 @@ import ChatAvatar from "@components/chat-avatar";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Badge, GlobalToken, Input, theme } from "antd";
+import { Badge, GlobalToken, Input, theme } from "antd";
 import { isEmpty } from "lodash";
 import React, { FC, ReactNode } from "react";
 import styled from 'styled-components';

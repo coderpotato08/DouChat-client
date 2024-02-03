@@ -15,7 +15,7 @@ import ChatGroup from "./components/chat-group";
 import { ContainerWrapper, GroupWrapper } from "@components/custom-styles";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
-import { cloneDeep, isEmpty } from "lodash";
+import { isEmpty } from "lodash";
 import dayjs from "dayjs";
 import { getQuery } from "@helper/common-helper";
 
@@ -36,46 +36,61 @@ const Message = () => {
     const isReceiveGroup = !isEmpty(groupId);
     const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
     const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
-    if(receiveContactId !== selectedChatId) {
-      const newChatList = cloneDeep(chatList);
-      newChatList.forEach((chat: any) => {
+    if(receiveContactId !== selectedChatId) { // 非当前选中的聊天栏的消息，需要未读+1
+      setChatList(preChatList => preChatList.map((chat: any) => {
         const curContactId = isReceiveGroup ? chat.groupId : chat.contactId
         if(curContactId === receiveContactId) {
           chat.recentMessage = {
             ...msgData,
             uid: createUidV4(),
           }
-          chat.unreadNum += 1
+          if(!isReceiveGroup) chat.unreadNum += 1;
         }
-      })
-      setChatList(newChatList);
+        return chat;
+      }));
     }
   }, [selectedChat, chatList])
 
+  const onGroupMessageUnread = useCallback(({groupId, messageId}: {groupId: string, messageId: string}) => {
+    const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
+    console.log("selectedGroupId", selectedChatId, "receiveGroupId", groupId)
+    setChatList(preChatList => preChatList.map((chat: any) => {
+      if(chat.groupId && chat.groupId === groupId) {
+        if (selectedChatId === groupId) { // 将消息置为已读
+          socket.emit(EventType.READ_GROUP_MESSAGE, {userId: userInfo._id, groupId, messageId})
+        } else {
+          chat.unreadNum += 1
+        }
+      }
+      return chat;
+    }))
+  }, [selectedChat, chatList])
+
   const onClickContact = (item: any) => {
-    const { groupId } = item;
+    const { groupId, contactId, unreadNum } = item;
+    let socketParams;
     if (groupId) {
-      socket.emit(EventType.ADD_GROUOP_USER, {groupId, userId: userInfo._id})
-      setSelectedChat(item);
-      navigate(`/chat/message/${groupId}?type=group`)
+      socket.emit(EventType.ADD_GROUOP_USER, {groupId, userId: userInfo._id});
+      socketParams = {userId: userInfo._id, groupId};
     } else {
       const users = item.contactId.split("_");
       const fromId = users[0] === userInfo._id ? users[1] : users[0];
       const toId = users[0] !== userInfo._id ? users[1] : users[0];
-      socket.emit(EventType.READ_MESSAGE, {
-        fromId,
-        toId,
-      });
-      const newChatList = cloneDeep(chatList);
-      newChatList.forEach((chat: any) => {
-        if(chat.contactId === item.contactId) {
-          chat.unreadNum = 0
-        }
-      });
-      setChatList(newChatList)
-      setSelectedChat(item);
-      navigate(`/chat/message/${item.contactId}?type=user`)
+      socketParams = { fromId, toId };
     }
+    if (unreadNum > 0) {
+      socket.emit(groupId ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, socketParams);
+    }
+    setChatList(preChatList => preChatList.map((chat: any) => {
+      const itemId = item.groupId || item.contactId;
+      const chatId = chat.groupId || chat.contactId;
+      if(chatId === itemId) {
+        chat.unreadNum = 0
+      }
+      return chat
+    }))
+    setSelectedChat(item);
+    navigate(`/chat/message/${groupId || contactId}?type=${groupId ? "group" : "user"}`)
   }
 
   const loadUserChatList = async () => {
@@ -118,22 +133,23 @@ const Message = () => {
   useEffect(() => {
     socket.on(EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
     socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    socket.on(EventType.GROUP_MESSAGE_UNREAD, onGroupMessageUnread);
     return () => {
-      socket.on(EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
+      socket.off(EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
       socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
+      socket.off(EventType.GROUP_MESSAGE_UNREAD, onGroupMessageUnread);
     }
-  }, [onReceiveMessage])
+  }, [onReceiveMessage, onGroupMessageUnread]);
 
   useEffect(() => {
     if(!isEmpty(recentSubmitMessage)) {
-      const newChatList = cloneDeep(chatList);
-      newChatList.forEach((chat: any) => {
+      setChatList(preChatList => preChatList.map((chat: any) => {
         const contactId = isGroup ? chat.groupId : chat.contactId
         if(contactId === id) {
           chat.recentMessage = recentSubmitMessage
         }
-      })
-      setChatList(newChatList);
+        return chat;
+      }));
     }
   }, [recentSubmitMessage])
 
