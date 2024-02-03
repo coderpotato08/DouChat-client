@@ -36,7 +36,6 @@ const Message = () => {
     const isReceiveGroup = !isEmpty(groupId);
     const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
     const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
-    console.log(receiveContactId, selectedChatId);
     if(receiveContactId !== selectedChatId) {
       const newChatList = cloneDeep(chatList);
       newChatList.forEach((chat: any) => {
@@ -117,8 +116,10 @@ const Message = () => {
   }, []);
 
   useEffect(() => {
+    socket.on(EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
     socket.on(EventType.RECEIVE_MESSAGE, onReceiveMessage);
     return () => {
+      socket.on(EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
       socket.off(EventType.RECEIVE_MESSAGE, onReceiveMessage);
     }
   }, [onReceiveMessage])

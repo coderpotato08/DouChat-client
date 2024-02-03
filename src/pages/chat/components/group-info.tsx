@@ -49,7 +49,6 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   }, [showMore]);
 
   const onQuitGroup = () => {
-    console.log(groupInfo);
     if(isCreator) {
       ApiHelper.disbandGroup({groupId: groupInfo._id})
         .then(() => {
