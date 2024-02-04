@@ -1,9 +1,11 @@
+import AddGroupUserModal from "@components/add-group-user-modal"
 import CIcon from "@components/c-icon"
 import ChatAvatar from "@components/chat-avatar"
 import InfoBox from "@components/info-box"
 import { UserInfoType } from "@constant/user-types"
 import { ApiHelper } from "@helper/api-helper"
 import { formLayout } from "@helper/common-helper"
+import { usePopup } from "@hooks/usePopup"
 import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
 import { Avatar, Button, Col, Divider, Form, GlobalToken, Popconfirm, Row, message, theme } from "antd"
@@ -22,17 +24,29 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const { 
     groupInfo = {} 
   } = props;
+  const { 
+    usersAvaterList,
+    groupName, 
+    groupNumber,
+    sign, 
+    _id: groupId,
+    creator
+  } = groupInfo;
   const { token } = useToken();
   const navigate = useNavigate();
   const expandRef = useRef<any>(null);
-  const { usersAvaterList, groupName, groupNumber, sign, _id: groupId, creator } = groupInfo;
   const userInfo = useAppSelector(userSelector);
+  const [open, onPopup] = usePopup();
   const [userList, setUserList] = useState<any[]>([]);
   const [showMore, setShowMore] = useState<boolean>(false);
 
   const isCreator = useMemo(() => {
     return groupInfo && groupInfo.creator._id === userInfo._id;
   }, [groupInfo]);
+
+  const groupUserIds = useMemo(() => {
+    return userList.map((user) => user._id);
+  }, [userList])
 
   const showUserList = useMemo(() => {
     return showMore ? userList : userList.slice(0, 19)
@@ -95,6 +109,18 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     </OptionsWrapper>
   }
 
+  const onAddUsers = (list: string[]) => {
+    const params = { 
+      inviterId: userInfo._id,
+      groupId: groupInfo._id,
+      userList: list 
+    };
+    ApiHelper.inviteGroupUsers(params)
+      .then(() => {
+        message.success('邀请群成员成功')
+      });
+  }
+
   useEffect(() => {
     if (groupId) {
       ApiHelper.loadGroupUsers({groupId})
@@ -104,46 +130,52 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     }
   }, [groupId]);
 
-  return <InfoBox title={"群信息"} optionsNode={renderOptions()}>
-    <HeaderInfo>
-      <ChatAvatar isGroup size={"large"} groupImgList={usersAvaterList}/>
-      <div className={"group-name"}>{groupName}</div>
-      <div className={"sign"}>{sign || "暂无群简介"}</div>
-      <Divider orientation="center">群信息</Divider>
-      <Row className={"personal-info"}>
-        <Col span={8}>
-          <Form.Item {...FormLayout} label={"群号"}>
-            {groupNumber}
-          </Form.Item>
-        </Col>
-      </Row>
-    </HeaderInfo>
-    <Divider orientation="center">群用户</Divider>
-    <UserBox $showMore={showMore}>
-      {
-        showUserList.map((user: UserInfoType) => <UserItem $token={token} key={user._id}>
+  return <>
+    <InfoBox title={"群信息"} optionsNode={renderOptions()}>
+      <HeaderInfo>
+        <ChatAvatar isGroup size={"large"} groupImgList={usersAvaterList}/>
+        <div className={"group-name"}>{groupName}</div>
+        <div className={"sign"}>{sign || "暂无群简介"}</div>
+        <Divider orientation="center">群信息</Divider>
+        <Row className={"personal-info"}>
+          <Col span={8}>
+            <Form.Item {...FormLayout} label={"群号"}>
+              {groupNumber}
+            </Form.Item>
+          </Col>
+        </Row>
+      </HeaderInfo>
+      <Divider orientation="center">群用户</Divider>
+      <UserBox $showMore={showMore}>
+        {
+          showUserList.map((user: UserInfoType) => <UserItem $token={token} key={user._id}>
+            <div className={"icon"}>
+              <Avatar size={48} src={user.avatarImage}/>
+              {user._id === userInfo._id && <div className={"me-tag"}>我</div>}
+              {user._id === creator._id && <div className={"creator-tag"}>群主</div>}
+            </div>
+            <div className="label">{user.nickname}</div>
+          </UserItem>)
+        }
+        <UserItem $token={token} onClick={onPopup}>
           <div className={"icon"}>
-            <Avatar size={48} src={user.avatarImage}/>
-            {user._id === userInfo._id && <div className={"me-tag"}>我</div>}
-            {user._id === creator._id && <div className={"creator-tag"}>群主</div>}
+            <CIcon size={48} value={"icon-add-user"} color="#666"/>
           </div>
-          <div className="label">{user.nickname}</div>
-        </UserItem>)
+          <div className="label">添加</div>
+        </UserItem>
+      </UserBox>
+      {
+        userList.length > 20 &&
+        <ExpandBtn ref={expandRef} onClick={() => setShowMore(!showMore)}>
+          {showMore ? "收起" : "展开"}
+        </ExpandBtn>
       }
-      <UserItem $token={token}>
-        <div className={"icon"}>
-          <CIcon size={48} value={"icon-add-user"} color="#666"/>
-        </div>
-        <div className="label">添加</div>
-      </UserItem>
-    </UserBox>
-    {
-      userList.length > 20 &&
-      <ExpandBtn ref={expandRef} onClick={() => setShowMore(!showMore)}>
-        {showMore ? "收起" : "展开"}
-      </ExpandBtn>
-    }
-  </InfoBox>
+    </InfoBox>
+    <AddGroupUserModal selected={groupUserIds} 
+                       visible={open} 
+                       onCancel={onPopup} 
+                       onConfirm={onAddUsers}/>
+  </>
 }
 
 export default GroupInfo

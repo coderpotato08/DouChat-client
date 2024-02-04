@@ -12,12 +12,11 @@ import { LoadGroupMsgListParamsType, UserMsgListParamsType } from "../../../cons
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
-import { ContactInfoType, MessageTypeEnum } from "@constant/user-types";
+import { MessageTypeEnum } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
 import { getQuery, getReceiverAndSender } from "@helper/common-helper";
 import dayjs from "dayjs";
-import { GroupInfoType } from "@constant/group-types";
 
 const ChatContainer:FC = () => {
   const socket = useSocket();

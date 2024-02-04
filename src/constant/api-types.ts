@@ -1,4 +1,4 @@
-import { FriendApplyStatusEnum } from '@constant/friend-types';
+import { ApplyStatusEnum } from '@constant/relationship-types';
 import { GenderEnum } from './user-types';
 export const socketHost = "http://localhost:3040" // 聊天室socket
 export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
@@ -13,12 +13,16 @@ export enum ApiEnum {
   FRIEND_LIST = "/user/friend/list", // 好友列表
   CHANGE_FRIEND_STATUS = "/user/friend/changeStatus",  // 同意/拒绝 好友申请
   DELETE_FRIEND = "/user/friend/deleteFriend",  // 删除好友
+  DELETE_FRIEND_NOTIFICATION = "/user/friend/deleteFriendNotification", // 删除好友申请通知记录
 
   CREATE_GROUP = '/group/create', // 创建群聊
   LOAD_GROUP_LIST = '/group/loadGroupList', // 加载群聊
   LOAD_GROUP_USERS = '/group/loadGroupUsers', // 加载群用户列表
   QUIT_GROUP = '/group/quitGroup', // 退出群聊
   DISBANED_GROUP = '/group/disbandGroup', // 解散群聊
+  INVITE_GROUP_USERS = '/group/inviteGroupUsers', // 发起申请添加用户
+  LOAD_GROUP_NOTIFICATIONS = '/group/loadGroupNotifications', // 加载群邀请通知
+  DELETE_GROUP_NOTIFICATION = '/group/deleteGroupNotification',   // 删除群邀请通知记录
 
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
@@ -43,6 +47,7 @@ export interface LoadUserInfoParamsType extends UserContactsParamsType {}
 export interface LoadFriendListParamsType extends UserContactsParamsType {}
 export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}
 export interface LoadGroupListParamsType extends UserContactsParamsType {}
+export interface LoadGroupNotificationsParamsType extends UserContactsParamsType {}
 
 export interface RegisterParamsType {
   nickname: string,
@@ -81,9 +86,9 @@ export interface AddFriendParamsType {
 
 export interface ChangeFriendStatusParamsType {
   id: string,
-  changeStatus: FriendApplyStatusEnum,
+  changeStatus: ApplyStatusEnum,
 }
-
+export interface ChangeGroupStatusParamsType extends ChangeFriendStatusParamsType {}
 export interface LoadUserContactParamsType {
   contactId: string,
 }
@@ -104,9 +109,16 @@ export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {}
 export interface QuitGroupParamsType extends LoadGroupUsersParamsType {
   userId: string
 }
+export interface InviteGroupUsersParamsType extends LoadGroupUsersParamsType {
+  userList: string[],
+}
 export interface CreateGroupContactParamsType extends QuitGroupParamsType {}
 export interface LoadGroupContactParamsType extends QuitGroupParamsType {}
 export interface DeleteFriendParamsType {
   userId: string,
   friendId: string,
 }
+export interface DeleteGroupNotificationParamsType {
+  nid: string
+}
+export interface DeleteFriendNotificationParamsType extends DeleteGroupNotificationParamsType {}

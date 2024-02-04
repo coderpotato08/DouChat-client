@@ -1,4 +1,4 @@
-import { FriendInfoType } from "@constant/friend-types";
+import { FriendInfoType } from "@constant/relationship-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
@@ -10,7 +10,10 @@ interface UserSelectorProps {
   value: Array<any>,
   onSelect: (value: Array<any>, options: Array<FriendInfoType>) => void
 }
-const UserSelector:FC<UserSelectorProps> = (props: UserSelectorProps) => {
+const UserSelector:FC<UserSelectorProps> = ({
+  value,
+  onSelect,
+}: UserSelectorProps) => {
   const userInfo = useAppSelector(userSelector);
   const [friendList, setFriendList] = useState<any[]>([]);
 
@@ -26,7 +29,7 @@ const UserSelector:FC<UserSelectorProps> = (props: UserSelectorProps) => {
 
   const onHandleSelect: GetProp<typeof Checkbox.Group, 'onChange'> = (checkedValues) => {
     const options = friendList.filter(({ _id }) => checkedValues.findIndex((value) => value === _id) > -1);
-    props.onSelect(checkedValues, options);
+    onSelect(checkedValues, options);
   };
 
   useEffect(() => {
@@ -34,16 +37,18 @@ const UserSelector:FC<UserSelectorProps> = (props: UserSelectorProps) => {
   }, [])
 
   return <Wrapper>
-    <Checkbox.Group value={props.value} onChange={onHandleSelect}>
+    <Checkbox.Group value={value} onChange={onHandleSelect}>
       <Space direction="vertical">
         {
-          friendList.map((friend) => <Checkbox key={friend._id}
-                                            value={friend._id}>
-            <FriendInfo>
-              <Avatar size={48} src={friend.avatarImage}/>
-              <div className="name">{friend.nickname}</div>
-            </FriendInfo>                                  
-          </Checkbox>)
+          friendList.map((friend) => {
+            return <Checkbox key={friend._id}
+                             value={friend._id}>
+              <FriendInfo>
+                <Avatar size={48} src={friend.avatarImage}/>
+                <div className="name">{friend.nickname}</div>
+              </FriendInfo>                                  
+            </Checkbox>
+          })
         }
       </Space>
     </Checkbox.Group>

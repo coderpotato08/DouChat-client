@@ -22,11 +22,15 @@ import {
   LoadGroupContactListParamsType,
   LoadGroupContactParamsType,
   LoadGroupMsgListParamsType,
+  InviteGroupUsersParamsType,
+  LoadGroupNotificationsParamsType,
+  ChangeGroupStatusParamsType,
+  DeleteGroupNotificationParamsType,
+  DeleteFriendNotificationParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
-import { FriendApplyStatusEnum, FriendInfoType } from "@constant/friend-types"
+import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types"
 import { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types"
-import { GroupApplyStatusEnum, GroupInfoType } from "@constant/group-types"
 
 export class ApiHelper {
   // --------------- 视频聊天 ----------------------
@@ -76,15 +80,28 @@ export class ApiHelper {
   // 加载群聊列表
   public static loadGroupList = (params: LoadGroupListParamsType) => {
     return AxiosHelper.post<Array<{
-      state: GroupApplyStatusEnum,
+      state: ApplyStatusEnum,
       time: string,
       userInfo: UserInfoType,
       groupInfo: GroupInfoType,
     }>>(ApiEnum.LOAD_GROUP_LIST, params)
   }
+  // 加载群邀请通知
+  public static loadGroupNotifications = (params: LoadGroupNotificationsParamsType) => {
+    return AxiosHelper.post<Array<{
+      inviter: UserInfoType,
+      groupInfo: GroupInfoType,
+      userId: string,
+      status: ApplyStatusEnum,
+    }>>(ApiEnum.LOAD_GROUP_NOTIFICATIONS, params)
+  }
   // 加载群用户列表
   public static loadGroupUsers = (params: LoadGroupUsersParamsType) => {
     return AxiosHelper.post<Array<UserInfoType>>(ApiEnum.LOAD_GROUP_USERS, params)
+  }
+  // 邀请群成员
+  public static inviteGroupUsers = (params: InviteGroupUsersParamsType) => {
+    return AxiosHelper.post(ApiEnum.INVITE_GROUP_USERS, params)
   }
   // 退出群聊
   public static quitGroup = (params: QuitGroupParamsType) => {
@@ -119,23 +136,25 @@ export class ApiHelper {
       status: "success" | "fail",
     }>(ApiEnum.DELETE_FRIEND, params)
   }
+  // 删除好友申请通知记录
+  public static deleteFriendNotification = (params: DeleteFriendNotificationParamsType) => {
+    return AxiosHelper.post(ApiEnum.DELETE_FRIEND_NOTIFICATION, params)
+  }
   // 好友通知列表
   public static loadFriendNotifications = (params: LoadFriendNotificationsParamsType) => {
-    return AxiosHelper.post<{
-      friendList: Array<{
+    return AxiosHelper.post<Array<{
         userId: any,
         friendId: string,
-        status: FriendApplyStatusEnum,
+        status: ApplyStatusEnum,
         createTime: Date,
-      }>
-    }>(ApiEnum.FRIEND_NOTIFICATION, params)
+      }>>(ApiEnum.FRIEND_NOTIFICATION, params)
   }
   // 好友列表
   public static loadFriendList = (params: LoadFriendListParamsType) => {
     return AxiosHelper.post<{
       friendList: Array<{
         friendInfo: FriendInfoType
-        status: FriendApplyStatusEnum,
+        status: ApplyStatusEnum,
         createTime: Date,
       }>
     }>(ApiEnum.FRIEND_LIST, params)
@@ -162,6 +181,11 @@ export class ApiHelper {
       time: string,
     }>>(ApiEnum.LOAD_GROUP_MESSAGE_LIST, params)
   }
+  // 删除群邀请通知记录
+  public static deleteGroupNotification = (params: DeleteGroupNotificationParamsType) => {
+    return AxiosHelper.post(ApiEnum.DELETE_GROUP_NOTIFICATION, params)
+  }
+
   // 注册
   public static register = (params: RegisterParamsType) => {
     return AxiosHelper.post<{

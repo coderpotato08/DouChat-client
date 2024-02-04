@@ -14,6 +14,7 @@ const userSlice = createSlice({
     userInfo: LocalStorageHelper.getItem(StorageKeys.USER_INFO) || {},
 
     friendNoteNum: 0,
+    groupNoteNum: 0,
   },
   reducers: {
     setUserInfo: (state, action:PayloadAction<any>) => ({
@@ -48,6 +49,13 @@ const userSlice = createSlice({
         friendNoteNum: num
       }
     },
+    setGroupNoteNum: (state, action:PayloadAction<{num: number}>) => {
+      const { payload: { num } } = action;
+      return {
+        ...state,
+        groupNoteNum: num
+      }
+    },
     addFriendNoteNum: (state) => {
       return {
         ...state,
@@ -59,7 +67,13 @@ const userSlice = createSlice({
         ...state,
         friendNoteNum: state.friendNoteNum - 1
       }
-    }
+    },
+    subGroupNoteNum: (state) => {
+      return {
+        ...state,
+        groupNoteNum: state.groupNoteNum - 1
+      }
+    },
   }
 })
 
@@ -68,11 +82,14 @@ export const {
   addUser,
   deleteUser,
   setFriendNoteNum,
+  setGroupNoteNum,
   addFriendNoteNum,
   subFriendNoteNum,
+  subGroupNoteNum,
 } = userSlice.actions;
 export const userSelector = (state: any) => state.user.userInfo;
-export const friendNoteNumSelector = (state: any) => (state.user.friendNoteNum)
+export const friendNoteNumSelector = (state: any) => (state.user.friendNoteNum);
+export const groupNoteNumSelector = (state: any) => (state.user.groupNoteNum)
 export const onlineInfoSelector = (state: any) => ({
   onlineUser: state.user.onlineUser,
   onlineNum: state.user.onlineNum,

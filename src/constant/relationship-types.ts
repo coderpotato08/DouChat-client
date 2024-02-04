@@ -1,9 +1,16 @@
 import { UserInfoType } from "./user-types";
 
-export enum GroupApplyStatusEnum { // 群申请状态
-  APPLING,
-  ACCEPTED,
+export enum ApplyStatusEnum {
+  APPLYING,
+  ACCEPT,
   REJECTED,
+}
+
+export type FriendInfoType = {
+  avatarImage: string,
+  nickname: string,
+  username: string,
+  _id: string,
 }
 
 export interface GroupInfoType {

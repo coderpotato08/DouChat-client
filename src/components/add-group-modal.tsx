@@ -5,7 +5,7 @@ import { Button, Flex, Form, Input, Modal, ModalProps, message } from "antd";
 import { FC, useEffect, useState } from "react";
 import styled from "styled-components";
 import UserSelector from "./user-selector";
-import { FriendInfoType } from "@constant/friend-types";
+import { FriendInfoType } from "@constant/relationship-types";
 import { formLayout } from "@helper/common-helper";
 import { CreateGroupParamsType } from "@constant/api-types";
 import Avatar from "antd/es/avatar/avatar";

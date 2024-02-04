@@ -11,24 +11,6 @@ const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export { 
-  setUserInfo,
-  addUser,
-  deleteUser,
-  setFriendNoteNum,
-  addFriendNoteNum,
-  subFriendNoteNum,
-  userSelector,
-  friendNoteNumSelector,
-  onlineInfoSelector
-} from './userReducer'
-export {
-  addMessage,
-  pushMessageList,
-  changeMessageList,
-  cacheMessageList,
-  recentSubmitMessageSelector,
-  messageListSelector,
-  messageListCacheSelector
-} from './messageReducer'
+export * from './userReducer'
+export * from './messageReducer'
 export default store;

@@ -6,6 +6,7 @@ import { RouteObject, Navigate } from 'react-router-dom';
 import Relationship from '@pages/chat/relationship';
 import ChatContainer from '@pages/chat/components/chat-container';
 import Register from '@pages/register';
+import { SocketProvider } from '@store/context/createContext';
 
 const router: RouteObject[] = [
   {
@@ -32,7 +33,9 @@ const router: RouteObject[] = [
       },
       {
         path: "relationship",
-        element: <Relationship/>
+        element: <SocketProvider>
+          <Relationship/>
+        </SocketProvider>
       }
     ]
   },
