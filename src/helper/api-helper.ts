@@ -24,7 +24,6 @@ import {
   LoadGroupMsgListParamsType,
   InviteGroupUsersParamsType,
   LoadGroupNotificationsParamsType,
-  ChangeGroupStatusParamsType,
   DeleteGroupNotificationParamsType,
   DeleteFriendNotificationParamsType,
   CreateUserContactParamsType,
@@ -167,7 +166,7 @@ export class ApiHelper {
         friendId: string,
         status: ApplyStatusEnum,
         createTime: Date,
-      }>>(ApiEnum.FRIEND_NOTIFICATION, params)
+      }>>(ApiEnum.LOAD_FRIEND_NOTIFICATION, params)
   }
   // 好友列表
   public static loadFriendList = (params: LoadFriendListParamsType) => {

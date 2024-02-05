@@ -9,11 +9,9 @@ export enum ApiEnum {
   SEARCH_USERS = "/user/search", // 模糊查询用户
   LOAD_USER_INFO = "/user/loadUserInfo", // 加载用户信息
   ADD_FRIEND = "/user/add-friend", // 添加用户
-  FRIEND_NOTIFICATION = "/user/friend/notification",  // 好友通知
   FRIEND_LIST = "/user/friend/list", // 好友列表
   CHANGE_FRIEND_STATUS = "/user/friend/changeStatus",  // 同意/拒绝 好友申请
   DELETE_FRIEND = "/user/friend/deleteFriend",  // 删除好友
-  DELETE_FRIEND_NOTIFICATION = "/user/friend/deleteFriendNotification", // 删除好友申请通知记录
 
   CREATE_GROUP = '/group/create', // 创建群聊
   LOAD_GROUP_INFO = '/group/loadGroupInfo', // 加载群信息
@@ -22,12 +20,15 @@ export enum ApiEnum {
   QUIT_GROUP = '/group/quitGroup', // 退出群聊
   DISBANED_GROUP = '/group/disbandGroup', // 解散群聊
   INVITE_GROUP_USERS = '/group/inviteGroupUsers', // 发起申请添加用户
-  LOAD_GROUP_NOTIFICATIONS = '/group/loadGroupNotifications', // 加载群邀请通知
-  DELETE_GROUP_NOTIFICATION = '/group/deleteGroupNotification',   // 删除群邀请通知记录
   UPDATE_GROUP_INFO = '/group/updateGroupInfo', // 更新群信息
 
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
+
+  LOAD_FRIEND_NOTIFICATION = "/notification/loadFriendNotifications",  // 好友通知
+  DELETE_FRIEND_NOTIFICATION = "/notification/deleteFriendNotification", // 删除好友申请通知记录
+  LOAD_GROUP_NOTIFICATIONS = '/notification/loadGroupNotifications', // 加载群邀请通知
+  DELETE_GROUP_NOTIFICATION = '/notification/deleteGroupNotification',   // 删除群邀请通知记录
 
   LOAD_USER_CONTACT_LIST = '/contacts/user-contact-list',  // 聊天栏用户列表
   LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
