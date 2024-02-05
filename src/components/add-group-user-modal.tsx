@@ -1,6 +1,6 @@
 import { BaseModalProps } from '@constant/common-types';
 import { Avatar, Checkbox, GetProp, Modal, Space } from 'antd';
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ApiHelper } from '@helper/api-helper';
 import { useAppSelector } from '@store/hooks';
@@ -88,7 +88,7 @@ export default AddGroupUserModal;
 const Wrapper = styled.div`
   & {
     width: 100%;
-    height: 100%;
+    height: 480px;
     overflow: scroll;
   }
 `

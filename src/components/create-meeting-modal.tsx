@@ -13,37 +13,7 @@ import { formLayout } from "@helper/common-helper";
 import { BaseModalProps } from "@constant/common-types";
 
 const FormItemLayout = formLayout(6, 16);
-const temp_userList = [
-  {
-    _id: '63c50ec9b514ebc8491c08e8',
-    username: 'luhaiyu002',
-  },
-  {
-    _id: '63c5134e1d3b1256de04ca5f',
-    username: 'luhaiyu003',
-  },
-  {
-    _id: '63c5136b1d3b1256de04ca6c',
-    username: 'luhaiyu004',
-  },
-  {
-    _id: '63c50ec9b514ebc8491c08e1',
-    username: 'luhaiyu005',
-  },
-  {
-    _id: '63c5134e1d3b1256de04ca5f=2',
-    username: 'luhaiyu006',
-  },
-  {
-    _id: '63c5136b1d3b1256de04ca6c41',
-    username: 'luhaiyu007',
-  },
-  {
-    _id: '63c5136b1d3b1256de04ca6caf',
-    username: 'luhaiyu008',
-  },
 
-]
 type FormTypes = Partial<Omit<CreateMeetingParamsType, "creator" | "createTime">>
 
 const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
@@ -57,12 +27,22 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
   const { nickname, _id } = useAppSelector(userSelector);
   const [ form ] = Form.useForm();
   const selectedUserList = Form.useWatch('userList', form);
-  const [ userList, setUserList ] = useState<any[]>([]);
+  const [ friendList, setFriendList ] = useState<any[]>([]);
 
   const onHandleCancel = useCallback(() => {
     onCancel();
     form.resetFields();
   }, [visible])
+
+  const loadFriendList = () => {
+    ApiHelper.loadFriendList({userId: _id})
+      .then(({ friendList }) => {
+        const userList = friendList.map((item) => ({
+          ...item.friendInfo,
+        }))
+        setFriendList(userList);
+      })
+  }
 
   const onCreateMeeting = () => {
     const confirmValue: Required<FormTypes> = form.getFieldsValue();
@@ -92,8 +72,10 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
   }, [selectedUserList])
 
   useEffect(() => {
-    
-  }, [])
+    if(visible) {
+      loadFriendList()
+    }
+  }, [visible])
 
   return <Modal destroyOnClose
                 closeIcon={null}
@@ -122,8 +104,8 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
         >
           <Select style={{width: '100%'}}
                   mode={"multiple"}
-                  options={temp_userList}
-                  fieldNames={{label: 'username', value: '_id'}}/>
+                  options={friendList}
+                  fieldNames={{label: 'nickname', value: '_id'}}/>
         </Form.Item>
         <Form.Item label={"成员入会时静音"}>
           <Space>
