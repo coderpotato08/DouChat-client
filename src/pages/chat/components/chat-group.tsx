@@ -1,10 +1,15 @@
+import CIcon from "@components/c-icon";
 import ChatAvatar from "@components/chat-avatar";
+import { YNEnum } from "@constant/common-types";
+import { ApiHelper } from "@helper/api-helper";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
+import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Badge, GlobalToken, Input, theme } from "antd";
+import { Badge, Checkbox, GlobalToken, Input, Popconfirm, message, theme } from "antd";
+import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
 import { isEmpty } from "lodash";
-import React, { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useState } from "react";
 import styled from 'styled-components';
 
 const { useToken } = theme;
@@ -12,18 +17,42 @@ interface ChatGroupProps {
   list: any[]
   selectedId: any,
   onChangeChat: (chatItem: any) => void
+  refreshChatList: () => void
 }
 
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { 
     list,
     selectedId,
-    onChangeChat 
+    onChangeChat,
+    refreshChatList,
   } = props;
   const { token } = useToken();
   const userInfo = useAppSelector(userSelector);
+  const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
+  const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false)
+
+  const handleShowTips = (e: CheckboxChangeEvent) => {
+    setIsShowTipsNext(e.target.checked);
+  }
+
+  const deleteContact = async (id: string, isGroup: boolean) => {
+    if(isShowTipsNext) {
+      LocalStorageHelper.setItem( // 下次是否不再提示
+        StorageKeys.IS_SHOW_DELETE_CONTACT_TIP, 
+        isShowTipsNext ? YNEnum.NO : YNEnum.YES
+      );
+    }
+    if (isGroup) {
+      await ApiHelper.deleteGroupContact({id})
+    } else {
+      await ApiHelper.deleteUserContact({id});
+    }
+    refreshChatList();
+  }
   const renderGroupItem = (item: any): ReactNode => {
-    const {  
+    const {
+      _id,
       contactId, 
       groupId, 
       users = [],
@@ -45,10 +74,13 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     return <div key={chatId}
                 className={selectedId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
-      <ChatAvatar 
-        isGroup={isGroup} 
-        groupImgList={usersAvaterList} 
-        imgUrl={receiver.avatarImage}/>
+      <div className="avatar-box">
+        <ChatAvatar 
+          isGroup={isGroup} 
+          groupImgList={usersAvaterList} 
+          imgUrl={receiver.avatarImage}/>
+        <Badge className={"badge"} size="small" count={unreadNum}/>
+      </div>
       <div className="info">
         <div className="name-line">
           <span className="name">{isGroup ? groupName : receiver.nickname}</span>
@@ -56,7 +88,34 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
         </div>
         <div className="msg-line">
           <div className="msg">{formatShowMessage(msgContent)}</div>
-          <Badge size="small" count={unreadNum}/>
+          {
+            isNeedDeleteTips === YNEnum.YES ? 
+              <Popconfirm
+                placement="right"
+                title={"确认要删除该聊天？"}
+                description={<Checkbox onChange={handleShowTips}>不再提示</Checkbox>}
+                onConfirm={(e: any) => {
+                  e.stopPropagation();
+                  deleteContact(_id, isGroup)
+                }}
+                okText="Yes"
+                cancelText="No"
+              >
+                <div>
+                  <CIcon value={"icon-delete-bin-smile"} 
+                        size={16}
+                        color="#666"
+                        onClick={() => {}}/>
+                </div>
+              </Popconfirm> : <CIcon 
+                value={"icon-delete-bin-smile"}
+                size={16}
+                color="#666"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteContact(_id, isGroup)
+                }}/>
+          }
         </div>
       </div>
     </div>
@@ -106,6 +165,13 @@ const GroupWrapper = styled.div<{
       padding: 12px 18px;
       transition: all .4s;
       background: #fff;
+      .avatar-box {
+        position: relative;
+        .badge {
+          position: absolute;
+          right: 0;
+        }
+      }
       .info {
         margin-left: 12px;
         flex: 1;

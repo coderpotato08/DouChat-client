@@ -3,3 +3,8 @@ export interface BaseModalProps {
   onCancel: () => void,
   confirmCallback?: () => void,
 }
+
+export enum YNEnum {
+  YES = "yes",
+  NO = "no"
+}

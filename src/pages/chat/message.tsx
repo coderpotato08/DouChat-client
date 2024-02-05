@@ -109,25 +109,26 @@ const Message = () => {
     return groupContactList;
   }
 
+  const loadAllContactList = async () => {
+    const [userChatList, groupChatList] = await Promise.all([
+      loadUserChatList(),
+      loadGroupChatList(),
+    ])
+    const chatList = [...userChatList, ...groupChatList]
+      .sort((a, b) => dayjs(b.createTime).diff(dayjs(a.createTime)))
+    setChatList(chatList);
+    if(id) {
+      const selected = chatList.find((chat: any) => (chat.contactId || chat.groupId) === id);
+      setSelectedChat(selected || {})
+    }
+  }
+
   useEffect(() => {
     socket.emit(EventType.ADD_USER, userInfo);
     dispatch(addUser({
       [userInfo.username]: userInfo
     }));
-    Promise.all([
-      loadUserChatList(),
-      loadGroupChatList(),
-    ]).then((res) => {
-      const [userChatList, groupChatList] = res;
-      const chatList = [...userChatList, ...groupChatList]
-        .sort((a, b) => dayjs(b.createTime).diff(dayjs(a.createTime)))
-      // console.log(chatList)
-      setChatList(chatList);
-      if(id) {
-        const selected = chatList.find((chat: any) => (chat.contactId || chat.groupId) === id);
-        setSelectedChat(selected || {})
-      }
-    })
+    loadAllContactList()
   }, []);
 
   useEffect(() => {
@@ -160,7 +161,8 @@ const Message = () => {
         <ChatGroup
           list={chatList}
           selectedId={selectedChat.contactId || selectedChat.groupId || ""}
-          onChangeChat={onClickContact}/>
+          onChangeChat={onClickContact}
+          refreshChatList={loadAllContactList}/>
       </GroupWrapper>
       <ContainerWrapper>
         <Outlet/>

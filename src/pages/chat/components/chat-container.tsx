@@ -56,7 +56,7 @@ const ChatContainer:FC = () => {
     handleSocketEvent("on", isGroup);
     if (!isEmpty(selectedChat)) {
       if(isGroup) {
-        loadGroupMessageList(selectedChat.groupId);
+        loadGroupMessageList();
       } else {
         const { users } = selectedChat || {};
         loadMessageList(users[0], users[1]);
@@ -99,9 +99,10 @@ const ChatContainer:FC = () => {
   }, [messageList])
 
   const loadMessageList = (from: any, to: any) => {
-    const params:UserMsgListParamsType = {
+    const params = {
       fromId: from._id,
       toId: to._id,
+      limitTime: selectedChat.createTime
     };
     ApiHelper.loadUserMsgList(params)
       .then((res: any) => {
@@ -109,9 +110,10 @@ const ChatContainer:FC = () => {
       })
   }
 
-  const loadGroupMessageList = (groupId: string) => {
+  const loadGroupMessageList = () => {
     const params: LoadGroupMsgListParamsType = {
       groupId: id!,
+      limitTime: selectedChat.createTime
     };
     ApiHelper.loadGroupMsgList(params)
       .then((res: any) => {

@@ -3,12 +3,13 @@ import styled from 'styled-components';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
 import { Avatar, Button, notification, theme } from 'antd';
-import { useAppSelector } from '../../store/hooks';
-import { userSelector } from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setTotalUnreadNum, totalUnreadNumSelector, userSelector } from '../../store';
 import { useSocket } from '@store/context/createContext';
 import { EventType } from '@constant/socket-types';
 import { CreateMeetingParamsType } from '@constant/api-types';
 import { RoleType } from '@constant/meeting-types';
+import { ApiHelper } from '@helper/api-helper';
 
 const { useToken } = theme;
 const menuList = [
@@ -32,14 +33,23 @@ const Chat:FC = () => {
   const { pathname } = useLocation();
   const { token } = useToken();
   const socket = useSocket();
-  const userInfo = useAppSelector(userSelector);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const totalUnreadNum = useAppSelector(totalUnreadNumSelector)
+  const userInfo = useAppSelector(userSelector);
   const [api, contextHolder] = notification.useNotification()
   const [selectedKey, setSelectedKey] = useState('message');
 
   const onClickMenu = (item: any) => {
     setSelectedKey(item.key)
     navigate(item.route);
+  }
+
+  const loadGlobalInfo = async () => {
+    const [{ num }] = await Promise.all([
+      ApiHelper.loadAllUnreadNum({ userId: userInfo._id })
+    ]);
+    dispatch(setTotalUnreadNum({ num }));
   }
 
   const onReceiveInviteMeeting = (data: { meetingId: string } & CreateMeetingParamsType) => {
@@ -82,8 +92,16 @@ const Chat:FC = () => {
     })
   }
 
+  const handleSocketEvent = (type: "on" | "off") => {
+    socket[type](EventType.INVITE_MEETING, onReceiveInviteMeeting);
+  }
+
   useEffect(() => {
-    socket.on(EventType.INVITE_MEETING, onReceiveInviteMeeting);
+    handleSocketEvent("on");
+    loadGlobalInfo();
+    return () => {
+      handleSocketEvent("off");
+    }
   }, []);
 
   useEffect(() => {

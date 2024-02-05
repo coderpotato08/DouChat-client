@@ -29,20 +29,27 @@ import {
   CreateUserContactParamsType,
   LoadGroupInfoParamsType,
   UpdateGroupInfoParamsType,
+  LoadAllUnreadMesageNumParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types"
 import { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types"
 
 export class ApiHelper {
+  // 所有未读消息数加载
+  public static loadAllUnreadNum = (params: LoadAllUnreadMesageNumParamsType) => {
+    return AxiosHelper.post<{
+      num: number
+    }>(ApiEnum.LOAD_ALL_UNREAD_NUM, params);
+  }
   // --------------- 视频聊天 ----------------------
   // 创建会议
   public static createMeeting = (params: CreateMeetingParamsType) => {
-    return AxiosHelper.post(ApiEnum.CREATE_MEETING, params)
+    return AxiosHelper.post(ApiEnum.CREATE_MEETING, params);
   }
   // 加载会议信息
   public static loadMeetingInfo = (params: LoadMeetingInfoParamsType) => {
-    return AxiosHelper.post(ApiEnum.LOAD_MEETING_INFO, params)
+    return AxiosHelper.post(ApiEnum.LOAD_MEETING_INFO, params);
   }
   // --------------- 群聊聊天 -----------------------
   // 创建群聊
@@ -187,7 +194,11 @@ export class ApiHelper {
     return AxiosHelper.post<ContactInfoType>(ApiEnum.LOAD_USER_CONTACT, params)
   }
   // 加载用户聊天记录
-  public static loadUserMsgList = (params: UserMsgListParamsType) => {
+  public static loadUserMsgList = (params: {
+    fromId: string,
+    toId: string,
+    limitTime: Date,
+  }) => {
     return AxiosHelper.post(ApiEnum.LOAD_USER_MESSAGE_LIST, params)
   }
   // 加载群聊天记录
@@ -204,7 +215,18 @@ export class ApiHelper {
   public static deleteGroupNotification = (params: DeleteGroupNotificationParamsType) => {
     return AxiosHelper.post(ApiEnum.DELETE_GROUP_NOTIFICATION, params)
   }
-
+  // 删除群聊天栏
+  public static deleteGroupContact = (params: {
+    id: string
+  }) => {
+    return AxiosHelper.post(ApiEnum.DELETE_GROUP_CONTACT, params)
+  }
+  // 删除用户聊天栏
+  public static deleteUserContact = (params: {
+    id: string
+  }) => {
+    return AxiosHelper.post(ApiEnum.DELETE_USER_CONTACT, params)
+  }
   // 注册
   public static register = (params: RegisterParamsType) => {
     return AxiosHelper.post<{

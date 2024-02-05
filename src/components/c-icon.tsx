@@ -6,7 +6,7 @@ interface CIconProps {
   size: number;
   color?: string;
   style?: CSSProperties,
-  onClick?: () => void,
+  onClick?: (event: any) => void,
 };
 const CIcon:FC<CIconProps> = (props: CIconProps) => {
   const { value, size, color } = props;
@@ -15,13 +15,13 @@ const CIcon:FC<CIconProps> = (props: CIconProps) => {
     color: color || '#333',
     ...props.style,
   }
-  const onHandleClick = () => {
+  const onHandleClick = (event: any) => {
     if(props.onClick) {
-      props.onClick();
+      props.onClick(event);
     }
   }
-  return <CIconWrapper>
-    <i onClick={onHandleClick} className={`iconfont ${value}`} style={iconStyle}/>
+  return <CIconWrapper onClick={onHandleClick}>
+    <i className={`iconfont ${value}`} style={iconStyle}/>
   </CIconWrapper>
 }
 

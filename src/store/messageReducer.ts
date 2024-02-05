@@ -1,11 +1,14 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import exp from 'constants';
 
 interface MessageState {
+  totalUnreadNum: number,
   messageList: any[],
   messageListCache: Record<string, any[]>
   recentSubmitMessage: any
 }
 const initialState: MessageState = {
+  totalUnreadNum: 0,
   messageList: [],
   messageListCache: {},
   recentSubmitMessage: {},
@@ -14,6 +17,25 @@ const messageSlice = createSlice({
   name: "message",
   initialState: initialState,
   reducers: {
+    setTotalUnreadNum: (state, action: PayloadAction<{num: number}>) => {
+      const { payload: { num } } = action;
+      return {
+        ...state,
+        totalUnreadNum: num,
+      }
+    },
+    addTotalUnreadNum: (state) => {
+      return {
+        ...state,
+        totalUnreadNum: state.totalUnreadNum + 1,
+      }
+    },
+    cleanTotalUnreadNum: (state) => {
+      return {
+        ...state,
+        totalUnreadNum: 0,
+      }
+    },
     addMessage:  (state, action: PayloadAction<{message: any}>) => {
       const { payload: { message } } = action;
       return {
@@ -55,8 +77,12 @@ export const {
   pushMessageList,
   changeMessageList,
   cacheMessageList,
+  setTotalUnreadNum,
+  addTotalUnreadNum,
+  cleanTotalUnreadNum,
 } = messageSlice.actions;
 
+export const totalUnreadNumSelector = ({ message }: { message: MessageState}) => message.totalUnreadNum;
 export const recentSubmitMessageSelector = ({ message }: { message: MessageState}) => message.recentSubmitMessage;
 export const messageListSelector = ({ message }: { message: MessageState}) => message.messageList;
 export const messageListCacheSelector = ({ message }: { message: MessageState}) => message.messageListCache;

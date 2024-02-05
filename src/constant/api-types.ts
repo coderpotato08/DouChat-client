@@ -36,9 +36,12 @@ export enum ApiEnum {
   CREATE_GROUP_CONTACT = '/contacts/createGroupContact', // 创建用户 => 群聊 1对1 关系
   LOAD_GROUP_CONTACT_LIST = '/contacts/loadGroupContactList', // 加载群聊天栏列表
   LOAD_GROUP_CONTACT = '/contacts/loadGroupContact',// 加载群聊天栏 群聊 1对1 关系
+  DELETE_USER_CONTACT = '/contacts/deleteUserContact',  // 删除用户聊天栏
+  DELETE_GROUP_CONTACT = '/contacts/deleteGroupContact', // 删除群聊天栏
 
   LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
   LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
+  LOAD_ALL_UNREAD_NUM = '/message/loadAllUnreadMesageNum',  // 未读消息数
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
 }
@@ -52,6 +55,7 @@ export interface LoadFriendListParamsType extends UserContactsParamsType {}
 export interface LoadFriendNotificationsParamsType extends UserContactsParamsType {}
 export interface LoadGroupListParamsType extends UserContactsParamsType {}
 export interface LoadGroupNotificationsParamsType extends UserContactsParamsType {}
+export interface LoadAllUnreadMesageNumParamsType extends UserContactsParamsType {}
 
 export interface RegisterParamsType {
   nickname: string,
@@ -62,11 +66,13 @@ export interface RegisterParamsType {
   email?: string,
   phoneNumber?: string,
 }
-export interface UserMsgListParamsType {
+export interface CreateUserContactParamsType{
   fromId: string
   toId: string
 }
-export interface CreateUserContactParamsType extends UserMsgListParamsType {}
+export interface UserMsgListParamsType  extends CreateUserContactParamsType {
+  limitTime: Date
+}
 export interface CreateMeetingParamsType {
   creator: any,
   meetingName: string,
@@ -111,7 +117,9 @@ export interface LoadGroupUsersParamsType {
 }
 export interface LoadGroupInfoParamsType extends LoadGroupUsersParamsType {}
 export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
-export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {}
+export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {
+  limitTime: Date,
+}
 export interface QuitGroupParamsType extends LoadGroupUsersParamsType {
   userId: string
 }
