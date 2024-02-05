@@ -8,8 +8,9 @@ import { formLayout } from "@helper/common-helper"
 import { usePopup } from "@hooks/usePopup"
 import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
-import { Avatar, Button, Col, Divider, Form, GlobalToken, Popconfirm, Row, message, theme } from "antd"
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { Avatar, Button, Col, Divider, Form, GlobalToken, Input, Popconfirm, Row, message, theme } from "antd"
+import { isEmpty } from "lodash"
+import { FC, KeyboardEventHandler, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import styled from "styled-components"
 
@@ -17,31 +18,34 @@ const { useToken } = theme;
 const FormLayout = formLayout(8, 16)
 
 interface GroupInfoProps {
-  groupInfo: any
+  groupId: string
   refreshGroupInfo: () => void
 }
 const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const { 
-    groupInfo = {} 
+    groupId = "",
+    refreshGroupInfo
   } = props;
+  const [groupInfo, setGroupInfo] = useState<any>({});
   const { 
     usersAvaterList,
     groupName, 
     groupNumber,
     sign, 
-    _id: groupId,
     creator
   } = groupInfo;
   const { token } = useToken();
   const navigate = useNavigate();
+  const signInputRef = useRef<any>(null)
   const expandRef = useRef<any>(null);
   const userInfo = useAppSelector(userSelector);
   const [open, onPopup] = usePopup();
   const [userList, setUserList] = useState<any[]>([]);
   const [showMore, setShowMore] = useState<boolean>(false);
+  const [signEditable, setSignEditable] = useState<boolean>(false);
 
   const isCreator = useMemo(() => {
-    return groupInfo && groupInfo.creator._id === userInfo._id;
+    return !isEmpty(groupInfo) && groupInfo.creator._id === userInfo._id;
   }, [groupInfo]);
 
   const groupUserIds = useMemo(() => {
@@ -66,7 +70,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     if(isCreator) {
       ApiHelper.disbandGroup({groupId: groupInfo._id})
         .then(() => {
-          message.success(`${groupInfo.groupName} 已解散成功`, 1.5, props.refreshGroupInfo)
+          message.success(`${groupInfo.groupName} 已解散成功`, 1.5, refreshGroupInfo)
         })
     } else {
       ApiHelper.quitGroup({
@@ -74,7 +78,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         userId: userInfo._id
       })
         .then(() => {
-          message.success(`已退出群聊`, 1.5, props.refreshGroupInfo)
+          message.success(`已退出群聊`, 1.5, refreshGroupInfo)
         })
     }
   }
@@ -121,13 +125,34 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       });
   }
 
-  useEffect(() => {
-    if (groupId) {
-      ApiHelper.loadGroupUsers({groupId})
-        .then((list) => {
-          setUserList(list)
+  const handleSignInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (e.key === "Enter") {
+      setSignEditable(false)
+      const sign = signInputRef.current.input.value;
+      ApiHelper.updateGroupInfo({ groupId, sign })
+        .then(() => {
+          message.success("群签名修改成功");
+          setGroupInfo((preInfo: any) => ({...preInfo, sign}))
         })
     }
+  }
+
+  const loadGroupInfo = () => {
+    if (groupId) {
+      ApiHelper.loadGroupInfo({ groupId })
+        .then(({ userList, ...groupInfo }) => {
+          setGroupInfo(groupInfo);
+          setUserList(userList);
+        })
+    }
+  }
+
+  useEffect(() => {
+    if(signEditable) signInputRef.current?.focus()
+  }, [signEditable])
+
+  useEffect(() => {
+    loadGroupInfo()
   }, [groupId]);
 
   return <>
@@ -135,7 +160,21 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       <HeaderInfo>
         <ChatAvatar isGroup size={"large"} groupImgList={usersAvaterList}/>
         <div className={"group-name"}>{groupName}</div>
-        <div className={"sign"}>{sign || "暂无群简介"}</div>
+        <div className="sign-line">
+          {
+            signEditable ? <Input
+              ref={signInputRef}
+              className={"sign"}
+              onBlur={() => setSignEditable(false)}
+              onKeyDown={handleSignInputKeyDown}
+              defaultValue={sign || "暂无群简介"}
+            /> : <div className={"sign"}>{sign || "暂无群简介"}</div>
+          }
+          <CIcon value={"icon-edit"}
+                 style={{cursor: "pointer"}}
+                 size={16} 
+                 onClick={() => setSignEditable(pre => !pre)}/>
+        </div>
         <Divider orientation="center">群信息</Divider>
         <Row className={"personal-info"}>
           <Col span={8}>
@@ -191,11 +230,17 @@ const HeaderInfo = styled.div`
       font-size: 24px;
       margin: 12px 0 12px;
     }
-    .sign {
+    .sign-line {
       width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sign {
       text-align: center;
       font-size: 14px;
       color: #666;
+      margin-right: 8px;
     }
     .personal-info {
       width: 70%;

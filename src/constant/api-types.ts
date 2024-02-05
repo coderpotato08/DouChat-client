@@ -16,6 +16,7 @@ export enum ApiEnum {
   DELETE_FRIEND_NOTIFICATION = "/user/friend/deleteFriendNotification", // 删除好友申请通知记录
 
   CREATE_GROUP = '/group/create', // 创建群聊
+  LOAD_GROUP_INFO = '/group/loadGroupInfo', // 加载群信息
   LOAD_GROUP_LIST = '/group/loadGroupList', // 加载群聊
   LOAD_GROUP_USERS = '/group/loadGroupUsers', // 加载群用户列表
   QUIT_GROUP = '/group/quitGroup', // 退出群聊
@@ -23,6 +24,7 @@ export enum ApiEnum {
   INVITE_GROUP_USERS = '/group/inviteGroupUsers', // 发起申请添加用户
   LOAD_GROUP_NOTIFICATIONS = '/group/loadGroupNotifications', // 加载群邀请通知
   DELETE_GROUP_NOTIFICATION = '/group/deleteGroupNotification',   // 删除群邀请通知记录
+  UPDATE_GROUP_INFO = '/group/updateGroupInfo', // 更新群信息
 
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
@@ -106,6 +108,7 @@ export interface CreateGroupParamsType {
 export interface LoadGroupUsersParamsType {
   groupId: string,
 }
+export interface LoadGroupInfoParamsType extends LoadGroupUsersParamsType {}
 export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
 export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {}
 export interface QuitGroupParamsType extends LoadGroupUsersParamsType {
@@ -124,3 +127,9 @@ export interface DeleteGroupNotificationParamsType {
   nid: string
 }
 export interface DeleteFriendNotificationParamsType extends DeleteGroupNotificationParamsType {}
+
+export interface UpdateGroupInfoParamsType {
+  groupId: string
+  groupName?: string,
+  sign?: string
+}

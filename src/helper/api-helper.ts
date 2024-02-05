@@ -28,6 +28,8 @@ import {
   DeleteGroupNotificationParamsType,
   DeleteFriendNotificationParamsType,
   CreateUserContactParamsType,
+  LoadGroupInfoParamsType,
+  UpdateGroupInfoParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types"
@@ -102,6 +104,16 @@ export class ApiHelper {
       userId: string,
       status: ApplyStatusEnum,
     }>>(ApiEnum.LOAD_GROUP_NOTIFICATIONS, params)
+  }
+  // 加载群信息
+  public static loadGroupInfo = (params: LoadGroupInfoParamsType) => {
+    return AxiosHelper.post<{
+      userList: Array<UserInfoType>
+    } & GroupInfoType>(ApiEnum.LOAD_GROUP_INFO, params);
+  }
+  // 更新群信息
+  public static updateGroupInfo = (params: UpdateGroupInfoParamsType) => {
+    return AxiosHelper.post(ApiEnum.UPDATE_GROUP_INFO, params);
   }
   // 加载群用户列表
   public static loadGroupUsers = (params: LoadGroupUsersParamsType) => {

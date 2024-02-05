@@ -64,7 +64,7 @@ const Relationship: FC = () => {
   const [currentMenu, setCurrentMenu] = useState<string>(MenuKeys.FRIEND);
   const [currentKey, setCurrentKey] = useState<string>();
   const [curFriendId, setCurFriendId] = useState<any>();
-  const [curGroupInfo, setCurGroupInfo] = useState<any>();
+  const [curGroupId, setCurGroupId] = useState<any>();
   const [friendList, setFriendList] = useState<any[]>([]);
   const [friendNotificationList, setFriendNotificationList] = useState<any[]>([]);
   const [groupNotificationList, setGroupNotificationList] = useState<any[]>([]);
@@ -119,7 +119,7 @@ const Relationship: FC = () => {
 
   const onClickGroup = (groupInfo: any) => {
     setCurrentKey(TabKeys.GROUP_INFO);
-    setCurGroupInfo(groupInfo);
+    setCurGroupId(groupInfo._id);
   }
 
   const handleApply = async (data: {nid: string, groupName: string}, status: ApplyStatusEnum, index: number) => {
@@ -186,7 +186,7 @@ const Relationship: FC = () => {
 
   const refreshGroupInfo = () => {
     setCurrentKey("");
-    setCurGroupInfo({});
+    setCurGroupId("");
     loadGroupList();
   }
 
@@ -346,8 +346,8 @@ const Relationship: FC = () => {
       }
       {
         currentKey === TabKeys.GROUP_INFO && 
-          <GroupInfo groupInfo={curGroupInfo}
-                      refreshGroupInfo={refreshGroupInfo}/>
+          <GroupInfo groupId={curGroupId}
+                     refreshGroupInfo={refreshGroupInfo}/>
       }
     </ContainerWrapper>
   </Wrapper>
