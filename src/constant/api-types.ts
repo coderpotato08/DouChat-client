@@ -29,6 +29,7 @@ export enum ApiEnum {
 
   LOAD_USER_CONTACT_LIST = '/contacts/user-contact-list',  // 聊天栏用户列表
   LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
+  CREATE_USER_CONTACT = '/contacts/createUserContact', //创建用户 1对1 聊天关系
   CREATE_GROUP_CONTACT = '/contacts/createGroupContact', // 创建用户 => 群聊 1对1 关系
   LOAD_GROUP_CONTACT_LIST = '/contacts/loadGroupContactList', // 加载群聊天栏列表
   LOAD_GROUP_CONTACT = '/contacts/loadGroupContact',// 加载群聊天栏 群聊 1对1 关系
@@ -62,6 +63,7 @@ export interface UserMsgListParamsType {
   fromId: string
   toId: string
 }
+export interface CreateUserContactParamsType extends UserMsgListParamsType {}
 export interface CreateMeetingParamsType {
   creator: any,
   meetingName: string,

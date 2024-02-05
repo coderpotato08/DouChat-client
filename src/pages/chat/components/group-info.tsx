@@ -85,7 +85,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       groupId: groupInfo._id,
     })
       .then(() => {
-        navigate('/chat/message')
+        navigate(`/chat/message/${groupInfo._id}?type=group`)
       })
   }
 

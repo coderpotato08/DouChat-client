@@ -29,9 +29,14 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
   }, [props.friendId]);
 
   const onClickSendMessage = () => {
-    const arr = [userInfo._id, friendInfo._id]
-    const contactId = arr.join("_");
-    navigate(`/chat/message/${contactId}`);
+    const params = {
+      fromId: userInfo._id,
+      toId: friendInfo._id
+    }
+    ApiHelper.createUserContact(params)
+      .then(({ contactId }) => {
+        contactId && navigate(`/chat/message/${contactId}?type=user`);
+      })
   }
 
   const onDeleteFriend = () => {
