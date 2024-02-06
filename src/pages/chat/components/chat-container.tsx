@@ -8,7 +8,7 @@ import { userSelector } from "../../../store";
 import ChatInput from "./chat-input";
 import { EventType } from "../../../constant/socket-types";
 import { isEmpty } from "lodash";
-import { LoadGroupMsgListParamsType, UserMsgListParamsType } from "../../../constant/api-types";
+import { LoadGroupMsgListParamsType } from "../../../constant/api-types";
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
@@ -36,7 +36,7 @@ const ChatContainer:FC = () => {
         userId: userInfo._id,
         groupId: id!, 
       })
-        .then((res) => {
+        .then(async (res) => {
           setSelectedChat(res);
         })
     } else {
@@ -47,13 +47,12 @@ const ChatContainer:FC = () => {
     }
   }, [id])
 
-  const handleSocketEvent = (type: "on" | "off", isGroup: boolean) => {
+  const handleSocketEvent = (type: "on" | "off") => {
     socket[type](EventType.RECEIVE_MESSAGE, onReceiveMessage);
     socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
   }
 
   useEffect(() => {
-    handleSocketEvent("on", isGroup);
     if (!isEmpty(selectedChat)) {
       if(isGroup) {
         loadGroupMessageList();
@@ -62,8 +61,9 @@ const ChatContainer:FC = () => {
         loadMessageList(users[0], users[1]);
       } 
     }
+    handleSocketEvent("on");
     return () => {
-      handleSocketEvent("off", isGroup);
+      handleSocketEvent("off");
       id && dispatch(cacheMessageList({contactId: id}));
     }
   }, [selectedChat]);
@@ -156,7 +156,7 @@ const ChatContainer:FC = () => {
   const { users, groupInfo = {} } = selectedChat || {};
   const { usersAvaterList = [], groupName } = groupInfo;
   const { receiver = {}, sender = {} } = getReceiverAndSender(users, userInfo._id);
-  const headerInfo = sender._id === userInfo._id ? receiver : sender
+  const headerInfo = sender._id === userInfo._id ? receiver : sender;
   return <ChatContainerWrapper>
     {/* 头部 */}
     <ContainerHeader>
@@ -185,7 +185,10 @@ const ChatContainer:FC = () => {
         }
       </Flex>
     </ContainerContent>
-    <ChatInput onSubmit={onSubmitMessage}/>
+    <ChatInput
+      isGroup={isGroup}
+      chatId={selectedChat && (selectedChat.groupId || selectedChat.contactId)}
+      onSubmit={onSubmitMessage}/>
   </ChatContainerWrapper>
 }
 export default ChatContainer

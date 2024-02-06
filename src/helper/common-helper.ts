@@ -2,8 +2,6 @@ import dayjs from "dayjs";
 import { createUidV4 } from "./uuid-helper";
 import { isEmpty } from "lodash";
 
-const REMOVE_HTML_TAG_REGEXP = /<.*?>/g
-const FORMAT_IMG_TAG_TO_TEXT = /<img.*?>/g
 const weekdayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
 export const getQuery = () => {
@@ -22,11 +20,29 @@ export const formLayout = (labelSpan: number, wrapperSpan: number) => {
   }
 }
 
+export const handleRemindStr = (content: string, atName: string | undefined): string => { // 替换@字符串为指定艾特成员
+  if (content == '' && !content) return ''
+  let str = content, matchUsername, matchSymbol;
+  const regexUsername = /@([^@]+)$/;  // 先匹配最后一个以 '@' 开头的字符串
+  const regexSymbol = /@$/; // 再匹配最后一个 '@' 符号
+  const replaceStr = `<span>@${atName} </span>`
+  matchUsername = str.match(regexUsername);
+  if (!matchUsername) {
+    matchSymbol = str.match(regexSymbol);
+  }
+  if (matchUsername) {
+      str = str.replace(regexUsername, replaceStr); // 替换最后一个以 '@' 开头的字符串为空
+  } else if (matchSymbol) {
+      str = str.replace(regexSymbol, replaceStr); // 替换最后一个 '@' 符号为空
+  }
+  return str
+}
+
 export const formatShowMessage = (content: string): string => { // 处理左侧聊天栏最近一条消息文本
   if (content == '' && !content) return ''
   let str = content;
-  str = str.replace(FORMAT_IMG_TAG_TO_TEXT, "[图片]");
-  str = str.replace(REMOVE_HTML_TAG_REGEXP, "");
+  str = str.replace(/<img.*?>/g, "[图片]"); // 处理图片消息
+  str = str.replace(/<.*?>/g, "");
   return str
 }
 

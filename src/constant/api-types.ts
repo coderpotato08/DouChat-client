@@ -113,6 +113,7 @@ export interface CreateGroupParamsType {
 }
 
 export interface LoadGroupUsersParamsType {
+  keyWord?: string,
   groupId: string,
 }
 export interface LoadGroupInfoParamsType extends LoadGroupUsersParamsType {}

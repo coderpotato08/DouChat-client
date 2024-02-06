@@ -70,7 +70,9 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     } = recentMessage;
     const isGroup = !isEmpty(groupId);
     const chatId = isGroup ? groupId : contactId;
-    const receiver = (users[0] || {})._id === userInfo._id ? (users[1] || {}) : (users[0] || {})
+    const receiver = (users[0] || {})._id === userInfo._id ? (users[1] || {}) : (users[0] || {});
+    const messageText = formatShowMessage(msgContent);
+    const atTipText = unreadNum > 0 && messageText.indexOf(`@${userInfo.nickname}`) > -1 ? "[有人@我]" : "";
     return <div key={chatId}
                 className={selectedId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
@@ -87,7 +89,10 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
           <span className="date">{formatMessageTime(time)}</span>
         </div>
         <div className="msg-line">
-          <div className="msg">{formatShowMessage(msgContent)}</div>
+          <div className="msg">
+            {atTipText && <span className={"at-tip"}>{atTipText}</span>}
+            {messageText}
+          </div>
           {
             isNeedDeleteTips === YNEnum.YES ? 
               <Popconfirm
@@ -169,7 +174,8 @@ const GroupWrapper = styled.div<{
         position: relative;
         .badge {
           position: absolute;
-          right: 0;
+          right: -5px;
+          top: -5px;
         }
       }
       .info {
@@ -204,6 +210,9 @@ const GroupWrapper = styled.div<{
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
+          }
+          .at-tip {
+            color: #ff0000;
           }
         }
       }
