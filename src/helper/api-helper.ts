@@ -39,7 +39,8 @@ export class ApiHelper {
   // 所有未读消息数加载
   public static loadAllUnreadNum = (params: LoadAllUnreadMesageNumParamsType) => {
     return AxiosHelper.post<{
-      num: number
+      userUnreadCount: number,
+      groupUnreadCount: number
     }>(ApiEnum.LOAD_ALL_UNREAD_NUM, params);
   }
   // --------------- 视频聊天 ----------------------

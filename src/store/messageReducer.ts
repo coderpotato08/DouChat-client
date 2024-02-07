@@ -30,10 +30,11 @@ const messageSlice = createSlice({
         totalUnreadNum: state.totalUnreadNum + 1,
       }
     },
-    cleanTotalUnreadNum: (state) => {
+    subTotalUnreadNum: (state, action: PayloadAction<{num: number}>) => {
+      const { payload: { num } } = action;
       return {
         ...state,
-        totalUnreadNum: 0,
+        totalUnreadNum: state.totalUnreadNum - num > 0 ? state.totalUnreadNum - num : 0,
       }
     },
     addMessage:  (state, action: PayloadAction<{message: any}>) => {
@@ -79,7 +80,7 @@ export const {
   cacheMessageList,
   setTotalUnreadNum,
   addTotalUnreadNum,
-  cleanTotalUnreadNum,
+  subTotalUnreadNum,
 } = messageSlice.actions;
 
 export const totalUnreadNumSelector = ({ message }: { message: MessageState}) => message.totalUnreadNum;

@@ -41,7 +41,7 @@ export enum ApiEnum {
 
   LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
   LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
-  LOAD_ALL_UNREAD_NUM = '/message/loadAllUnreadMesageNum',  // 未读消息数
+  LOAD_ALL_UNREAD_NUM = '/notification/loadAllUnreadCounts',  // 未读消息数
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
 }

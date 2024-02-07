@@ -10,6 +10,7 @@ import { Badge, Checkbox, GlobalToken, Input, Popconfirm, message, theme } from 
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
 import { isEmpty } from "lodash";
 import React, { FC, ReactNode, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 
 const { useToken } = theme;
@@ -28,6 +29,8 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     refreshChatList,
   } = props;
   const { token } = useToken();
+  const { id: chatId } = useParams();
+  const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
   const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
   const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false)
@@ -37,6 +40,8 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   }
 
   const deleteContact = async (id: string, isGroup: boolean) => {
+    const contact: any = list.find((item) => item._id === id);
+    const { groupId, contactId } = contact;
     if(isShowTipsNext) {
       LocalStorageHelper.setItem( // 下次是否不再提示
         StorageKeys.IS_SHOW_DELETE_CONTACT_TIP, 
@@ -48,8 +53,12 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     } else {
       await ApiHelper.deleteUserContact({id});
     }
+    if (chatId === (groupId || contactId)) {
+      navigate('/chat/message')
+    }
     refreshChatList();
   }
+
   const renderGroupItem = (item: any): ReactNode => {
     const {
       _id,

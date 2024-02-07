@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useMemo, CSSProperties, useCallback } from 're
 import styled from 'styled-components';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
-import { Avatar, Button, notification, theme } from 'antd';
+import { Avatar, Badge, Button, notification, theme } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setTotalUnreadNum, totalUnreadNumSelector, userSelector } from '../../store';
 import { useSocket } from '@store/context/createContext';
@@ -46,10 +46,10 @@ const Chat:FC = () => {
   }
 
   const loadGlobalInfo = async () => {
-    const [{ num }] = await Promise.all([
+    const [{ userUnreadCount, groupUnreadCount }] = await Promise.all([
       ApiHelper.loadAllUnreadNum({ userId: userInfo._id })
     ]);
-    dispatch(setTotalUnreadNum({ num }));
+    dispatch(setTotalUnreadNum({ num: userUnreadCount + groupUnreadCount }));
   }
 
   const onReceiveInviteMeeting = (data: { meetingId: string } & CreateMeetingParamsType) => {
@@ -128,6 +128,7 @@ const Chat:FC = () => {
               <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`} 
                     size={28} 
                     color={isActive ? token.colorPrimary : '#666'}/>
+              {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'}/>}
             </MenuItem>
           })
         }
@@ -175,12 +176,21 @@ const AvatarWrapper = styled.div`
 `
 const MenuItem = styled.div`
   & {
+    position: relative;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 60px;
+    .unread-count {
+      position: absolute;
+      right: 16px;
+      bottom: 14px;
+      >sup {
+        padding: 0px !important;
+      }
+    }
   }
 `
 const ContentWrapper = styled.div`

@@ -3,8 +3,10 @@ import styled from "styled-components"
 import { EventType } from "@constant/socket-types";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { 
+  addTotalUnreadNum,
   addUser,
   recentSubmitMessageSelector,
+  subTotalUnreadNum,
   userSelector 
 } from "@store/index";
 import { LoadGroupContactListParamsType, UserContactsParamsType } from "../../constant/api-types";
@@ -44,7 +46,10 @@ const Message = () => {
             ...msgData,
             uid: createUidV4(),
           }
-          if(!isReceiveGroup) chat.unreadNum += 1;
+          if(!isReceiveGroup) {
+            chat.unreadNum += 1;
+            dispatch(addTotalUnreadNum());
+          }
         }
         return chat;
       }));
@@ -53,13 +58,13 @@ const Message = () => {
 
   const onGroupMessageUnread = useCallback(({groupId, messageId}: {groupId: string, messageId: string}) => {
     const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
-    console.log("selectedGroupId", selectedChatId, "receiveGroupId", groupId)
     setChatList(preChatList => preChatList.map((chat: any) => {
       if(chat.groupId && chat.groupId === groupId) {
         if (selectedChatId === groupId) { // 将消息置为已读
           socket.emit(EventType.READ_GROUP_MESSAGE, {userId: userInfo._id, groupId, messageId})
         } else {
-          chat.unreadNum += 1
+          chat.unreadNum += 1;
+          dispatch(addTotalUnreadNum());
         }
       }
       return chat;
@@ -82,9 +87,11 @@ const Message = () => {
       socket.emit(groupId ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, socketParams);
     }
     setChatList(preChatList => preChatList.map((chat: any) => {
+      const { unreadNum } = chat;
       const itemId = item.groupId || item.contactId;
       const chatId = chat.groupId || chat.contactId;
       if(chatId === itemId) {
+        dispatch(subTotalUnreadNum({num: unreadNum}));
         chat.unreadNum = 0
       }
       return chat
