@@ -1,5 +1,5 @@
 import { Badge, Popover } from "antd"
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback } from "react";
 import CIcon from "@components/c-icon";
 import { styled } from "styled-components";
 import CreateMeetingModal from "@components/create-meeting-modal";

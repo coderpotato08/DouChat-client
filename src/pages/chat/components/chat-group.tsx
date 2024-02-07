@@ -6,7 +6,7 @@ import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Badge, Checkbox, GlobalToken, Input, Popconfirm, message, theme } from "antd";
+import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
 import { isEmpty } from "lodash";
 import React, { FC, ReactNode, useState } from "react";

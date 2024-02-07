@@ -6,13 +6,12 @@ import {
   useRef, 
   useState,
 } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { EventType } from "@constant/socket-types";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
 import { 
-  DeviceEnum,
   DeviceStatusMessage,
   ICEMessage, 
   JoinedData, 

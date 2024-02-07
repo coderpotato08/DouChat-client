@@ -1,6 +1,4 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import exp from 'constants';
-
 interface MessageState {
   totalUnreadNum: number,
   messageList: any[],

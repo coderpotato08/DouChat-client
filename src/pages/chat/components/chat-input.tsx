@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Flex, Button, theme, GlobalToken, Popover, Avatar } from "antd";
 import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react";
 import { base64ToImageFile, handleRemindStr } from "../../../helper/common-helper";
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 import EmojiPicker from "../../../components/emoji-picker";
 import { ApiHelper } from "../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
