@@ -2,7 +2,7 @@ import styled from "styled-components";
 import ChatAvatar from "../../../components/chat-avatar";
 import { Flex } from "antd";
 import MessageBox from "./message-box";
-import { useState, useEffect, useRef, FC } from "react";
+import { useState, useEffect, useRef, FC, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { userSelector } from "../../../store";
 import ChatInput from "./chat-input";
@@ -12,7 +12,7 @@ import { LoadGroupMsgListParamsType } from "../../../constant/api-types";
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
-import { MessageTypeEnum } from "@constant/user-types";
+import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
 import { getQuery, getReceiverAndSender } from "@helper/common-helper";
@@ -27,7 +27,6 @@ const ChatContainer:FC = () => {
   const scrollRef: any = useRef(null);
   const userInfo = useAppSelector(userSelector);
   const messageList = useAppSelector(messageListSelector);
-  const [receiveMessage, setReceiveMessage] = useState(null);
   const [selectedChat, setSelectedChat] = useState<any>();
 
   useEffect(() => {
@@ -69,23 +68,6 @@ const ChatContainer:FC = () => {
   }, [selectedChat]);
 
   useEffect(() => {
-    if (!receiveMessage) return;
-    const { 
-      groupId,
-      fromId = {},
-      toId = {}
-    } = receiveMessage as any;
-    const contactId = isGroup ? groupId : [toId._id, fromId._id].join("_");
-    if(contactId === id) {
-      dispatch(addMessage({ message: receiveMessage }))
-      socket.emit(isGroup ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, {
-        fromId: fromId._id,
-        toId: toId._id
-      });
-    }
-  }, [receiveMessage]);
-
-  useEffect(() => {
     const len = messageList.length;
     const id = messageList[len-1] ? (messageList[len-1]._id || messageList[len-1].uid) : ""
     const ele = document.getElementById(id);
@@ -121,37 +103,59 @@ const ChatContainer:FC = () => {
       })
   }
   
-  const onSubmitMessage = (value: string) => {
+  const onSubmitMessage = (messages: Array<MessageInfoType> | MessageInfoType) => {
     const { users = [] } = selectedChat || {};
     const { receiver } = getReceiverAndSender(users, userInfo._id);
-    const params: any = {
+    const baseParams: any = {
       fromId: userInfo._id,
-      msgType: MessageTypeEnum.TEXT,
-      msgContent: value,
-      time: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    };
+    }
     const message: any = {
-      ...params,
+      ...baseParams,
       uid: createUidV4(),
       fromId: userInfo,
     }
     if (isGroup) {
-      params['groupId'] = id;
+      baseParams['groupId'] = id;
       message['groupId'] = id;
     } else {
-      params['toId'] = receiver._id;
+      baseParams['toId'] = receiver._id;
       message['toId'] = receiver;
     }
-    socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, params);
-    dispatch(addMessage({ message }))
+    if (Array.isArray(messages)) {
+      messages.forEach(({ value, type }) => {
+        const messageInfo = { msgType: type, msgContent: value, time: new Date() }
+        socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
+          ...baseParams,
+          ...messageInfo,
+        });
+        dispatch(addMessage({ message: { ...message, ...messageInfo } }))
+      })
+    } else {
+      const messageInfo = { msgType: messages.type, msgContent: messages.value, time: new Date() }
+      socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
+        ...baseParams,
+        ...messageInfo,
+      });
+      dispatch(addMessage({ message: { ...message, ...messageInfo } }))
+    }
   }
 
-  const onReceiveMessage = (msgData: any) => {
-    setReceiveMessage({
-      ...msgData,
-      uid: createUidV4(),
-    })
-  }
+  const onReceiveMessage = useCallback((msgData: any) => {
+    const receiveMessage = { ...msgData, uid: createUidV4() }
+    const { 
+      groupId,
+      fromId = {},
+      toId = {}
+    } = receiveMessage as any;
+    const contactId = isGroup ? groupId : [toId._id, fromId._id].join("_");
+    if(contactId === id) {
+      dispatch(addMessage({ message: receiveMessage }))
+      socket.emit(isGroup ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, {
+        fromId: fromId._id,
+        toId: toId._id
+      });
+    }
+  }, [isGroup])
 
   const { users, groupInfo = {} } = selectedChat || {};
   const { usersAvaterList = [], groupName } = groupInfo;

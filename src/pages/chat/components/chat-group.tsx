@@ -106,7 +106,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
             isNeedDeleteTips === YNEnum.YES ? 
               <Popconfirm
                 placement="right"
-                title={"确认要删除该聊天？"}
+                title={"确认要删除该聊天？删除后将清空聊天记录"}
                 description={<Checkbox onChange={handleShowTips}>不再提示</Checkbox>}
                 onConfirm={(e: any) => {
                   e.stopPropagation();

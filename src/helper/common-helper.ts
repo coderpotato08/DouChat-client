@@ -92,16 +92,19 @@ export const textFormat = (content: string): string => {
   // content 即粘贴过来的内容(html 或 纯文本), 将样式清除
   if (content == '' && !content) return ''
   let str = content;
-  str = str.replace(/<xml>[\s\S]*?<\/xml>/ig, '')
-  str = str.replace(/<style>[\s\S]*?<\/style>/ig, '')
-  str = str.replace(/<\/?[^>]*>/g, '')
-  str = str.replace(/[ | ]*\n/g, '\n')
-  str = str.replace(/&nbsp;/ig, '')
-  str = str.replace(/<([a-z]+?)(?:\s+?[^>]*?)?>\s*?<\/\1>/, '')
-  str = str.trim();
-  str = str.replace(/\n\s*/g, '<br/>')
-  str = str.replace(/<p><br><br><\/p><p><br><\/p>/, '')
-  return str;
+  return str
+    .replace(/<span[^>]*>/gi, '<span>')  // 去除所有span的style
+    .replace(/<div[^>]*>/gi, '<div>')  // 去除所有div的style
+    .replace(/<meta[^>]*>/g, "")  // 去除所有meta标签 
+}
+
+export const textAndImageFormat = (content: string): string[] => {
+  // content 即粘贴过来的内容(html 或 纯文本), 将样式清除
+  if (content == '' && !content) return ['']
+  let str = content;
+  str = textFormat(str)
+  const strArr = str.split(/<img[^>]*>/gi) // 根据img标签分割
+  return strArr;
 }
 
 export const removeExtraHtml = (content: string): string => {
@@ -114,7 +117,6 @@ export const removeExtraHtml = (content: string): string => {
 }
 
 export const base64ToImageFile = <T extends string>(base64: T): {file: File, key: T} => {
-  console.log(base64)
   let arr = base64.split(",");
   let mime = arr[0].match(/:(.*?);/)![1];
   let type = mime.match(/image\/(.+)/)![1];

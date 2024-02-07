@@ -2,22 +2,24 @@ import CIcon from "../../../components/c-icon";
 import styled from "styled-components";
 import { Flex, Button, theme, GlobalToken, Popover, Avatar } from "antd";
 import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react";
-import { base64ToImageFile, handleRemindStr } from "../../../helper/common-helper";
+import { base64ToImageFile, handleRemindStr, textAndImageFormat, textFormat } from "../../../helper/common-helper";
 import { debounce } from "lodash";
 import EmojiPicker from "../../../components/emoji-picker";
 import { ApiHelper } from "../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
+import InputTools from "./input-tools";
+import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
 
 const { useToken } = theme;
 interface ChatInputProps {
   isGroup: boolean
   chatId?: string,
-  onSubmit: (value: string) => void,
+  onSubmit: (message: Array<MessageInfoType> | MessageInfoType) => void,
 }
 
 const imgMap = new Map(); // base64 => file
-
+const imgFixStyle = "max-width: 100%; height: auto; width: auto; max-height: 120px;"
 const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   const { 
     chatId,
@@ -34,6 +36,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   const [selectedEmoji, setSelectedEmoji] = useState<any>(null);
   const [selectedUserIndex, setSelectedUserIndex] = useState<number>(0);
   const [remindOpen, setRemindOpen] = useState<boolean>(false);
+  const [isShowMore, setIsShowMore] = useState<boolean>(false)
 
   const onMessageInput = (e: FormEvent) => {
     const messageStr = (e.target as HTMLInputElement).innerHTML
@@ -93,12 +96,6 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   }
 
   const onInputPaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    const imgNodes = messageInputRef.current!.querySelectorAll('img');
-    if (imgNodes.length > 0) {
-      imgNodes.forEach((imgNode: HTMLImageElement) => {
-        imgNode.style.width = "45%"
-      })
-    }
     setMessage(messageInputRef.current!.innerHTML);
   }
 
@@ -116,21 +113,29 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
       })
       Promise.allSettled(imgReq)
         .then((res: any[]) => {
-          const imgSrcList = res.map((data) => data.status === 'fulfilled' ? data.value.filename : '');
-          const matchRes = message.matchAll(/<img[^>]+src="([^"]*)"/g);  
-          let resMessage = message;
-          [...matchRes].forEach((match, index) => {
-            resMessage = resMessage.replace(match[1], imgSrcList[index]);
-          })
-          submitMessage(resMessage)
+          const imgMessageList = res
+            .map((data) => data.status === 'fulfilled' ? data.value.filename : '')
+            .filter(Boolean)
+            .map((src) => ({
+              value: `<img src=${src} style="${imgFixStyle}"/>`,
+              type: MessageTypeEnum.IMAGE,
+            }))
+          const messageList = textAndImageFormat(message)
+            .filter(Boolean)
+            .map((text) => ({
+              value: text,
+              type: MessageTypeEnum.TEXT,
+            }))
+          console.log(messageList, imgMessageList)
+          submitMessage([...messageList, ...imgMessageList])
         })
     } else {
-      submitMessage(message);
+      submitMessage({value: textFormat(message), type: MessageTypeEnum.TEXT});
     }
   }
 
-  const submitMessage = (msg: any) => {
-    onSubmit(msg);
+  const submitMessage = (message: Array<MessageInfoType> | MessageInfoType) => {
+    onSubmit(message);
     cleanInputContent();
   }
 
@@ -191,7 +196,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
     if (imgNodes.length > 0) {
       imgNodes.forEach((imgNode: HTMLImageElement) => {
         let base64Url = imgNode.src;
-        imgNode.style.width = '45%';
+        imgNode.setAttribute("style", imgFixStyle);
         if (!imgMap.has(base64Url)) {
           const {key, file} = base64ToImageFile(base64Url);
           imgMap.set(key, file);
@@ -199,6 +204,10 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
       })
     }
   }, 16), []);
+
+  const handleShowTools = () => {
+    setIsShowMore(!isShowMore)
+  }
 
   useEffect(() => {
     cleanInputContent();
@@ -211,46 +220,49 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   }, [messageInputRef.current?.innerHTML]);
 
   return <InputContainer $token={token}>
-    <Flex className="wrapper" gap={10} align="flexStart">
-      <div className="add-option">
-        <CIcon value="icon-tianjia" size={24} color={"#666"}/>
-      </div>
-      <Popover
-        open={remindOpen}
-        trigger={"click"}
-        placement={"topLeft"}
-        overlayInnerStyle={{padding: "4px"}}
-        content={renderRemindList()}
-        onOpenChange={onCloseRemindBox}>       
-        <MessageInput>
-          <EmojiPicker onSelect={onSelectEmoji}/>
-          <div className={"chat-input"}
-               ref={messageInputRef}
-               contentEditable="true" 
-               spellCheck="false"
-               onKeyDown={onInputKeyDown}
-               onKeyUp={onInputKeyUp}
-               onInput={onMessageInput}
-               onPaste={onInputPaste}>
-          </div>
-          <Button className="submit-btn" 
-                  type="primary" 
-                  onClick={onClickSubmit}>
-            SUBMIT
-          </Button>
-        </MessageInput>
-      </Popover>
-      <div className="voice">
-        <CIcon value="icon-yuyin" size={20} color={"#545454"}/>
-      </div>
-    </Flex>
+    <Wrapper>
+      <Flex className="wrapper" gap={10} align="flexStart">
+        <div className="add-option" onClick={handleShowTools}>
+          <CIcon value="icon-tianjia" size={24} color={"#666"}/>
+        </div>
+        <Popover
+          open={remindOpen}
+          trigger={"click"}
+          placement={"topLeft"}
+          overlayInnerStyle={{padding: "4px"}}
+          content={renderRemindList()}
+          onOpenChange={onCloseRemindBox}>       
+          <MessageInput>
+            <EmojiPicker onSelect={onSelectEmoji}/>
+            <div className={"chat-input"}
+                ref={messageInputRef}
+                contentEditable="true" 
+                spellCheck="false"
+                onKeyDown={onInputKeyDown}
+                onKeyUp={onInputKeyUp}
+                onInput={onMessageInput}
+                onPaste={onInputPaste}>
+            </div>
+            <Button className="submit-btn" 
+                    type="primary" 
+                    onClick={onClickSubmit}>
+              SUBMIT
+            </Button>
+          </MessageInput>
+        </Popover>
+        <div className="voice">
+          <CIcon value="icon-yuyin" size={20} color={"#545454"}/>
+        </div>
+      </Flex>
+      <InputTools visible={isShowMore}/>
+    </Wrapper>
   </InputContainer>
 }
 
 export default ChatInput;
 
 const InputContainer = styled.div<{
-  $token: GlobalToken
+  $token: GlobalToken,
 }>`
   & {
     flex-shrink: 0;
@@ -271,7 +283,7 @@ const InputContainer = styled.div<{
       box-sizing: border-box;
       flex: 1;
       min-height: 40px;
-      max-height: 190px;
+      max-height: 124px;
       line-height: 28px;
       font-size: 16px;
       border: 2px solid #d9d9d9;
@@ -279,7 +291,6 @@ const InputContainer = styled.div<{
       transition: all .4s;
       padding: 4px 95px 4px 40px;
       overflow-y: scroll;
-      transition: all .4;
       &:focus-visible {
         border-color: ${props => props.$token.colorPrimary};
       }
@@ -290,12 +301,14 @@ const InputContainer = styled.div<{
     .voice {
       border-radius: 50%;
     }
-    .wrapper {
-      padding: 10px;
-      background: #FFFFFF;
-      border-radius: 4px;
-      box-shadow: 0 0 5px 5px rgba(0,0,0,0.02);
-    }
+  }
+`
+const Wrapper = styled.div`
+  & {
+    padding: 10px;
+    background: #FFFFFF;
+    border-radius: 4px;
+    box-shadow: 0 0 5px 5px rgba(0,0,0,0.02);
   }
 `
 const MessageInput = styled.div`

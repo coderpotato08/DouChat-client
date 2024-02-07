@@ -29,10 +29,11 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
   const boxStyle: CSSProperties = useMemo(() => ({
     background: isSelf ? "#1677ff" : "#fff",
     color: isSelf ? "#fff" : "#000",
-    marginLeft: isSelf ? "64px" : "0",
-    marginRight: isSelf ? "0" : "64px",
+    marginLeft: isSelf ? "auto" : "0",
+    marginRight: 0,
   }), [isSelf]);
   
+  console.log(messageInfo)
   const showTime = formatTime(props.prevTime, messageInfo.time);
   return <Wrapper id={messageInfo._id || messageInfo.uid}>
     {showTime && <div className="time">{showTime}</div>}
@@ -44,7 +45,7 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
           {sender.nickname}
         </div>}
         <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
-          <div dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
+          <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
         </MessageBoxWrapper>
       </div>
       {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
@@ -78,7 +79,7 @@ const MessageBoxWrapper = styled.div<any>`
     box-sizing: border-box;
     margin-top: 4px;
     position: relative;
-    max-width: 83%;
+    max-width: 55vw;
     padding: 12px;
     font-size: 16px;
     min-height: 42px;
@@ -89,8 +90,7 @@ const MessageBoxWrapper = styled.div<any>`
   &::after {
     content: '';
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 11px;
     left: ${prop => prop.theme.isSelf ? "unset" : "-20px"};
     right: ${prop => prop.theme.isSelf ? "-20px" : "unset"};
     border-width: 8px 10px 8px 10px;
