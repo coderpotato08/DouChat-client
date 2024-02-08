@@ -35,11 +35,18 @@ const messageSlice = createSlice({
         totalUnreadNum: state.totalUnreadNum - num > 0 ? state.totalUnreadNum - num : 0,
       }
     },
-    addMessage:  (state, action: PayloadAction<{message: any}>) => {
+    addMessage: (state, action: PayloadAction<{message: any}>) => {
       const { payload: { message } } = action;
       return {
         ...state,
         recentSubmitMessage: message,
+        messageList: [...state.messageList, message]
+      }
+    },
+    addTipMessage: (state, action: PayloadAction<{message: any}>) => {
+      const { payload: { message } } = action;
+      return {
+        ...state,
         messageList: [...state.messageList, message]
       }
     },
@@ -73,6 +80,7 @@ const messageSlice = createSlice({
 
 export const {
   addMessage,
+  addTipMessage,
   pushMessageList,
   changeMessageList,
   cacheMessageList,

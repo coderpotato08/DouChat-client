@@ -12,9 +12,15 @@ import { LoadGroupMsgListParamsType } from "../../../constant/api-types";
 import { ApiHelper } from "../../../helper/api-helper";
 import { createUidV4 } from "../../../helper/uuid-helper"
 import { useSocket } from "../../../store/context/createContext";
-import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
+import { MessageInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types";
 import { useParams } from "react-router-dom";
-import { addMessage, cacheMessageList, messageListSelector, pushMessageList } from "@store/messageReducer";
+import { 
+  addMessage,
+  addTipMessage,
+  cacheMessageList,
+  messageListSelector,
+  pushMessageList
+} from "@store/index";
 import { getQuery, getReceiverAndSender } from "@helper/common-helper";
 import dayjs from "dayjs";
 
@@ -46,11 +52,6 @@ const ChatContainer:FC = () => {
     }
   }, [id])
 
-  const handleSocketEvent = (type: "on" | "off") => {
-    socket[type](EventType.RECEIVE_MESSAGE, onReceiveMessage);
-    socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
-  }
-
   useEffect(() => {
     if (!isEmpty(selectedChat)) {
       if(isGroup) {
@@ -80,6 +81,13 @@ const ChatContainer:FC = () => {
     }
   }, [messageList])
 
+  const handleSocketEvent = (type: "on" | "off") => {
+    socket[type](EventType.NEW_GROUP_USER_JOIN, onReceiveTipMessage);
+    socket[type](EventType.GROUP_USER_QUIT, onReceiveTipMessage)
+    socket[type](EventType.RECEIVE_MESSAGE, onReceiveMessage);
+    socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
+  }
+
   const loadMessageList = (from: any, to: any) => {
     const params = {
       fromId: from._id,
@@ -103,6 +111,13 @@ const ChatContainer:FC = () => {
       })
   }
   
+  const onReceiveTipMessage = useCallback((message: any) => {
+    const { groupId } = message;
+    if(isGroup && id === groupId) {
+      dispatch(addTipMessage({ message }))
+    }
+  }, [isGroup])
+
   const onSubmitMessage = (messages: Array<MessageInfoType> | MessageInfoType) => {
     const { users = [] } = selectedChat || {};
     const { receiver } = getReceiverAndSender(users, userInfo._id);
@@ -177,7 +192,7 @@ const ChatContainer:FC = () => {
       <Flex vertical>
         {
           !isEmpty(messageList) && messageList.map((info: any, index) => {
-            const { fromId: sender } = info;
+            const { fromId: sender = {} } = info;
             const isSelf = sender._id === userInfo._id;
             const prevTime = index > 0 ? messageList[index-1].time : null;
             return <MessageBox key={info.uid || info._id}

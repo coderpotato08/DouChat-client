@@ -2,10 +2,12 @@ import AddGroupUserModal from "@components/add-group-user-modal"
 import CIcon from "@components/c-icon"
 import ChatAvatar from "@components/chat-avatar"
 import InfoBox from "@components/info-box"
+import { EventType } from "@constant/socket-types"
 import { UserInfoType } from "@constant/user-types"
 import { ApiHelper } from "@helper/api-helper"
 import { formLayout } from "@helper/common-helper"
 import { usePopup } from "@hooks/usePopup"
+import { useSocket } from "@store/context/createContext"
 import { useAppSelector } from "@store/hooks"
 import { userSelector } from "@store/index"
 import { Avatar, Button, Col, Divider, Form, GlobalToken, Input, Popconfirm, Row, message, theme } from "antd"
@@ -26,7 +28,17 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     groupId = "",
     refreshGroupInfo
   } = props;
+  const socket = useSocket();
+  const { token } = useToken();
+  const navigate = useNavigate();
+  const signInputRef = useRef<any>(null)
+  const expandRef = useRef<any>(null);
+  const userInfo = useAppSelector(userSelector);
   const [groupInfo, setGroupInfo] = useState<any>({});
+  const [open, onPopup] = usePopup();
+  const [userList, setUserList] = useState<any[]>([]);
+  const [showMore, setShowMore] = useState<boolean>(false);
+  const [signEditable, setSignEditable] = useState<boolean>(false);
   const { 
     usersAvaterList,
     groupName, 
@@ -34,15 +46,6 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
     sign, 
     creator
   } = groupInfo;
-  const { token } = useToken();
-  const navigate = useNavigate();
-  const signInputRef = useRef<any>(null)
-  const expandRef = useRef<any>(null);
-  const userInfo = useAppSelector(userSelector);
-  const [open, onPopup] = usePopup();
-  const [userList, setUserList] = useState<any[]>([]);
-  const [showMore, setShowMore] = useState<boolean>(false);
-  const [signEditable, setSignEditable] = useState<boolean>(false);
 
   const isCreator = useMemo(() => {
     return !isEmpty(groupInfo) && groupInfo.creator._id === userInfo._id;
@@ -79,6 +82,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       })
         .then(() => {
           message.success(`已退出群聊`, 1.5, refreshGroupInfo)
+          socket.emit(EventType.GROUP_USER_QUIT, {userInfo, groupId: groupInfo._id})
         })
     }
   }

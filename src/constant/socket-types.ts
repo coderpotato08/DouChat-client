@@ -22,5 +22,6 @@ export enum EventType {
   GROUP_MESSAGE_UNREAD = "group-message-unread", // 未读群消息 +1
   READ_GROUP_MESSAGE = "read-group-message", // 群消息已读
   ACCEPT_GROUP_INVITE = "accept-group-invite", // 接受群邀请
-  ACCEPT_GROUP_INVITE_SUCCESS = "accept-group-invite-success", // 接受群邀请
+  NEW_GROUP_USER_JOIN = "new-group-user-join", // 接受群邀请，通知所有群用户新用户入群
+  GROUP_USER_QUIT = "group-user-quit" // 通知所有群用户用户退出群
 }

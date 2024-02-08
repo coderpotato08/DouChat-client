@@ -1,3 +1,4 @@
+import { MessageTypeEnum } from "@constant/user-types";
 import { formatMessageTime } from "@helper/common-helper";
 import { Avatar, Flex } from "antd"
 import dayjs from "dayjs";
@@ -33,24 +34,28 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
     marginRight: 0,
   }), [isSelf]);
   
-  console.log(messageInfo)
   const showTime = formatTime(props.prevTime, messageInfo.time);
-  return <Wrapper id={messageInfo._id || messageInfo.uid}>
-    {showTime && <div className="time">{showTime}</div>}
-    <Flex style={lineStyle} justify={isSelf ? "flex-end" : "flex-start"} gap={15}>
-      {!isSelf && <Avatar src={sender.avatarImage} size={48}/>}
-      <div>
-        {isGroup && <div className={"nickname"}
-                         style={{marginLeft: isSelf ? "auto" : 0}}>
-          {sender.nickname}
-        </div>}
-        <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
-          <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
-        </MessageBoxWrapper>
-      </div>
-      {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
-    </Flex>
-  </Wrapper>
+  return messageInfo.msgType !== MessageTypeEnum.TIPS ? 
+    <Wrapper id={messageInfo._id || messageInfo.uid}>
+      {showTime && <div className="time">{showTime}</div>}
+      <Flex style={lineStyle} justify={isSelf ? "flex-end" : "flex-start"} gap={15}>
+        {!isSelf && <Avatar src={sender.avatarImage} size={48}/>}
+        <div>
+          {isGroup && <div className={"nickname"}
+                          style={{marginLeft: isSelf ? "auto" : 0}}>
+            {sender.nickname}
+          </div>}
+          <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
+            <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
+          </MessageBoxWrapper>
+        </div>
+        {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
+      </Flex>
+    </Wrapper> : 
+    <TipMessage key={messageInfo.uid || messageInfo._id}>
+      {showTime && <div className="time">{showTime}</div>}
+      <div className="tip">{messageInfo.msgContent}</div>
+    </TipMessage>
 }
 
 export default React.memo(MessageBox)
@@ -96,5 +101,17 @@ const MessageBoxWrapper = styled.div<any>`
     border-width: 8px 10px 8px 10px;
     border-style: solid;
     border-color: ${prop => prop.theme.isSelf ? "transparent transparent transparent #1677ff" : "transparent #fff transparent transparent"};
+  }
+`
+const TipMessage = styled.div`
+  & {
+    width: 100%;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    .tip {
+      width: 100%;
+      margin: 8px 0;
+    }
   }
 `
