@@ -1,9 +1,21 @@
 import CIcon from '@components/c-icon';
-import { GlobalToken, Upload, theme } from 'antd';
+import { ApiEnum } from '@constant/api-types';
+import { EventType } from '@constant/socket-types';
+import { MessageTypeEnum } from '@constant/user-types';
+import { getReceiverAndSender } from '@helper/common-helper';
+import { createUidV4 } from '@helper/uuid-helper';
+import { useSocket } from '@store/context/createContext';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { addMessage, isGroupSelector, selectedChatSelector, selectedIdSelector, userSelector } from '@store/index';
+import { GetProp, GlobalToken, Upload, UploadProps, message, theme } from 'antd';
+import dayjs from 'dayjs';
 import React, { FC } from 'react'
 import styled from 'styled-components'
 
 const { useToken } = theme;
+
+type FileBeforeUploadType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
+type FileOnChangeType = Parameters<GetProp<UploadProps, 'onChange'>>[0];
 
 enum ToolKey {
   SEND_IMAGE = "send-image",
@@ -21,13 +33,76 @@ const ToolItem = (props: {
   </ToolItemWrapper>
 }
 
-interface InputTools {
-  visible: boolean
+const handleResponse = (response: any) => {
+  const { code, data, msg } = response;
+  if(code === 10000) {
+    return data;
+  } else {
+    message.error(msg || "上传失败，请稍后再试");
+    return {}
+  }
 }
-const InputTools:FC<InputTools> = (props: InputTools) => {
+interface InputToolsProps {
+  visible: boolean,
+}
+const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
   const {
-    visible
+    visible,
   } = props;
+  const socket = useSocket();
+  const dispatch = useAppDispatch();
+  const selectedId = useAppSelector(selectedIdSelector);
+  const selectedChat = useAppSelector(selectedChatSelector);
+  const isGroup = useAppSelector(isGroupSelector);
+  const userInfo = useAppSelector(userSelector);
+
+  const beforeFileUpload = (file: FileBeforeUploadType) => {
+    const { size } = file;
+    const isLimit1G = size / 1024 / 1024 / 1024 <= 1;
+    if(!isLimit1G) {
+      message.error('文件大小不能超过 1GB!');
+      return false
+    }
+    return true;
+  }
+
+  const onFileChange = ({ file }: FileOnChangeType) => {
+    const { status, response } = file;
+    if (status === "done") {
+      const data = handleResponse(response);
+      const fileMessage = {
+        uid: createUidV4(),
+        msgContent: data,
+        msgType: MessageTypeEnum.FILE,
+        time: new Date(),
+      }
+      if (isGroup) {
+        socket.emit(EventType.SEND_GROUP_MESSAGE, {
+          ...fileMessage,
+          fromId: userInfo._id,
+          groupId: selectedId,
+        });
+        dispatch(addMessage({ message: {
+          ...fileMessage,
+          fromId: userInfo,
+          groupId: selectedId,
+        } }))
+      } else {
+        const { users = [] } = selectedChat;
+        const { receiver, sender } = getReceiverAndSender(users, userInfo._id);
+        socket.emit(EventType.SEND_MESSAGE, {
+          ...fileMessage,
+          fromId: userInfo._id,
+          toId: receiver._id,
+        });
+        dispatch(addMessage({ message: {
+          ...fileMessage,
+          fromId: userInfo,
+          toId: receiver,
+        } }));
+      }
+    }
+  }
 
   return (
     <ToolsWrapper $isShowMore={visible}>
@@ -36,7 +111,10 @@ const InputTools:FC<InputTools> = (props: InputTools) => {
                   title={"图片"}
                   icon={"icon-image"}/>
       </Upload>
-      <Upload>
+      <Upload showUploadList={false}
+              action={`${window.location.origin}/api/${ApiEnum.UPLOAD_FILE}`}
+              beforeUpload={beforeFileUpload}
+              onChange={onFileChange}>
         <ToolItem key={ToolKey.UPLOAD_FILE}
                   title={"文件"}
                   icon={"icon-upload-file"}/>

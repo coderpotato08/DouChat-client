@@ -44,6 +44,7 @@ export enum ApiEnum {
   LOAD_ALL_UNREAD_NUM = '/notification/loadAllUnreadCounts',  // 未读消息数
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
+  UPLOAD_FILE = '/upload/file', // 上传图片
 }
 
 export interface UserContactsParamsType {

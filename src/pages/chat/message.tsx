@@ -5,7 +5,10 @@ import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { 
   addTotalUnreadNum,
   addUser,
+  isGroupSelector,
   recentSubmitMessageSelector,
+  selectedIdSelector,
+  setSelectedId,
   subTotalUnreadNum,
   userSelector 
 } from "@store/index";
@@ -19,25 +22,22 @@ import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
 import { isEmpty } from "lodash";
 import dayjs from "dayjs";
-import { getQuery } from "@helper/common-helper";
 
 const Message = () => {
   const socket = useSocket();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const isGroup = useAppSelector(isGroupSelector);
+  const selectedChatId = useAppSelector(selectedIdSelector);
   const userInfo = useAppSelector(userSelector);
   const recentSubmitMessage = useAppSelector(recentSubmitMessageSelector);
   const { id } = useParams();
-  const { type } = getQuery();
-  const isGroup = type === "group";
-  const [selectedChat, setSelectedChat] = useState<any>({});
   const [chatList, setChatList] = useState<any[]>([]);
 
   const onReceiveMessage = useCallback((msgData: any) => {
     const { fromId, toId, groupId } = msgData;
     const isReceiveGroup = !isEmpty(groupId);
     const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
-    const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
     if(receiveContactId !== selectedChatId) { // 非当前选中的聊天栏的消息，需要未读+1
       setChatList(preChatList => preChatList.map((chat: any) => {
         const curContactId = isReceiveGroup ? chat.groupId : chat.contactId
@@ -54,10 +54,9 @@ const Message = () => {
         return chat;
       }));
     }
-  }, [selectedChat, chatList])
+  }, [selectedChatId, chatList])
 
   const onGroupMessageUnread = useCallback(({groupId, messageId}: {groupId: string, messageId: string}) => {
-    const selectedChatId = isGroup ? selectedChat.groupId : selectedChat.contactId;
     setChatList(preChatList => preChatList.map((chat: any) => {
       if(chat.groupId && chat.groupId === groupId) {
         if (selectedChatId === groupId) { // 将消息置为已读
@@ -69,7 +68,7 @@ const Message = () => {
       }
       return chat;
     }))
-  }, [selectedChat, chatList])
+  }, [selectedChatId, chatList])
 
   const onClickContact = (item: any) => {
     const { groupId, contactId, unreadNum } = item;
@@ -96,7 +95,10 @@ const Message = () => {
       }
       return chat
     }))
-    setSelectedChat(item);
+    dispatch(setSelectedId({
+      selectedId: groupId || contactId,
+      isGroup: !!groupId,
+    }))
     navigate(`/chat/message/${groupId || contactId}?type=${groupId ? "group" : "user"}`)
   }
 
@@ -125,8 +127,11 @@ const Message = () => {
       .sort((a, b) => dayjs(b.createTime).diff(dayjs(a.createTime)))
     setChatList(chatList);
     if(id) {
-      const selected = chatList.find((chat: any) => (chat.contactId || chat.groupId) === id);
-      setSelectedChat(selected || {})
+      const selected: any = chatList.find((chat: any) => (chat.contactId || chat.groupId) === id);
+      !isEmpty(selected) && dispatch(setSelectedId({
+        selectedId: selected.groupId || selected.contactId,
+        isGroup: !!selected.groupId,
+      }))
     }
   }
 
@@ -167,7 +172,6 @@ const Message = () => {
         <ChatTitle/>
         <ChatGroup
           list={chatList}
-          selectedId={selectedChat.contactId || selectedChat.groupId || ""}
           onChangeChat={onClickContact}
           refreshChatList={loadAllContactList}/>
       </GroupWrapper>

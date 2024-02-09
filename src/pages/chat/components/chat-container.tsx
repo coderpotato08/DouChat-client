@@ -1,18 +1,18 @@
 import styled from "styled-components";
-import ChatAvatar from "../../../components/chat-avatar";
+import ChatAvatar from "@components/chat-avatar";
 import { Flex } from "antd";
 import MessageBox from "./message-box";
-import { useState, useEffect, useRef, FC, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { userSelector } from "../../../store";
+import { useEffect, useRef, FC, useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "@store/hooks";
+import { isGroupSelector, selectedChatSelector, selectedIdSelector, setSelectedChat, userSelector } from "@store/index";
 import ChatInput from "./chat-input";
-import { EventType } from "../../../constant/socket-types";
+import { EventType } from "@constant/socket-types";
 import { isEmpty } from "lodash";
-import { LoadGroupMsgListParamsType } from "../../../constant/api-types";
-import { ApiHelper } from "../../../helper/api-helper";
-import { createUidV4 } from "../../../helper/uuid-helper"
-import { useSocket } from "../../../store/context/createContext";
-import { MessageInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types";
+import { LoadGroupMsgListParamsType } from "@constant/api-types";
+import { ApiHelper } from "@helper/api-helper";
+import { createUidV4 } from "@helper/uuid-helper"
+import { useSocket } from "@store/context/createContext";
+import { MessageInfoType } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 import { 
   addMessage,
@@ -21,36 +21,36 @@ import {
   messageListSelector,
   pushMessageList
 } from "@store/index";
-import { getQuery, getReceiverAndSender } from "@helper/common-helper";
-import dayjs from "dayjs";
+import { getReceiverAndSender } from "@helper/common-helper";
 
 const ChatContainer:FC = () => {
   const socket = useSocket();
   const { id } = useParams();
-  const { type } = getQuery();
-  const isGroup = type === "group";
   const dispatch = useAppDispatch();
   const scrollRef: any = useRef(null);
+  const selectedId = useAppSelector(selectedIdSelector);
+  const selectedChat = useAppSelector(selectedChatSelector);
+  const isGroup = useAppSelector(isGroupSelector);
   const userInfo = useAppSelector(userSelector);
   const messageList = useAppSelector(messageListSelector);
-  const [selectedChat, setSelectedChat] = useState<any>();
 
   useEffect(() => {
+    if(!selectedId) return;
     if (isGroup) {
       ApiHelper.loadGroupContact({
         userId: userInfo._id,
-        groupId: id!, 
+        groupId: selectedId, 
       })
         .then(async (res) => {
-          setSelectedChat(res);
+          dispatch(setSelectedChat(res))
         })
     } else {
-      ApiHelper.loadUserContact({ contactId: id! })
+      ApiHelper.loadUserContact({ contactId: selectedId })
         .then((res) => {
-          setSelectedChat(res);
+          dispatch(setSelectedChat(res))
         })
     }
-  }, [id])
+  }, [selectedId])
 
   useEffect(() => {
     if (!isEmpty(selectedChat)) {
@@ -138,7 +138,11 @@ const ChatContainer:FC = () => {
     }
     if (Array.isArray(messages)) {
       messages.forEach(({ value, type }) => {
-        const messageInfo = { msgType: type, msgContent: value, time: new Date() }
+        const messageInfo = { 
+          msgType: type,
+          msgContent: value,
+          time: new Date(),
+        };
         socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
           ...baseParams,
           ...messageInfo,
@@ -146,7 +150,11 @@ const ChatContainer:FC = () => {
         dispatch(addMessage({ message: { ...message, ...messageInfo } }))
       })
     } else {
-      const messageInfo = { msgType: messages.type, msgContent: messages.value, time: new Date() }
+      const messageInfo = {
+        msgType: messages.type,
+        msgContent: messages.value,
+        time: new Date(),
+      };
       socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
         ...baseParams,
         ...messageInfo,
@@ -204,10 +212,7 @@ const ChatContainer:FC = () => {
         }
       </Flex>
     </ContainerContent>
-    <ChatInput
-      isGroup={isGroup}
-      chatId={selectedChat && (selectedChat.groupId || selectedChat.contactId)}
-      onSubmit={onSubmitMessage}/>
+    <ChatInput onSubmit={onSubmitMessage}/>
   </ChatContainerWrapper>
 }
 export default ChatContainer

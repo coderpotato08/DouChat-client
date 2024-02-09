@@ -7,14 +7,12 @@ import { debounce } from "lodash";
 import EmojiPicker from "../../../components/emoji-picker";
 import { ApiHelper } from "../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
-import { userSelector } from "@store/index";
+import { isGroupSelector, selectedChatSelector, selectedIdSelector, userSelector } from "@store/index";
 import InputTools from "./input-tools";
 import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
 
 const { useToken } = theme;
 interface ChatInputProps {
-  isGroup: boolean
-  chatId?: string,
   onSubmit: (message: Array<MessageInfoType> | MessageInfoType) => void,
 }
 
@@ -22,12 +20,12 @@ const imgMap = new Map(); // base64 => file
 const imgFixStyle = "max-width: 100%; height: auto; width: auto; max-height: 120px;"
 const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   const { 
-    chatId,
-    isGroup,
     onSubmit 
   } = props;
   let metaPress = false;
   const { token } = useToken();
+  const selectedChatId = useAppSelector(selectedIdSelector);
+  const isGroup = useAppSelector(isGroupSelector);
   const userInfo = useAppSelector(userSelector);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const inputChildNodes = useRef<any>([]);
@@ -52,7 +50,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
     const keyWord = match ? match[1] : "";
     const userlist = await loadGroupUsers(keyWord);
     setRemindOpen(userlist.length > 0);
-  }, 500), [chatId]);
+  }, 500), [selectedChatId]);
 
   const onInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
     const key = e.key;
@@ -163,7 +161,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
 
   const loadGroupUsers = async (keyWord?: string) => {
     if (isGroup) {
-      const params = keyWord ? { groupId: chatId!, keyWord } : { groupId: chatId! };
+      const params = keyWord ? { groupId: selectedChatId!, keyWord } : { groupId: selectedChatId! };
       const list = await ApiHelper.loadGroupUsers(params);
       const newList = list.filter((user: any) => user._id !== userInfo._id);
       setGroupUsers(newList);
@@ -211,7 +209,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
 
   useEffect(() => {
     cleanInputContent();
-  }, [chatId])
+  }, [selectedChatId])
 
   useEffect(() => () => {
     if (messageInputRef.current?.innerHTML) {

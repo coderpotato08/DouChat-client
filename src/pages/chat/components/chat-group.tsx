@@ -5,6 +5,7 @@ import { ApiHelper } from "@helper/api-helper";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
+import { isGroupSelector, selectedIdSelector } from "@store/index";
 import { userSelector } from "@store/userReducer";
 import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
@@ -16,7 +17,6 @@ import styled from 'styled-components';
 const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
-  selectedId: any,
   onChangeChat: (chatItem: any) => void
   refreshChatList: () => void
 }
@@ -24,7 +24,6 @@ interface ChatGroupProps {
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { 
     list,
-    selectedId,
     onChangeChat,
     refreshChatList,
   } = props;
@@ -32,6 +31,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { id: chatId } = useParams();
   const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
+  const selectedChatId = useAppSelector(selectedIdSelector);
   const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
   const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false)
 
@@ -74,16 +74,17 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
       usersAvaterList = [], 
     } = groupInfo
     const { 
-      time, 
-      msgContent = ""
+      time,
+      msgType,
+      msgContent = "",
     } = recentMessage;
     const isGroup = !isEmpty(groupId);
     const chatId = isGroup ? groupId : contactId;
     const receiver = (users[0] || {})._id === userInfo._id ? (users[1] || {}) : (users[0] || {});
-    const messageText = formatShowMessage(msgContent);
+    const messageText = formatShowMessage(msgContent, msgType);
     const atTipText = unreadNum > 0 && messageText.indexOf(`@${userInfo.nickname}`) > -1 ? "[有人@我]" : "";
     return <div key={chatId}
-                className={selectedId === chatId ? "group-item active" : "group-item"}
+                className={selectedChatId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(item)}>
       <div className="avatar-box">
         <ChatAvatar 
@@ -106,7 +107,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
             isNeedDeleteTips === YNEnum.YES ? 
               <Popconfirm
                 placement="right"
-                title={"确认要删除该聊天？删除后将清空聊天记录"}
+                title={"确认要删除该聊天？删除后将清空聊天"}
                 description={<Checkbox onChange={handleShowTips}>不再提示</Checkbox>}
                 onConfirm={(e: any) => {
                   e.stopPropagation();

@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { createUidV4 } from "./uuid-helper";
 import { isEmpty } from "lodash";
+import { MessageTypeEnum, UserInfoType } from "@constant/user-types";
 
 const weekdayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
@@ -38,12 +39,18 @@ export const handleRemindStr = (content: string, atName: string | undefined): st
   return str
 }
 
-export const formatShowMessage = (content: string): string => { // 处理左侧聊天栏最近一条消息文本
+export const formatShowMessage = (content: any, type: MessageTypeEnum): string => { // 处理左侧聊天栏最近一条消息文本
   if (content == '' && !content) return ''
-  let str = content;
-  str = str.replace(/<img.*?>/g, "[图片]"); // 处理图片消息
-  str = str.replace(/<.*?>/g, "");
-  return str
+  if (type === MessageTypeEnum.IMAGE || type === MessageTypeEnum.TEXT) {
+    let str = content;
+    str = str.replace(/<img.*?>/g, "[图片]"); // 处理图片消息
+    str = str.replace(/<.*?>/g, "");
+    return str
+  } else if (type === MessageTypeEnum.FILE) {
+    const { filename } = content;
+    return `[文件] ${filename}`
+  }
+  return ""
 }
 
 export const getReceiverAndSender = (users: any, currentUserId: string) => {
@@ -87,6 +94,15 @@ export const formatMessageTime = (curTime: string) => {  // 处理消息发送�
   }
   return str;
 }
+
+export const formatBytes = (bytes: number, decimals: number = 2) => {  
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;  
+  const dm = decimals < 0 ? 0 : decimals;  
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];  
+}  
 
 export const textFormat = (content: string): string => {
   // content 即粘贴过来的内容(html 或 纯文本), 将样式清除

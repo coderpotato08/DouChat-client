@@ -1,5 +1,7 @@
+import { FileFilled } from "@ant-design/icons";
+import { FileIcon } from "@components/file-icon";
 import { MessageTypeEnum } from "@constant/user-types";
-import { formatMessageTime } from "@helper/common-helper";
+import { formatBytes, formatMessageTime } from "@helper/common-helper";
 import { Avatar, Flex } from "antd"
 import dayjs from "dayjs";
 import React, { useMemo, CSSProperties, FC } from "react";
@@ -25,11 +27,11 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
     isGroup,
     messageInfo 
   } = props;
-  const { fromId: sender } = messageInfo;
+  const { fromId: sender = {}, msgContent = {} } = messageInfo;
 
   const boxStyle: CSSProperties = useMemo(() => ({
-    background: isSelf ? "#1677ff" : "#fff",
-    color: isSelf ? "#fff" : "#000",
+    background: messageInfo.msgType === MessageTypeEnum.FILE ? "#fff" : isSelf ? "#1677ff" : "#fff",
+    color: messageInfo.msgType === MessageTypeEnum.FILE ? "#000" : isSelf ? "#fff" : "#000",
     marginLeft: isSelf ? "auto" : "0",
     marginRight: 0,
   }), [isSelf]);
@@ -45,8 +47,26 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
                           style={{marginLeft: isSelf ? "auto" : 0}}>
             {sender.nickname}
           </div>}
-          <MessageBoxWrapper style={boxStyle} theme={{isSelf}}>
-            <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />  
+          <MessageBoxWrapper style={boxStyle} $isSelf={isSelf} $type={messageInfo.msgType}>
+            {
+              (messageInfo.msgType === MessageTypeEnum.TEXT || messageInfo.msgType === MessageTypeEnum.IMAGE) &&
+                <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />
+            }
+            {
+              messageInfo.msgType === MessageTypeEnum.FILE &&
+                <FileMessage href={msgContent.url} 
+                             download={msgContent.filename}>
+                  <div className="info">
+                    <div className={"info-name"}>{msgContent.filename}</div>
+                    <div className={"info-size"}>
+                      {msgContent.size ? formatBytes(msgContent.size) : "未知大小"}
+                    </div>
+                  </div>
+                  <div className={"info-file-icon"}>
+                    <FileIcon mimeType={msgContent.mimetype}/>
+                  </div>
+                </FileMessage>
+            }
           </MessageBoxWrapper>
         </div>
         {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
@@ -79,7 +99,10 @@ const Wrapper = styled.div`
     }
   }
 `
-const MessageBoxWrapper = styled.div<any>`
+const MessageBoxWrapper = styled.div<{
+  $isSelf: boolean,
+  $type: MessageTypeEnum
+}>`
   & {
     box-sizing: border-box;
     margin-top: 4px;
@@ -90,17 +113,19 @@ const MessageBoxWrapper = styled.div<any>`
     min-height: 42px;
     border-radius: 4px;
     word-break: break-all;
-    color: ${prop => prop.theme.isSelf ? "#fff" : "#000"};
+    color: ${({$isSelf}) => $isSelf ? "#fff" : "#000"};
   }
   &::after {
     content: '';
     position: absolute;
     top: 11px;
-    left: ${prop => prop.theme.isSelf ? "unset" : "-20px"};
-    right: ${prop => prop.theme.isSelf ? "-20px" : "unset"};
+    left: ${({$isSelf}) => $isSelf ? "unset" : "-20px"};
+    right: ${({$isSelf}) => $isSelf ? "-20px" : "unset"};
     border-width: 8px 10px 8px 10px;
     border-style: solid;
-    border-color: ${prop => prop.theme.isSelf ? "transparent transparent transparent #1677ff" : "transparent #fff transparent transparent"};
+    border-color: ${({$isSelf, $type}) => 
+      $isSelf ? `transparent transparent transparent ${$type === MessageTypeEnum.FILE ? "#fff" : "#1677ff"}` : 
+                `transparent #fff transparent transparent`};
   }
 `
 const TipMessage = styled.div`
@@ -112,6 +137,34 @@ const TipMessage = styled.div`
     .tip {
       width: 100%;
       margin: 8px 0;
+    }
+  }
+`
+const FileMessage = styled.a`
+  & {
+    display: flex;
+    .info {
+      width: 200px;
+      overflow: hidden;
+      .info-name {
+        display: -webkit-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        width: 100%;
+        margin-bottom: 6px;
+      }
+      .info-size {
+        font-size: 12px;
+        color: #333
+      }
+    }
+    .info-file-icon {
+      color: #aaa;
+      margin: 6px 0 0 12px;
+      align-self: self-start;
+      font-size: 36px;
     }
   }
 `
