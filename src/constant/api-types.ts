@@ -12,6 +12,7 @@ export enum ApiEnum {
   FRIEND_LIST = "/user/friend/list", // 好友列表
   CHANGE_FRIEND_STATUS = "/user/friend/changeStatus",  // 同意/拒绝 好友申请
   DELETE_FRIEND = "/user/friend/deleteFriend",  // 删除好友
+  SEARCH_FRIEND_LIST = "/user/friend/searchFriendList", // 模糊查询好友
 
   CREATE_GROUP = '/group/create', // 创建群聊
   LOAD_GROUP_INFO = '/group/loadGroupInfo', // 加载群信息
@@ -21,6 +22,7 @@ export enum ApiEnum {
   DISBANED_GROUP = '/group/disbandGroup', // 解散群聊
   INVITE_GROUP_USERS = '/group/inviteGroupUsers', // 发起申请添加用户
   UPDATE_GROUP_INFO = '/group/updateGroupInfo', // 更新群信息
+  SEARCH_GROUP_LIST = "/group/searchGroupList", // 模糊查询群聊
 
   CREATE_MEETING = "/meeting/create", // 创建会议
   LOAD_MEETING_INFO = "/meeting/getInfo", // 获取会议信息
@@ -29,6 +31,7 @@ export enum ApiEnum {
   DELETE_FRIEND_NOTIFICATION = "/notification/deleteFriendNotification", // 删除好友申请通知记录
   LOAD_GROUP_NOTIFICATIONS = '/notification/loadGroupNotifications', // 加载群邀请通知
   DELETE_GROUP_NOTIFICATION = '/notification/deleteGroupNotification',   // 删除群邀请通知记录
+  LOAD_ALL_UNREAD_NUM = '/notification/loadAllUnreadCounts',  // 未读消息数
 
   LOAD_USER_CONTACT_LIST = '/contacts/user-contact-list',  // 聊天栏用户列表
   LOAD_USER_CONTACT = '/contacts/loadUserContact', // 加载某个聊天关系
@@ -41,7 +44,7 @@ export enum ApiEnum {
 
   LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
   LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
-  LOAD_ALL_UNREAD_NUM = '/notification/loadAllUnreadCounts',  // 未读消息数
+  SEARCH_MESSAGE_LIST = '/message/searchMessageList', // 模糊查询聊天记录
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片
@@ -143,4 +146,9 @@ export interface UpdateGroupInfoParamsType {
   groupId: string
   groupName?: string,
   sign?: string
+}
+
+export interface ChatSearchParamsType {
+  userId: string
+  keyword: string
 }

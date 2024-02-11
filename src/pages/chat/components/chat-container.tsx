@@ -2,9 +2,9 @@ import styled from "styled-components";
 import ChatAvatar from "@components/chat-avatar";
 import { Flex } from "antd";
 import MessageBox from "./message-box";
-import { useEffect, useRef, FC, useCallback } from "react";
+import { useEffect, useRef, FC, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
-import { isGroupSelector, selectedChatSelector, selectedIdSelector, setSelectedChat, userSelector } from "@store/index";
+import { selectedChatSelector, setSelectedChat, userSelector } from "@store/index";
 import ChatInput from "./chat-input";
 import { EventType } from "@constant/socket-types";
 import { isEmpty } from "lodash";
@@ -28,36 +28,35 @@ const ChatContainer:FC = () => {
   const { id } = useParams();
   const dispatch = useAppDispatch();
   const scrollRef: any = useRef(null);
-  const selectedId = useAppSelector(selectedIdSelector);
   const selectedChat = useAppSelector(selectedChatSelector);
-  const isGroup = useAppSelector(isGroupSelector);
   const userInfo = useAppSelector(userSelector);
   const messageList = useAppSelector(messageListSelector);
 
+  const isGroup = useMemo(() => id!.indexOf("_") === -1, [id])
   useEffect(() => {
-    if(!selectedId) return;
+    if(!id) return;
     if (isGroup) {
       ApiHelper.loadGroupContact({
         userId: userInfo._id,
-        groupId: selectedId, 
+        groupId: id, 
       })
         .then(async (res) => {
           dispatch(setSelectedChat(res))
         })
     } else {
-      ApiHelper.loadUserContact({ contactId: selectedId })
+      ApiHelper.loadUserContact({ contactId: id })
         .then((res) => {
           dispatch(setSelectedChat(res))
         })
     }
-  }, [selectedId])
+  }, [id])
 
   useEffect(() => {
     if (!isEmpty(selectedChat)) {
       if(isGroup) {
         loadGroupMessageList();
       } else {
-        const { users } = selectedChat || {};
+        const { users = [] } = selectedChat || {};
         loadMessageList(users[0], users[1]);
       } 
     }

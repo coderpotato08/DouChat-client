@@ -5,7 +5,7 @@ import { ApiHelper } from "@helper/api-helper";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
-import { isGroupSelector, selectedIdSelector } from "@store/index";
+import { selectedIdSelector } from "@store/index";
 import { userSelector } from "@store/userReducer";
 import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
@@ -13,6 +13,7 @@ import { isEmpty } from "lodash";
 import React, { FC, ReactNode, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
+import { ChatSearch } from "./chat-search";
 
 const { useToken } = theme;
 interface ChatGroupProps {
@@ -33,7 +34,9 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const userInfo = useAppSelector(userSelector);
   const selectedChatId = useAppSelector(selectedIdSelector);
   const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
-  const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false)
+  const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false);
+  const [isShowSearch, setIsShowSearch] = useState<boolean>(false);
+  const [keyword, setKeyword] = useState<string>("")
 
   const handleShowTips = (e: CheckboxChangeEvent) => {
     setIsShowTipsNext(e.target.checked);
@@ -136,15 +139,35 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     </div>
   }
 
+  const onSearchFocus = () => {
+    setIsShowSearch(true)
+  }
+
+  const onSearchCancel = () => {
+    setKeyword("")
+    setIsShowSearch(false)
+  }
+
   return <ChatGroupWrapper>
-    <SearchWrapper>
-      <Input placeholder="Search Message"/>
+    <SearchWrapper $isShowSearch={isShowSearch}>
+      <Input placeholder="Search Message"
+             value={keyword}
+             onChange={(e) => setKeyword(e.target.value)}
+             onFocus={onSearchFocus}/>
+      <div className="cancel-search"
+           onClick={onSearchCancel}>取消</div>
     </SearchWrapper>
     <GroupWrapper $token={token}>
       {
         list.map((item) => renderGroupItem(item))
       }
     </GroupWrapper>
+    <SearchInfoWrapper $visible={isShowSearch}>
+      {keyword && <ChatSearch 
+        keyword={keyword}
+        refreshChatList={refreshChatList}
+        onCancel={onSearchCancel}/>}
+    </SearchInfoWrapper>
   </ChatGroupWrapper>
 }
 
@@ -152,6 +175,7 @@ export default React.memo(ChatGroup)
 
 const ChatGroupWrapper = styled.div`
   & {
+    position: relative;
     width: 100%;
     height: calc(100vh - 60px);
     display: flex;
@@ -159,12 +183,26 @@ const ChatGroupWrapper = styled.div`
     flex: 1;
   }
 `
-const SearchWrapper = styled.div`
+const SearchWrapper = styled.div<{
+  $isShowSearch: boolean
+}>`
   & {
+    display: flex;
     box-sizing: border-box;
-    padding: 8px 18px 12px;
+    padding: 8px 18px 5px;
     width: 100%;
     height: 45px;
+    .cancel-search {
+      cursor: pointer;
+      overflow: hidden;
+      font-size: 14px;
+      width: ${({$isShowSearch}) => $isShowSearch ? "50px" : 0};
+      height: 45px;
+      text-align: center;
+      line-height: 32px;
+      color: #666;
+      transition: all .4s;
+    }
   }
 `
 const GroupWrapper = styled.div<{
@@ -242,5 +280,18 @@ const GroupWrapper = styled.div<{
       width: 2px;
       background: ${props => props.$token.colorPrimary};
     }
+  }
+`
+const SearchInfoWrapper = styled.div<{
+  $visible: boolean
+}>`
+  & {
+    position: absolute;
+    top: 45px;
+    left: 0px;
+    width: 100%;
+    background: #fff;
+    height: ${({$visible}) => $visible ? "calc(100% - 45px)" : 0};
+    transition: all .4s;
   }
 `

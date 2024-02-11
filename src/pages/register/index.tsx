@@ -40,7 +40,7 @@ const Register:FC= () => {
   }, [avatarImageKey])
 
   useEffect(() => {
-    // getRandomAvatar();
+    getRandomAvatar();
     form.resetFields();
   }, [])
 
