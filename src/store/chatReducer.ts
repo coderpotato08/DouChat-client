@@ -48,7 +48,6 @@ export const {
   cleanSelectedChat,
 } = chatSlice.actions;
 
-export const selectedIdSelector = (({ chat }: { chat : ChatStateType}) => chat.selectedId);
 export const selectedChatSelector = (({ chat }: { chat : ChatStateType}) => chat.selectedChat);
 export const isGroupSelector = (({ chat }: { chat : ChatStateType}) => chat.isGroup);
 

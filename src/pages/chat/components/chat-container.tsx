@@ -32,7 +32,8 @@ const ChatContainer:FC = () => {
   const userInfo = useAppSelector(userSelector);
   const messageList = useAppSelector(messageListSelector);
 
-  const isGroup = useMemo(() => id!.indexOf("_") === -1, [id])
+  const isGroup = useMemo(() => id!.indexOf("_") === -1, [id]);
+  
   useEffect(() => {
     if(!id) return;
     if (isGroup) {
@@ -54,10 +55,11 @@ const ChatContainer:FC = () => {
   useEffect(() => {
     if (!isEmpty(selectedChat)) {
       if(isGroup) {
-        loadGroupMessageList();
+        selectedChat.groupId && loadGroupMessageList();
       } else {
         const { users = [] } = selectedChat || {};
-        loadMessageList(users[0], users[1]);
+        const [ fromUser, toUser ] = users
+        fromUser && toUser && loadMessageList(fromUser, toUser);
       } 
     }
     handleSocketEvent("on");

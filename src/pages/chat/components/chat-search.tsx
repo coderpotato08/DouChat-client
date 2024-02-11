@@ -25,11 +25,13 @@ interface ChatSearchProps {
   keyword: string
   refreshChatList: () => void
   onCancel: () => void
+  onChangeChat: (chatId: string) => void
 }
 export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
   const {
     keyword,
     refreshChatList,
+    onChangeChat,
     onCancel,
   } = props;
   const userInfo = useAppSelector(userSelector);
@@ -79,6 +81,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
                                      keyword={keyword}
                                      searchedItem={friend}
                                      onCancel={onCancel}
+                                     onChangeChat={onChangeChat}
                                      refreshChatList={refreshChatList}/>
             })
           }
@@ -98,6 +101,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
                                      keyword={keyword}
                                      searchedItem={group}
                                      onCancel={onCancel}
+                                     onChangeChat={onChangeChat}
                                      refreshChatList={refreshChatList}/>
             })
           }
@@ -117,6 +121,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
                                      keyword={keyword}
                                      searchedItem={messageChat}
                                      onCancel={onCancel}
+                                     onChangeChat={onChangeChat}
                                      refreshChatList={refreshChatList}/>
             })
           }

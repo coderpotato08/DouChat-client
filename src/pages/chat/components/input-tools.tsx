@@ -6,10 +6,10 @@ import { getReceiverAndSender } from '@helper/common-helper';
 import { createUidV4 } from '@helper/uuid-helper';
 import { useSocket } from '@store/context/createContext';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { addMessage, isGroupSelector, selectedChatSelector, selectedIdSelector, userSelector } from '@store/index';
+import { addMessage, selectedChatSelector, userSelector } from '@store/index';
 import { GetProp, GlobalToken, Upload, UploadProps, message, theme } from 'antd';
-import dayjs from 'dayjs';
-import React, { FC } from 'react'
+import { FC, useMemo } from 'react'
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components'
 
 const { useToken } = theme;
@@ -51,10 +51,11 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
   } = props;
   const socket = useSocket();
   const dispatch = useAppDispatch();
-  const selectedId = useAppSelector(selectedIdSelector);
+  const { id: selectedChatId } = useParams();
   const selectedChat = useAppSelector(selectedChatSelector);
-  const isGroup = useAppSelector(isGroupSelector);
   const userInfo = useAppSelector(userSelector);
+
+  const isGroup = useMemo(() => selectedChatId && selectedChatId.indexOf("_") === -1, [selectedChatId])
 
   const beforeFileUpload = (file: FileBeforeUploadType) => {
     const { size } = file;
@@ -80,12 +81,12 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
         socket.emit(EventType.SEND_GROUP_MESSAGE, {
           ...fileMessage,
           fromId: userInfo._id,
-          groupId: selectedId,
+          groupId: selectedChatId,
         });
         dispatch(addMessage({ message: {
           ...fileMessage,
           fromId: userInfo,
-          groupId: selectedId,
+          groupId: selectedChatId,
         } }))
       } else {
         const { users = [] } = selectedChat;

@@ -2,10 +2,10 @@ import ChatAvatar from '@components/chat-avatar'
 import { HighlightText } from '@components/highlight-text'
 import { ApiHelper } from '@helper/api-helper'
 import { useAppDispatch, useAppSelector } from '@store/hooks'
-import { setSelectedId, userSelector } from '@store/index'
+import { cacheMessageList, setSelectedId, userSelector } from '@store/index'
 import { Avatar } from 'antd'
 import { FC, ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
 interface ChatSearchItemProps {
@@ -13,6 +13,7 @@ interface ChatSearchItemProps {
   keyword: string,
   searchedItem: any,
   onCancel: () => void,
+  onChangeChat: (chatId: string) => void,
   refreshChatList: () => void,
 }
 
@@ -72,6 +73,7 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
     keyword,
     searchedItem,
     onCancel,
+    onChangeChat,
     refreshChatList,
   } = props;
   const {
@@ -79,6 +81,7 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
     nameNode,
     descriptionNode,
   } = getItemNodes(type, searchedItem, keyword);
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const userInfo = useAppSelector(userSelector);
@@ -91,7 +94,8 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
       }
       ApiHelper.createUserContact(params)
         .then(({ contactId }) => {
-          dispatch(setSelectedId({ selectedId: contactId, isGroup: false }))
+          // handleMessageList(contactId);
+          // onChangeChat(contactId)
           refreshChatList();
           onCancel();
           contactId && navigate(`/chat/message/${contactId}?type=user`);
@@ -100,6 +104,12 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
 
     } else {
 
+    }
+  }
+
+  const handleMessageList = (chatId: string) => {
+    if(id !== chatId) {
+      dispatch(cacheMessageList({ contactId: chatId }));
     }
   }
   return (

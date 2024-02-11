@@ -43,19 +43,6 @@ const ChatTitleWrapper = styled.div`
         left: 0;
         width: 48px;
         height: 48px;
-        animation: potato 3s linear infinite;
-      }
-    }
-
-    @keyframes potato {
-      0% {
-        transform: scale(1) rotate(0deg);
-      }
-      50% {
-        transform: scale(1.3) rotate(180deg);
-      }
-      100% {
-        transform: scale(1) rotate(360deg);
       }
     }
   }

@@ -1,15 +1,16 @@
 import CIcon from "../../../components/c-icon";
 import styled from "styled-components";
 import { Flex, Button, theme, GlobalToken, Popover, Avatar } from "antd";
-import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react";
+import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { base64ToImageFile, handleRemindStr, textAndImageFormat, textFormat } from "../../../helper/common-helper";
 import { debounce } from "lodash";
 import EmojiPicker from "../../../components/emoji-picker";
 import { ApiHelper } from "../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
-import { isGroupSelector, selectedChatSelector, selectedIdSelector, userSelector } from "@store/index";
+import { isGroupSelector, userSelector } from "@store/index";
 import InputTools from "./input-tools";
 import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
+import { useParams } from "react-router-dom";
 
 const { useToken } = theme;
 interface ChatInputProps {
@@ -24,8 +25,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   } = props;
   let metaPress = false;
   const { token } = useToken();
-  const selectedChatId = useAppSelector(selectedIdSelector);
-  const isGroup = useAppSelector(isGroupSelector);
+  const { id: selectedChatId } = useParams();
   const userInfo = useAppSelector(userSelector);
   const messageInputRef = useRef<HTMLInputElement>(null);
   const inputChildNodes = useRef<any>([]);
@@ -35,6 +35,8 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   const [selectedUserIndex, setSelectedUserIndex] = useState<number>(0);
   const [remindOpen, setRemindOpen] = useState<boolean>(false);
   const [isShowMore, setIsShowMore] = useState<boolean>(false)
+
+  const isGroup = useMemo(() => selectedChatId && selectedChatId.indexOf("_") === -1, [selectedChatId])
 
   const onMessageInput = (e: FormEvent) => {
     const messageStr = (e.target as HTMLInputElement).innerHTML

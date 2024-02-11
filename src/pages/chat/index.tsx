@@ -41,6 +41,7 @@ const Chat:FC = () => {
   const [selectedKey, setSelectedKey] = useState('message');
 
   const onClickMenu = (item: any) => {
+    if (selectedKey === item.key) return;
     setSelectedKey(item.key)
     navigate(item.route);
   }

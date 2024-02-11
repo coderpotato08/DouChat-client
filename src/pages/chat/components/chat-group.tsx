@@ -5,7 +5,6 @@ import { ApiHelper } from "@helper/api-helper";
 import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
-import { selectedIdSelector } from "@store/index";
 import { userSelector } from "@store/userReducer";
 import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
@@ -18,7 +17,7 @@ import { ChatSearch } from "./chat-search";
 const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
-  onChangeChat: (chatItem: any) => void
+  onChangeChat: (chatId: string) => void
   refreshChatList: () => void
 }
 
@@ -32,7 +31,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { id: chatId } = useParams();
   const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
-  const selectedChatId = useAppSelector(selectedIdSelector);
+  const { id: selectedChatId } = useParams();
   const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
   const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false);
   const [isShowSearch, setIsShowSearch] = useState<boolean>(false);
@@ -88,7 +87,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     const atTipText = unreadNum > 0 && messageText.indexOf(`@${userInfo.nickname}`) > -1 ? "[有人@我]" : "";
     return <div key={chatId}
                 className={selectedChatId === chatId ? "group-item active" : "group-item"}
-                onClick={() => onChangeChat(item)}>
+                onClick={() => onChangeChat(chatId)}>
       <div className="avatar-box">
         <ChatAvatar 
           isGroup={isGroup} 
@@ -165,6 +164,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     <SearchInfoWrapper $visible={isShowSearch}>
       {keyword && <ChatSearch 
         keyword={keyword}
+        onChangeChat={onChangeChat}
         refreshChatList={refreshChatList}
         onCancel={onSearchCancel}/>}
     </SearchInfoWrapper>
