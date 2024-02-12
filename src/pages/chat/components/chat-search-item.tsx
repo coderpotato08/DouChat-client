@@ -1,8 +1,8 @@
 import ChatAvatar from '@components/chat-avatar'
 import { HighlightText } from '@components/highlight-text'
 import { ApiHelper } from '@helper/api-helper'
-import { useAppDispatch, useAppSelector } from '@store/hooks'
-import { cacheMessageList, setSelectedId, userSelector } from '@store/index'
+import { useAppSelector } from '@store/hooks'
+import { userSelector } from '@store/index'
 import { Avatar } from 'antd'
 import { FC, ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -73,7 +73,6 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
     keyword,
     searchedItem,
     onCancel,
-    onChangeChat,
     refreshChatList,
   } = props;
   const {
@@ -83,35 +82,32 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
   } = getItemNodes(type, searchedItem, keyword);
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const userInfo = useAppSelector(userSelector);
 
-  const onClickItem = () => {
-    if(type === "friend") {
-      const params = {
-        fromId: userInfo._id,
-        toId: searchedItem._id
-      }
-      ApiHelper.createUserContact(params)
-        .then(({ contactId }) => {
-          // handleMessageList(contactId);
-          // onChangeChat(contactId)
-          refreshChatList();
-          onCancel();
-          contactId && navigate(`/chat/message/${contactId}?type=user`);
-        })
-    } else if(type === "group") {
-
+  const onClickItem = async () => {
+    const { 
+      _id = "",
+      chatId = "",
+      groupName = "",
+    } = searchedItem;
+    const isGroup = type === "message" ? chatId.indexOf("_") === -1 : !!groupName;
+    const toId = isGroup ? "" : (_id || chatId.split("_")[1]);
+    const groupId = isGroup ? (chatId || _id) : "";
+    if(isGroup) {
+      const params = { userId: userInfo._id, groupId };
+      await ApiHelper.createGroupContact(params);
+      refreshChatList();
+      onCancel();
+      navigate(`/chat/message/${groupId}?type=group`)
     } else {
-
+      const params = { fromId: userInfo._id, toId };
+      const { contactId } = await ApiHelper.createUserContact(params);
+      refreshChatList();
+      onCancel();
+      contactId && navigate(`/chat/message/${contactId}?type=user`);
     }
   }
 
-  const handleMessageList = (chatId: string) => {
-    if(id !== chatId) {
-      dispatch(cacheMessageList({ contactId: chatId }));
-    }
-  }
   return (
     <InfoItem onClick={onClickItem}>
       {avatarNode}

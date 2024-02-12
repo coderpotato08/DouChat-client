@@ -9,7 +9,7 @@ import { userSelector } from "@store/userReducer";
 import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
 import { isEmpty } from "lodash";
-import React, { FC, ReactNode, useState } from "react";
+import React, { FC, ReactNode, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 import { ChatSearch } from "./chat-search";
@@ -28,7 +28,6 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     refreshChatList,
   } = props;
   const { token } = useToken();
-  const { id: chatId } = useParams();
   const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
   const { id: selectedChatId } = useParams();
@@ -55,7 +54,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     } else {
       await ApiHelper.deleteUserContact({id});
     }
-    if (chatId === (groupId || contactId)) {
+    if (selectedChatId === (groupId || contactId)) {
       navigate('/chat/message')
     }
     refreshChatList();
@@ -86,6 +85,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     const messageText = formatShowMessage(msgContent, msgType);
     const atTipText = unreadNum > 0 && messageText.indexOf(`@${userInfo.nickname}`) > -1 ? "[有人@我]" : "";
     return <div key={chatId}
+                id={`CHAT_${chatId}`}
                 className={selectedChatId === chatId ? "group-item active" : "group-item"}
                 onClick={() => onChangeChat(chatId)}>
       <div className="avatar-box">
@@ -146,6 +146,17 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     setKeyword("")
     setIsShowSearch(false)
   }
+
+  useEffect(() => {
+    const ele = selectedChatId ? document.getElementById(`CHAT_${selectedChatId}`) : null;
+    if(ele) {
+      ele.scrollIntoView({
+        block: "end",
+        inline: "nearest", 
+        behavior: "smooth",
+      })
+    }
+  }, [selectedChatId])
 
   return <ChatGroupWrapper>
     <SearchWrapper $isShowSearch={isShowSearch}>

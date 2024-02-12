@@ -1,4 +1,4 @@
-import { Badge, Popover } from "antd"
+import { Popover } from "antd"
 import { FC, useCallback } from "react";
 import CIcon from "@components/c-icon";
 import { styled } from "styled-components";
@@ -67,12 +67,12 @@ const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
              color={"#f9f9f9"}
              overlayInnerStyle={{padding: 0}}
              content={renderToolListContent}>
-      <Badge count={5} size={"small"}>
+      <div>
         <CIcon style={{cursor: 'pointer'}} 
-              value="icon-more" 
-              size={24} 
-              color="#000"/>
-      </Badge>
+               value="icon-more" 
+               size={24} 
+               color="#000"/>
+      </div>
     </Popover>
     <CreateMeetingModal visible={createMeetingMdoal_open}
                         onCancel={createMeetingMdoalPopup}
