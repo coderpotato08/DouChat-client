@@ -1,12 +1,16 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 interface MessageState {
   totalUnreadNum: number,
+  hasMore: boolean,
+  pageIndex: number,
   messageList: any[],
   messageListCache: Record<string, any[]>
   recentSubmitMessage: any
 }
 const initialState: MessageState = {
   totalUnreadNum: 0,
+  hasMore: true,
+  pageIndex: 0,
   messageList: [],
   messageListCache: {},
   recentSubmitMessage: {},
@@ -52,9 +56,12 @@ const messageSlice = createSlice({
     },
     pushMessageList: (state, action: PayloadAction<{messageList: any}>) => {  // 
       const { payload: { messageList } } = action;
+      const hasMore = messageList.length === 20;
       return {
         ...state,
-        messageList: state.messageList.length > 0 ? [...state.messageList, ...messageList] : [...messageList]
+        hasMore,
+        pageIndex: state.pageIndex + 1,
+        messageList: state.messageList.length > 0 ? [...messageList, ...state.messageList] : [...messageList]
       }
     },
     changeMessageList: (state, action: PayloadAction<{messageList: any}>) => {
@@ -64,14 +71,23 @@ const messageSlice = createSlice({
         messageList,
       }
     },
-    cacheMessageList: (state, action: PayloadAction<{contactId: string}>) => {
-      const { payload: { contactId } } = action;
+    setPageIndex: (state, action: PayloadAction<number>) => {
+      const { payload } = action;
       return {
         ...state,
+        pageIndex: payload,
+      }
+    },
+    cacheMessageList: (state, action: PayloadAction<{contactId: string}>) => {
+      const { payload: { contactId } } = action;
+      const newmMessageListCache = contactId ? {[contactId]: state.messageList} : {}
+      return {
+        ...state,
+        pageIndex: 0,
         messageList: [],
         messageListCache: {
           ...state.messageListCache,
-          [contactId]: state.messageList,
+          ...newmMessageListCache
         },
       }
     }
@@ -87,8 +103,12 @@ export const {
   setTotalUnreadNum,
   addTotalUnreadNum,
   subTotalUnreadNum,
+  setPageIndex,
 } = messageSlice.actions;
 
+export const messageSelector = ({ message }: { message: MessageState}) => message;
+export const hasMoreSelector = ({ message }: { message: MessageState}) => message.hasMore;
+export const pageIndexSelector = ({ message }: { message: MessageState}) => message.pageIndex;
 export const totalUnreadNumSelector = ({ message }: { message: MessageState}) => message.totalUnreadNum;
 export const recentSubmitMessageSelector = ({ message }: { message: MessageState}) => message.recentSubmitMessage;
 export const messageListSelector = ({ message }: { message: MessageState}) => message.messageList;

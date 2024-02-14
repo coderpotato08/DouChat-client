@@ -1,22 +1,10 @@
 import ChatAvatar from '@components/chat-avatar'
 import { HighlightText } from '@components/highlight-text'
-import { ApiHelper } from '@helper/api-helper'
-import { useAppSelector } from '@store/hooks'
-import { userSelector } from '@store/index'
-import { Avatar } from 'antd'
+import { Avatar, GlobalToken, theme } from 'antd'
 import { FC, ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
-interface ChatSearchItemProps {
-  type: "friend" | "group" | "message"
-  keyword: string,
-  searchedItem: any,
-  onCancel: () => void,
-  onChangeChat: (chatId: string) => void,
-  refreshChatList: () => void,
-}
-
+const { useToken } = theme;
 type ItemNodeType = "avatarNode" | "nameNode" | "descriptionNode"
 type ReturnNodesType<T extends string> = {[K in T]: ReactNode | null}
 
@@ -66,50 +54,30 @@ const getItemNodes = (
     }
   }
 }
+interface ChatSearchItemProps {
+  type: "friend" | "group" | "message"
+  keyword: string,
+  searchedItem: any,
+  onClick: () => void,
+  isActive?: boolean,
+}
 
 export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProps) => {
   const {
     type,
     keyword,
     searchedItem,
-    onCancel,
-    refreshChatList,
+    onClick,
+    isActive,
   } = props;
   const {
     avatarNode,
     nameNode,
     descriptionNode,
   } = getItemNodes(type, searchedItem, keyword);
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const userInfo = useAppSelector(userSelector);
-
-  const onClickItem = async () => {
-    const { 
-      _id = "",
-      chatId = "",
-      groupName = "",
-    } = searchedItem;
-    const isGroup = type === "message" ? chatId.indexOf("_") === -1 : !!groupName;
-    const toId = isGroup ? "" : (_id || chatId.split("_")[1]);
-    const groupId = isGroup ? (chatId || _id) : "";
-    if(isGroup) {
-      const params = { userId: userInfo._id, groupId };
-      await ApiHelper.createGroupContact(params);
-      refreshChatList();
-      onCancel();
-      navigate(`/chat/message/${groupId}?type=group`)
-    } else {
-      const params = { fromId: userInfo._id, toId };
-      const { contactId } = await ApiHelper.createUserContact(params);
-      refreshChatList();
-      onCancel();
-      contactId && navigate(`/chat/message/${contactId}?type=user`);
-    }
-  }
-
+  const { token } = useToken();
   return (
-    <InfoItem onClick={onClickItem}>
+    <InfoItem onClick={onClick} $active={isActive} $token={token}>
       {avatarNode}
       <div className={'info'}>
         <div>{nameNode}</div>
@@ -119,13 +87,18 @@ export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProp
   )
 }
 
-const InfoItem = styled.div`
+const InfoItem = styled.div<{
+  $token: GlobalToken
+  $active?: boolean
+}>`
   & {
+    position: relative;
     cursor: pointer;
     display: flex;
     padding: 8px;
     transition: all .4s;
     border-bottom: 1px solid rgba(0,0,0,.05);
+    background: ${({$active, $token}) => $active ? $token.colorInfoBg : "#fff"};
     .info {
       color: #333;
       display: flex;
@@ -143,8 +116,18 @@ const InfoItem = styled.div`
       }
     }
   }
+  &::before {
+    display: ${props => props.$active ? "block" : "none"};
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: ${props => props.$token.colorPrimary};
+  }
   &:hover {
-    background-color: #f2f2f2;
+    background-color: ${({$active, $token}) => $active ? $token.colorInfoBg : "#f2f2f2"};
   }
   &:last-child {
     border: none

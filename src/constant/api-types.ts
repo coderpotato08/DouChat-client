@@ -45,6 +45,9 @@ export enum ApiEnum {
   LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
   LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
   SEARCH_MESSAGE_LIST = '/message/searchMessageList', // 模糊查询聊天记录
+  SEARCH_MATCH_GROUP_MESSAGE_LIST = '/message/searchMatchGroupMessageList', // 模糊查询某群详细聊天记录
+  SEARCH_MATCH_USER_MESSAGE_LIST = '/message/searchMatchUserMessageList', // 模糊查询某好友详细聊天记录
+
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片
@@ -123,6 +126,7 @@ export interface LoadGroupUsersParamsType {
 export interface LoadGroupInfoParamsType extends LoadGroupUsersParamsType {}
 export interface DisbandGroupParamsType extends LoadGroupUsersParamsType {}
 export interface LoadGroupMsgListParamsType extends LoadGroupUsersParamsType {
+  pageIndex: number,
   limitTime: Date,
 }
 export interface QuitGroupParamsType extends LoadGroupUsersParamsType {
@@ -149,6 +153,13 @@ export interface UpdateGroupInfoParamsType {
 }
 
 export interface ChatSearchParamsType {
-  userId: string
+  userId?: string
   keyword: string
+}
+
+export interface SearchMatchGroupMessageListParamsType extends ChatSearchParamsType {
+  groupId: string
+}
+export interface SearchMatchUserMessageListParamsType extends ChatSearchParamsType {
+  friendId: string
 }

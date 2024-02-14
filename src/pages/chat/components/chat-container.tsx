@@ -2,9 +2,9 @@ import styled from "styled-components";
 import ChatAvatar from "@components/chat-avatar";
 import { Flex } from "antd";
 import MessageBox from "./message-box";
-import { useEffect, useRef, FC, useCallback, useMemo } from "react";
+import { useEffect, useRef, FC, useCallback, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
-import { selectedChatSelector, setSelectedChat, userSelector } from "@store/index";
+import { hasMoreSelector, messageListSelector, pageIndexSelector, selectedChatSelector, setPageIndex, setSelectedChat, userSelector } from "@store/index";
 import ChatInput from "./chat-input";
 import { EventType } from "@constant/socket-types";
 import { isEmpty } from "lodash";
@@ -18,7 +18,6 @@ import {
   addMessage,
   addTipMessage,
   cacheMessageList,
-  messageListSelector,
   pushMessageList
 } from "@store/index";
 import { getReceiverAndSender } from "@helper/common-helper";
@@ -30,7 +29,12 @@ const ChatContainer:FC = () => {
   const scrollRef: any = useRef(null);
   const selectedChat = useAppSelector(selectedChatSelector);
   const userInfo = useAppSelector(userSelector);
+  // const pageIndex = useAppSelector(pageIndexSelector)
+  // const hasMore = useAppSelector(hasMoreSelector);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const messageList = useAppSelector(messageListSelector);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const isGroup = useMemo(() => id!.indexOf("_") === -1, [id]);
   
@@ -54,18 +58,17 @@ const ChatContainer:FC = () => {
 
   useEffect(() => {
     if (!isEmpty(selectedChat)) {
+      setPageIndex(0);
       if(isGroup) {
-        selectedChat.groupId && loadGroupMessageList();
+        loadGroupMessageList(0);
       } else {
-        const { users = [] } = selectedChat || {};
-        const [ fromUser, toUser ] = users
-        fromUser && toUser && loadMessageList(fromUser, toUser);
+        loadMessageList(0);
       } 
     }
     handleSocketEvent("on");
     return () => {
       handleSocketEvent("off");
-      id && dispatch(cacheMessageList({contactId: id}));
+      dispatch(cacheMessageList({contactId: id || ""}));
     }
   }, [selectedChat]);
 
@@ -89,26 +92,40 @@ const ChatContainer:FC = () => {
     socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
   }
 
-  const loadMessageList = (from: any, to: any) => {
+  const loadMessageList = (msgPageIndex: number) => {
+    const { users = [] } = selectedChat || {};
+    const [ from, to ] = users;
+    if(!from || !to) return;
     const params = {
+      pageIndex: msgPageIndex,
       fromId: from._id,
       toId: to._id,
       limitTime: selectedChat.createTime
     };
+    setIsLoading(true);
     ApiHelper.loadUserMsgList(params)
       .then((res: any) => {
-        dispatch(pushMessageList({messageList: res}));
+        setIsLoading(false);
+        setPageIndex(preIndex => preIndex + 1);
+        setHasMore(res.length >= 20)
+        dispatch(pushMessageList({messageList: res.reverse()}));
       })
   }
 
-  const loadGroupMessageList = () => {
+  const loadGroupMessageList = (msgPageIndex: number) => {
+    if(!selectedChat.groupId) return;
     const params: LoadGroupMsgListParamsType = {
+      pageIndex: msgPageIndex,
       groupId: id!,
       limitTime: selectedChat.createTime
     };
+    setIsLoading(true);
     ApiHelper.loadGroupMsgList(params)
-      .then((res: any) => {
-        dispatch(pushMessageList({messageList: res}));
+      .then((res: any[]) => {
+        setIsLoading(false);
+        setPageIndex(preIndex => preIndex + 1);
+        setHasMore(res.length >= 20)
+        dispatch(pushMessageList({messageList: res.reverse()}));
       })
   }
   
@@ -181,6 +198,17 @@ const ChatContainer:FC = () => {
     }
   }, [isGroup])
 
+  const onScroll = () => {
+    if(scrollRef.current.scrollTop <= 0 && !isLoading && hasMore) {
+      console.log("加载更多")
+      if(isGroup) {
+        loadGroupMessageList(pageIndex);
+      } else {
+        loadMessageList(pageIndex);
+      } 
+    }
+  }
+
   const { users, groupInfo = {} } = selectedChat || {};
   const { usersAvaterList = [], groupName } = groupInfo;
   const { receiver = {}, sender = {} } = getReceiverAndSender(users, userInfo._id);
@@ -197,10 +225,11 @@ const ChatContainer:FC = () => {
       </div>
     </ContainerHeader>
     {/* 消息部分 */}
-    <ContainerContent ref={scrollRef}>
+    <ContainerContent ref={scrollRef} onScroll={onScroll}>
       <Flex vertical>
         {
-          !isEmpty(messageList) && messageList.map((info: any, index) => {
+          !isEmpty(messageList) && messageList.length > 0 &&
+          messageList.map((info: any, index) => {
             const { fromId: sender = {} } = info;
             const isSelf = sender._id === userInfo._id;
             const prevTime = index > 0 ? messageList[index-1].time : null;

@@ -13,6 +13,8 @@ import React, { FC, ReactNode, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 import { ChatSearch } from "./chat-search";
+import { ChatSearchDetailModal } from "./chat-search-detail-modal";
+import { usePopup } from "@hooks/usePopup";
 
 const { useToken } = theme;
 interface ChatGroupProps {
@@ -34,7 +36,10 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
   const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false);
   const [isShowSearch, setIsShowSearch] = useState<boolean>(false);
-  const [keyword, setKeyword] = useState<string>("")
+  const [keyword, setKeyword] = useState<string>("");
+  const [defaultKeyword, setDefaultKeyword] = useState<string>("");
+  const [defaultSelectedChat, setDefaultSelectedChat] = useState<any>({});
+  const [detailModel_open, detailModelPopup] = usePopup();
 
   const handleShowTips = (e: CheckboxChangeEvent) => {
     setIsShowTipsNext(e.target.checked);
@@ -147,6 +152,12 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     setIsShowSearch(false)
   }
 
+  const onDetailModelShow = (chat = {}) => {
+    setDefaultKeyword(keyword);
+    setDefaultSelectedChat(chat)
+    detailModelPopup();
+  }
+
   useEffect(() => {
     const ele = selectedChatId ? document.getElementById(`CHAT_${selectedChatId}`) : null;
     if(ele) {
@@ -175,10 +186,18 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     <SearchInfoWrapper $visible={isShowSearch}>
       {keyword && <ChatSearch 
         keyword={keyword}
-        onChangeChat={onChangeChat}
+        onShowDetail={onDetailModelShow}
         refreshChatList={refreshChatList}
         onCancel={onSearchCancel}/>}
     </SearchInfoWrapper>
+    {
+      detailModel_open &&
+      <ChatSearchDetailModal 
+        defaultSelectedChat={defaultSelectedChat}
+        defaultKeyword={defaultKeyword}
+        visible={detailModel_open}
+        onCancel={detailModelPopup}/>
+      }
   </ChatGroupWrapper>
 }
 

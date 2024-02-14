@@ -7,6 +7,7 @@ import { debounce } from 'lodash';
 import { FC, PropsWithChildren, useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { ChatSearchItem } from './chat-search-item';
+import { useNavigate } from 'react-router-dom';
 
 const { useToken } = theme;
 const ListBox = (props: {
@@ -24,18 +25,21 @@ const ListBox = (props: {
 interface ChatSearchProps {
   keyword: string
   refreshChatList: () => void
+  onShowDetail: (chat?: any) => void
   onCancel: () => void
-  onChangeChat: (chatId: string) => void
 }
 export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
   const {
     keyword,
     refreshChatList,
-    onChangeChat,
     onCancel,
+    onShowDetail,
   } = props;
+  const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [showMoreFriend, setShowMoreFriend] = useState<boolean>(false);
+  const [showMoreGroup, setShowMoreGroup] = useState<boolean>(false);
   const [friendSearchList, setFriendSearchList] = useState<any[]>([]);
   const [groupSearchList, setGroupSearchList] = useState<any[]>([]);
   const [messageSearchList, setMessageSearchList] = useState<any[]>([]);
@@ -56,7 +60,36 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
     setFriendSearchList(friendList);
     setGroupSearchList(groupList);
     setMessageSearchList(messageList);
-  }, 500), [])
+  }, 500), []);
+
+  const onClickItem = async (item: any, type: "friend" | "group" | "message") => {
+    const { 
+      _id = "",
+      chatId = "",
+      groupName = "",
+    } = item;
+    const isGroup = type === "message" ? chatId.indexOf("_") === -1 : !!groupName;
+    const toId = isGroup ? "" : (_id || chatId.split("_")[1]);
+    const groupId = isGroup ? (chatId || _id) : "";
+    if(isGroup) {
+      const params = { userId: userInfo._id, groupId };
+      await ApiHelper.createGroupContact(params);
+      refreshChatList();
+      onCancel();
+      navigate(`/chat/message/${groupId}?type=group`)
+    } else {
+      const params = { fromId: userInfo._id, toId };
+      const { contactId } = await ApiHelper.createUserContact(params);
+      refreshChatList();
+      onCancel();
+      contactId && navigate(`/chat/message/${contactId}?type=user`);
+    }
+  };
+
+  const onShowSearchDetail = (chat?: any) => {
+    onShowDetail(chat || {});
+    onCancel();
+  }
 
   useEffect(() => {
     if(keyword) {
@@ -67,6 +100,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
       setMessageSearchList([]);
     }
   }, [keyword])
+
   return (
     isLoading ? <LoadingWrapper>
       搜索中
@@ -75,19 +109,19 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
         friendSearchList.length > 0 &&
         <ListBox title='好友'>
           {
-            friendSearchList.slice(0, 3).map((friend: UserInfoType) => {
+            (showMoreFriend ? friendSearchList : friendSearchList.slice(0, 3)).map((friend: UserInfoType) => {
               return <ChatSearchItem key={friend._id}
                                      type={'friend'}
                                      keyword={keyword}
                                      searchedItem={friend}
-                                     onCancel={onCancel}
-                                     onChangeChat={onChangeChat}
-                                     refreshChatList={refreshChatList}/>
+                                     onClick={() => onClickItem(friend, "friend")}/>
             })
           }
           {
-            groupSearchList.length > 3 &&
-            <div className={'more'}>更多好友</div>
+            friendSearchList.length > 3 &&
+            <div className={'more'} onClick={() => setShowMoreFriend(!showMoreFriend)}>
+              {showMoreFriend ? "收起" : `更多好友(${friendSearchList.length})`}
+            </div>
           }
         </ListBox>
       }
@@ -95,19 +129,19 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
         groupSearchList.length > 0 &&
         <ListBox title='群聊'>
           {
-            groupSearchList.slice(0, 3).map((group: any) => {
+            (showMoreGroup ? groupSearchList : groupSearchList.slice(0, 3)).map((group: any) => {
               return <ChatSearchItem key={group._id}
                                      type={'group'}
                                      keyword={keyword}
                                      searchedItem={group}
-                                     onCancel={onCancel}
-                                     onChangeChat={onChangeChat}
-                                     refreshChatList={refreshChatList}/>
+                                     onClick={() => onClickItem(group, "group")}/>
             })
           }
           {
             groupSearchList.length > 3 &&
-            <div className={'more'}>更多群聊</div>
+            <div className={'more'} onClick={() => setShowMoreGroup(!showMoreGroup)}>
+              {showMoreGroup ? "收起" : `更多群聊(${groupSearchList.length})`}
+            </div>
           }
         </ListBox>
       }
@@ -120,14 +154,14 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
                                      type={'message'}
                                      keyword={keyword}
                                      searchedItem={messageChat}
-                                     onCancel={onCancel}
-                                     onChangeChat={onChangeChat}
-                                     refreshChatList={refreshChatList}/>
+                                     onClick={() => onShowSearchDetail(messageChat)}/>
             })
           }
           {
             messageSearchList.length > 3 &&
-            <div className={'more'}>更多聊天记录</div>
+            <div className={'more'} onClick={onShowSearchDetail}>
+              更多聊天记录({messageSearchList.length})
+            </div>
           }
         </ListBox>
       }

@@ -174,10 +174,13 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
               defaultValue={sign || "暂无群简介"}
             /> : <div className={"sign"}>{sign || "暂无群简介"}</div>
           }
-          <CIcon value={"icon-edit"}
-                 style={{cursor: "pointer"}}
-                 size={16} 
-                 onClick={() => setSignEditable(pre => !pre)}/>
+          {
+            isCreator &&
+            <CIcon value={"icon-edit"}
+                   style={{cursor: "pointer"}}
+                   size={16} 
+                   onClick={() => setSignEditable(pre => !pre)}/>
+          }
         </div>
         <Divider orientation="center">群信息</Divider>
         <Row className={"personal-info"}>

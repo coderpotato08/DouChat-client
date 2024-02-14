@@ -1,9 +1,9 @@
+import { userInfo } from 'os';
 import {
   ApiEnum,
   LoadMeetingInfoParamsType,
   CreateMeetingParamsType,
   UserContactsParamsType,
-  UserMsgListParamsType,
   SearchUserParamsType,
   AddFriendParamsType,
   LoadFriendNotificationsParamsType,
@@ -31,6 +31,8 @@ import {
   UpdateGroupInfoParamsType,
   LoadAllUnreadMesageNumParamsType,
   ChatSearchParamsType,
+  SearchMatchGroupMessageListParamsType,
+  SearchMatchUserMessageListParamsType,
 } from "@constant/api-types"
 import { AxiosHelper } from "./axios-helper"
 import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types"
@@ -255,6 +257,27 @@ export class ApiHelper {
     }>>(ApiEnum.LOAD_GROUP_MESSAGE_LIST, params)
   }
 
+  // 模糊查询某群详细聊天记录
+  public static searchMatchGroupMessageList = (params: SearchMatchGroupMessageListParamsType) => {
+    return AxiosHelper.post<Array<{
+      msgType: MessageTypeEnum,
+      msgContent: any,
+      time: string,
+      groupInfo: GroupInfoType,
+      userInfo: UserInfoType,
+    }>>(ApiEnum.SEARCH_MATCH_GROUP_MESSAGE_LIST, params)
+  }
+
+  // 模糊查询某好友详细聊天记录
+  public static searchMatchUserMessageList = (params: SearchMatchUserMessageListParamsType) => {
+    return AxiosHelper.post<Array<{
+      msgType: MessageTypeEnum,
+      msgContent: any,
+      time: string,
+      userInfo: UserInfoType,
+    }>>(ApiEnum.SEARCH_MATCH_USER_MESSAGE_LIST, params)
+  }
+
   // 模糊查询聊天记录
   public static searchMessageList = (params: ChatSearchParamsType) => {
     return AxiosHelper.post<Array<any>>(ApiEnum.SEARCH_MESSAGE_LIST, params)
@@ -278,7 +301,7 @@ export class ApiHelper {
   }) => {
     return AxiosHelper.post(ApiEnum.DELETE_USER_CONTACT, params)
   }
-  
+
   // 注册
   public static register = (params: RegisterParamsType) => {
     return AxiosHelper.post<{

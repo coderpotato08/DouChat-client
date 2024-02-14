@@ -63,12 +63,12 @@ export const getReceiverAndSender = (users: any, currentUserId: string) => {
   }
 }
 
-export const formatMessageTime = (curTime: string) => {  // 处理消息发送时间
+export const formatMessageTime = (curTime: string, isShowTime: boolean = true) => {  // 处理消息发送时间
   if(!curTime) return ""
   const curDate = dayjs(curTime), nowDate = dayjs();
   const diffDay = nowDate.diff(curDate, "day"),
     diffYear = nowDate.diff(curDate, "year");
-  const timeStr = curDate.format("HH:mm");
+  const timeStr = isShowTime ? curDate.format("HH:mm") : "";
   let str = "";
   if(diffDay < 1) {  // 展示具体时间
     if (curDate.isSame(nowDate, 'day')) {
@@ -79,18 +79,17 @@ export const formatMessageTime = (curTime: string) => {  // 处理消息发送�
   } else if (diffDay >= 1 && diffDay < 3) { // 展示昨天/前天 xx:xx
     const dayStr = diffDay === 1 ? "昨天" : "前天"
     str = `${dayStr} ${timeStr}`
-    // str = `${dayStr} ${timeStr}`
   } else if (diffDay >=3 && diffDay < 7) { // 展示星期 xx:xx
     const weekday = curDate.day();
     str = `${weekdayNames[weekday]} ${timeStr}`
   } else if (diffDay >= 7 && diffYear < 1) {  // 展示日期 xx:xx
     if (curDate.isSame(nowDate, 'year')) {
-      str = curDate.format("MM-DD HH:mm");
+      str = curDate.format(isShowTime ? "MM-DD HH:mm" : "MM-DD");
     } else {
-      str = curDate.format("YYYY-MM-DD HH:mm");
+      str = curDate.format(isShowTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD");
     }
   } else {  // 展示 年月日
-    str = curDate.format("YYYY-MM-DD HH:mm");
+    str = curDate.format(isShowTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD");
   }
   return str;
 }

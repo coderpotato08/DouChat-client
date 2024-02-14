@@ -30,7 +30,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
   const messageInputRef = useRef<HTMLInputElement>(null);
   const inputChildNodes = useRef<any>([]);
   const [message, setMessage] = useState("");
-  const [groupUsers, setGroupUsers] = useState<any[]>([])
+  const [groupUsers, setGroupUsers] = useState<any[]>([]);
   const [selectedEmoji, setSelectedEmoji] = useState<any>(null);
   const [selectedUserIndex, setSelectedUserIndex] = useState<number>(0);
   const [remindOpen, setRemindOpen] = useState<boolean>(false);
