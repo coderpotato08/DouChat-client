@@ -20,14 +20,16 @@ const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
   onChangeChat: (chatId: string) => void
-  refreshChatList: () => void
+  onAddChat: (chat: any) => void 
+  onDeleteChat: (index: number) => void
 }
 
 const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const { 
     list,
     onChangeChat,
-    refreshChatList,
+    onAddChat,
+    onDeleteChat,
   } = props;
   const { token } = useToken();
   const navigate = useNavigate();
@@ -46,8 +48,9 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   }
 
   const deleteContact = async (id: string, isGroup: boolean) => {
-    const contact: any = list.find((item) => item._id === id);
-    const { groupId, contactId } = contact;
+    const index: number = list.findIndex((item) => item._id === id);
+    if (index === -1) return;
+    const { groupId, contactId } = list[index];
     if(isShowTipsNext) {
       LocalStorageHelper.setItem( // 下次是否不再提示
         StorageKeys.IS_SHOW_DELETE_CONTACT_TIP, 
@@ -62,7 +65,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
     if (selectedChatId === (groupId || contactId)) {
       navigate('/chat/message')
     }
-    refreshChatList();
+    onDeleteChat(index);
   }
 
   const renderGroupItem = (item: any): ReactNode => {
@@ -70,6 +73,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
       _id,
       contactId, 
       groupId, 
+      createTime,
       users = [],
       recentMessage = {}, 
       unreadNum = 0,
@@ -103,7 +107,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
       <div className="info">
         <div className="name-line">
           <span className="name">{isGroup ? groupName : receiver.nickname}</span>
-          <span className="date">{formatMessageTime(time)}</span>
+          <span className="date">{formatMessageTime(time || createTime)}</span>
         </div>
         <div className="msg-line">
           <div className="msg">
@@ -187,7 +191,7 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
       {keyword && <ChatSearch 
         keyword={keyword}
         onShowDetail={onDetailModelShow}
-        refreshChatList={refreshChatList}
+        onAddChat={onAddChat}
         onCancel={onSearchCancel}/>}
     </SearchInfoWrapper>
     {

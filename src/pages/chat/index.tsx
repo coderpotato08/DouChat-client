@@ -4,12 +4,17 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
 import { Avatar, Badge, Button, notification, theme } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setTotalUnreadNum, totalUnreadNumSelector, userSelector } from '../../store';
+import { 
+  setTotalUnreadNum, 
+  setChatList as setStoreChatList,
+  totalUnreadNumSelector, 
+  userSelector } from '@store/index';
 import { useSocket } from '@store/context/createContext';
 import { EventType } from '@constant/socket-types';
-import { CreateMeetingParamsType } from '@constant/api-types';
+import { CreateMeetingParamsType, LoadGroupContactListParamsType, UserContactsParamsType } from '@constant/api-types';
 import { RoleType } from '@constant/meeting-types';
 import { ApiHelper } from '@helper/api-helper';
+import dayjs from 'dayjs';
 
 const { useToken } = theme;
 const menuList = [
@@ -51,6 +56,36 @@ const Chat:FC = () => {
       ApiHelper.loadAllUnreadNum({ userId: userInfo._id })
     ]);
     dispatch(setTotalUnreadNum({ num: userUnreadCount + groupUnreadCount }));
+  }
+
+  const loadUserChatList = async () => {
+    const params: UserContactsParamsType = {
+      userId: userInfo._id
+    }
+    const contactList = await ApiHelper.loadUserContactList(params)
+    return contactList
+  }
+
+  const loadGroupChatList = async () => {
+    const params: LoadGroupContactListParamsType = {
+      userId: userInfo._id
+    }
+    const groupContactList = await ApiHelper.loadGroupContactList(params);
+    return groupContactList;
+  }
+  
+  const loadAllContactList = async () => {
+    const [userChatList, groupChatList] = await Promise.all([
+      loadUserChatList(),
+      loadGroupChatList(),
+    ])
+    const chatList = [...userChatList, ...groupChatList]
+      .sort((a: any, b: any) => {
+        const aTime = a.recentMessage?.time || a.createTime;
+        const bTime = b.recentMessage?.time || b.createTime;
+        return dayjs(bTime).diff(dayjs(aTime));
+      })    
+    dispatch(setStoreChatList(chatList));
   }
 
   const onReceiveInviteMeeting = (data: { meetingId: string } & CreateMeetingParamsType) => {
@@ -100,6 +135,7 @@ const Chat:FC = () => {
   useEffect(() => {
     handleSocketEvent("on");
     loadGlobalInfo();
+    loadAllContactList();  
     return () => {
       handleSocketEvent("off");
     }

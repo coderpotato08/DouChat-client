@@ -68,7 +68,7 @@ export class ApiHelper {
   // 创建用户 => 群聊 聊天1对1 关系
   public static createGroupContact = (params: CreateGroupContactParamsType) => {
     return AxiosHelper.post<{
-      groupId: string,
+      contact: any,
       status: "success" | "fail"
     }>(ApiEnum.CREATE_GROUP_CONTACT, params);
   }
@@ -76,7 +76,7 @@ export class ApiHelper {
   // 创建用户 => 用户 聊天1对1 关系
   public static createUserContact = (params: CreateUserContactParamsType) => {
     return AxiosHelper.post<{
-      contactId: string,
+      contact: any,
       status: "success" | "fail"
     }>(ApiEnum.CREATE_USER_CONTACT, params);
   }

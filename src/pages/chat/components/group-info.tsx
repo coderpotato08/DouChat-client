@@ -8,8 +8,8 @@ import { ApiHelper } from "@helper/api-helper"
 import { formLayout } from "@helper/common-helper"
 import { usePopup } from "@hooks/usePopup"
 import { useSocket } from "@store/context/createContext"
-import { useAppSelector } from "@store/hooks"
-import { userSelector } from "@store/index"
+import { useAppDispatch, useAppSelector } from "@store/hooks"
+import { addChat, userSelector } from "@store/index"
 import { Avatar, Button, Col, Divider, Form, GlobalToken, Input, Popconfirm, Row, message, theme } from "antd"
 import { isEmpty } from "lodash"
 import { FC, KeyboardEventHandler, ReactNode, useEffect, useMemo, useRef, useState } from "react"
@@ -30,6 +30,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   } = props;
   const socket = useSocket();
   const { token } = useToken();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const signInputRef = useRef<any>(null)
   const expandRef = useRef<any>(null);
@@ -92,7 +93,8 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       userId: userInfo._id,
       groupId: groupInfo._id,
     })
-      .then(() => {
+      .then(({ contact }) => {
+        dispatch(addChat(contact));
         navigate(`/chat/message/${groupInfo._id}?type=group`)
       })
   }

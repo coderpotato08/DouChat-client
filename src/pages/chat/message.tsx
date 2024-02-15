@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import styled from "styled-components"
 import { EventType } from "@constant/socket-types";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
-import { 
+import {
+  addChat,
   addTotalUnreadNum,
   addUser,
+  chatListSelector,
+  deleteChat,
   recentSubmitMessageSelector,
-  setSelectedId,
+  setChatList as setStoreChatList,
   subTotalUnreadNum,
   userSelector 
 } from "@store/index";
-import { LoadGroupContactListParamsType, UserContactsParamsType } from "../../constant/api-types";
-import { ApiHelper } from "@helper/api-helper";
 import { SocketProvider, useSocket } from "@store/context/createContext";
 import ChatTitle from "./components/chat-title";
 import ChatGroup from "./components/chat-group";
@@ -19,16 +20,15 @@ import { ContainerWrapper, GroupWrapper } from "@components/custom-styles";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
 import { isEmpty } from "lodash";
-import dayjs from "dayjs";
 
 const Message = () => {
   const socket = useSocket();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const userInfo = useAppSelector(userSelector);
+  const chatList = useAppSelector(chatListSelector)
   const recentSubmitMessage = useAppSelector(recentSubmitMessageSelector);
   const { id: selectedChatId } = useParams();
-  const [chatList, setChatList] = useState<any[]>([]);
 
   const isGroup = useMemo(() => selectedChatId && selectedChatId.indexOf("_") === -1, [selectedChatId])
 
@@ -37,38 +37,51 @@ const Message = () => {
     const isReceiveGroup = !isEmpty(groupId);
     const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
     if(receiveContactId !== selectedChatId) { // 非当前选中的聊天栏的消息，需要未读+1
-      setChatList(preChatList => preChatList.map((chat: any) => {
+      const index = chatList.findIndex((chat) => (chat.groupId || chat.contactId) === receiveContactId);
+      const newChatList = chatList.map((chat: any) => {
+        const newChat = { ...chat };
         const curContactId = isReceiveGroup ? chat.groupId : chat.contactId
         if(curContactId === receiveContactId) {
-          chat.recentMessage = {
-            ...msgData,
-            uid: createUidV4(),
-          }
+          newChat.recentMessage = { ...msgData, uid: createUidV4()}
           if(!isReceiveGroup) {
-            chat.unreadNum += 1;
+            newChat.unreadNum += 1;
             dispatch(addTotalUnreadNum());
           }
+          return newChat
         }
         return chat;
-      }));
+      })
+      const receiveMsgChat = newChatList.splice(index, 1)[0] // 将该聊天栏置为第一条
+      newChatList.unshift(receiveMsgChat);
+      dispatch(setStoreChatList(newChatList));
     }
   }, [selectedChatId, chatList])
 
   const onGroupMessageUnread = useCallback(({groupId, messageId}: {groupId: string, messageId: string}) => {
-    setChatList(preChatList => preChatList.map((chat: any) => {
+    const newChatList = chatList.map((chat: any) => {
+      const newChat = {...chat}
       if(chat.groupId && chat.groupId === groupId) {
         if (selectedChatId === groupId) { // 将消息置为已读
           socket.emit(EventType.READ_GROUP_MESSAGE, {userId: userInfo._id, groupId, messageId})
         } else {
-          chat.unreadNum += 1;
+          newChat.unreadNum += 1;
           dispatch(addTotalUnreadNum());
         }
       }
-      return chat;
-    }))
+      return newChat;
+    })
+    dispatch(setStoreChatList(newChatList))
   }, [selectedChatId, chatList])
 
-  const onClickContact = (chatId: string) => {
+  const onDeleteChat = (index: number) => {
+    dispatch(deleteChat(index));
+  }
+
+  const onAddChat = (chat: any) => {
+    dispatch(addChat(chat))
+  }
+
+  const onClickChat = (chatId: string) => {
     const item: any = chatList.find((i) => (i.groupId || i.contactId) === chatId);
     const { groupId, contactId, unreadNum } = item;
     let socketParams;
@@ -84,54 +97,18 @@ const Message = () => {
     if (unreadNum > 0) {  // 消息已读
       socket.emit(groupId ? EventType.READ_GROUP_MESSAGE : EventType.READ_MESSAGE, socketParams);
     }
-    setChatList(preChatList => preChatList.map((chat: any) => { // 本地处理消息已读
+    dispatch(setStoreChatList(chatList.map((chat: any) => { // 本地处理消息已读
+      const newChat = { ...chat }
       const { unreadNum } = chat;
       const itemId = item.groupId || item.contactId;
       const chatId = chat.groupId || chat.contactId;
       if(chatId === itemId && unreadNum > 0) {
         dispatch(subTotalUnreadNum({num: unreadNum}));
-        chat.unreadNum = 0
+        newChat.unreadNum = 0
       }
-      return chat
-    }))
-    dispatch(setSelectedId({
-      selectedId: groupId || contactId,
-      isGroup: !!groupId,
-    }))
+      return newChat
+    })))
     navigate(`/chat/message/${groupId || contactId}?type=${groupId ? "group" : "user"}`)
-  }
-
-  const loadUserChatList = async () => {
-    const params: UserContactsParamsType = {
-      userId: userInfo._id
-    }
-    const contactList = await ApiHelper.loadUserContactList(params)
-    return contactList
-  }
-
-  const loadGroupChatList = async () => {
-    const params: LoadGroupContactListParamsType = {
-      userId: userInfo._id
-    }
-    const groupContactList = await ApiHelper.loadGroupContactList(params);
-    return groupContactList;
-  }
-
-  const loadAllContactList = async () => {
-    const [userChatList, groupChatList] = await Promise.all([
-      loadUserChatList(),
-      loadGroupChatList(),
-    ])
-    const chatList = [...userChatList, ...groupChatList]
-      .sort((a, b) => dayjs(b.createTime).diff(dayjs(a.createTime)))
-    setChatList(chatList);
-    if(selectedChatId) {
-      const selected: any = chatList.find((chat: any) => (chat.contactId || chat.groupId) === selectedChatId);
-      !isEmpty(selected) && dispatch(setSelectedId({
-        selectedId: selected.groupId || selected.contactId,
-        isGroup: !!selected.groupId,
-      }))
-    }
   }
 
   useEffect(() => {
@@ -139,7 +116,6 @@ const Message = () => {
     dispatch(addUser({
       [userInfo.username]: userInfo
     }));
-    loadAllContactList()
   }, []);
 
   useEffect(() => {
@@ -155,13 +131,14 @@ const Message = () => {
 
   useEffect(() => {
     if(!isEmpty(recentSubmitMessage)) {
-      setChatList(preChatList => preChatList.map((chat: any) => {
+      dispatch(setStoreChatList(chatList.map((chat: any) => {
+        const newChat = { ...chat }
         const contactId = isGroup ? chat.groupId : chat.contactId
         if(contactId === selectedChatId) {
-          chat.recentMessage = recentSubmitMessage
+          newChat.recentMessage = recentSubmitMessage
         }
-        return chat;
-      }));
+        return newChat;
+      })))
     }
   }, [recentSubmitMessage])
 
@@ -171,8 +148,9 @@ const Message = () => {
         <ChatTitle/>
         <ChatGroup
           list={chatList}
-          onChangeChat={onClickContact}
-          refreshChatList={loadAllContactList}/>
+          onChangeChat={onClickChat}
+          onDeleteChat={onDeleteChat}
+          onAddChat={onAddChat}/>
       </GroupWrapper>
       <ContainerWrapper>
         <Outlet/>

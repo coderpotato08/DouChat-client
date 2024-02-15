@@ -4,7 +4,7 @@ import { Flex } from "antd";
 import MessageBox from "./message-box";
 import { useEffect, useRef, FC, useCallback, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
-import { hasMoreSelector, messageListSelector, pageIndexSelector, selectedChatSelector, setPageIndex, setSelectedChat, userSelector } from "@store/index";
+import { messageListSelector, selectedChatSelector, setSelectedChat, userSelector } from "@store/index";
 import ChatInput from "./chat-input";
 import { EventType } from "@constant/socket-types";
 import { isEmpty } from "lodash";
@@ -29,61 +29,12 @@ const ChatContainer:FC = () => {
   const scrollRef: any = useRef(null);
   const selectedChat = useAppSelector(selectedChatSelector);
   const userInfo = useAppSelector(userSelector);
-  // const pageIndex = useAppSelector(pageIndexSelector)
-  // const hasMore = useAppSelector(hasMoreSelector);
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(false);
   const messageList = useAppSelector(messageListSelector);
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const isGroup = useMemo(() => id!.indexOf("_") === -1, [id]);
-  
-  useEffect(() => {
-    if(!id) return;
-    if (isGroup) {
-      ApiHelper.loadGroupContact({
-        userId: userInfo._id,
-        groupId: id, 
-      })
-        .then(async (res) => {
-          dispatch(setSelectedChat(res))
-        })
-    } else {
-      ApiHelper.loadUserContact({ contactId: id })
-        .then((res) => {
-          dispatch(setSelectedChat(res))
-        })
-    }
-  }, [id])
-
-  useEffect(() => {
-    if (!isEmpty(selectedChat)) {
-      setPageIndex(0);
-      if(isGroup) {
-        loadGroupMessageList(0);
-      } else {
-        loadMessageList(0);
-      } 
-    }
-    handleSocketEvent("on");
-    return () => {
-      handleSocketEvent("off");
-      dispatch(cacheMessageList({contactId: id || ""}));
-    }
-  }, [selectedChat]);
-
-  useEffect(() => {
-    const len = messageList.length;
-    const id = messageList[len-1] ? (messageList[len-1]._id || messageList[len-1].uid) : ""
-    const ele = document.getElementById(id);
-    if(ele) {
-      ele.scrollIntoView({
-        block: "end",
-        inline: "nearest", 
-        behavior: "smooth",
-      })
-    }
-  }, [messageList])
 
   const handleSocketEvent = (type: "on" | "off") => {
     socket[type](EventType.NEW_GROUP_USER_JOIN, onReceiveTipMessage);
@@ -92,7 +43,7 @@ const ChatContainer:FC = () => {
     socket[type](EventType.RECEIVE_GROUP_MESSAGE, onReceiveMessage);
   }
 
-  const loadMessageList = (msgPageIndex: number) => {
+  const loadUserMessageList = (msgPageIndex: number) => {
     const { users = [] } = selectedChat || {};
     const [ from, to ] = users;
     if(!from || !to) return;
@@ -204,10 +155,57 @@ const ChatContainer:FC = () => {
       if(isGroup) {
         loadGroupMessageList(pageIndex);
       } else {
-        loadMessageList(pageIndex);
+        loadUserMessageList(pageIndex);
       } 
     }
   }
+
+  useEffect(() => {
+    if(!id) return;
+    if (isGroup) {
+      ApiHelper.loadGroupContact({
+        userId: userInfo._id,
+        groupId: id, 
+      })
+        .then(async (res) => {
+          dispatch(setSelectedChat(res))
+        })
+    } else {
+      ApiHelper.loadUserContact({ contactId: id })
+        .then((res) => {
+          dispatch(setSelectedChat(res))
+        })
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (!isEmpty(selectedChat)) {
+      setPageIndex(0);
+      if(isGroup) {
+        loadGroupMessageList(0);
+      } else {
+        loadUserMessageList(0);
+      } 
+    }
+    handleSocketEvent("on");
+    return () => {
+      handleSocketEvent("off");
+      dispatch(cacheMessageList({contactId: id || ""}));
+    }
+  }, [selectedChat]);
+
+  useEffect(() => {
+    const len = messageList.length;
+    const id = messageList[len-1] ? (messageList[len-1]._id || messageList[len-1].uid) : ""
+    const ele = document.getElementById(id);
+    if(ele) {
+      ele.scrollIntoView({
+        block: "end",
+        inline: "nearest", 
+        behavior: "smooth",
+      })
+    }
+  }, [messageList])
 
   const { users, groupInfo = {} } = selectedChat || {};
   const { usersAvaterList = [], groupName } = groupInfo;

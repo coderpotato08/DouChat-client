@@ -24,14 +24,14 @@ const ListBox = (props: {
 
 interface ChatSearchProps {
   keyword: string
-  refreshChatList: () => void
+  onAddChat: (chat: any) => void
   onShowDetail: (chat?: any) => void
   onCancel: () => void
 }
 export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
   const {
     keyword,
-    refreshChatList,
+    onAddChat,
     onCancel,
     onShowDetail,
   } = props;
@@ -73,16 +73,16 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
     const groupId = isGroup ? (chatId || _id) : "";
     if(isGroup) {
       const params = { userId: userInfo._id, groupId };
-      await ApiHelper.createGroupContact(params);
-      refreshChatList();
+      const { contact } = await ApiHelper.createGroupContact(params);
+      onAddChat(contact);
       onCancel();
       navigate(`/chat/message/${groupId}?type=group`)
     } else {
       const params = { fromId: userInfo._id, toId };
-      const { contactId } = await ApiHelper.createUserContact(params);
-      refreshChatList();
+      const { contact } = await ApiHelper.createUserContact(params);
+      onAddChat(contact);
       onCancel();
-      contactId && navigate(`/chat/message/${contactId}?type=user`);
+      contact && navigate(`/chat/message/${contact.contactId}?type=user`);
     }
   };
 

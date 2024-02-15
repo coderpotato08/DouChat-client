@@ -43,7 +43,7 @@ export enum ApiEnum {
   DELETE_GROUP_CONTACT = '/contacts/deleteGroupContact', // 删除群聊天栏
 
   LOAD_USER_MESSAGE_LIST = '/message/loadUserMessageList', // 用户-消息记录
-  LOAD_GROUP_MESSAGE_LIST = '/message//loadGroupMessageList', // 群-消息记录
+  LOAD_GROUP_MESSAGE_LIST = '/message/loadGroupMessageList', // 群-消息记录
   SEARCH_MESSAGE_LIST = '/message/searchMessageList', // 模糊查询聊天记录
   SEARCH_MATCH_GROUP_MESSAGE_LIST = '/message/searchMatchGroupMessageList', // 模糊查询某群详细聊天记录
   SEARCH_MATCH_USER_MESSAGE_LIST = '/message/searchMatchUserMessageList', // 模糊查询某好友详细聊天记录

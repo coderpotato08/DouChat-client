@@ -2,7 +2,8 @@ import InfoBox from "@components/info-box";
 import { UserInfoType } from "@constant/user-types";
 import { ApiHelper } from "@helper/api-helper";
 import { formLayout } from "@helper/common-helper";
-import { useAppSelector } from "@store/hooks";
+import { addChat } from "@store/chatReducer";
+import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
 import { Avatar, Button, Col, Divider, Form, Popconfirm, Row, message } from "antd";
 import dayjs from "dayjs";
@@ -18,6 +19,7 @@ interface FriendInfoProps {
 const FormLayout = formLayout(8, 16)
 const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const userInfo = useAppSelector(userSelector);
   const [ friendInfo, setFriendInfo ] = useState<any>({});
 
@@ -34,8 +36,9 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
       toId: friendInfo._id
     }
     ApiHelper.createUserContact(params)
-      .then(({ contactId }) => {
-        contactId && navigate(`/chat/message/${contactId}?type=user`);
+      .then(({ contact }) => {
+        dispatch(addChat(contact));
+        contact && navigate(`/chat/message/${contact.contactId}?type=user`);
       })
   }
 
