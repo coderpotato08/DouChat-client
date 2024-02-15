@@ -21,6 +21,7 @@ import {
   pushMessageList
 } from "@store/index";
 import { getReceiverAndSender } from "@helper/common-helper";
+import dayjs from "dayjs";
 
 const ChatContainer:FC = () => {
   const socket = useSocket();
@@ -90,6 +91,7 @@ const ChatContainer:FC = () => {
   const onSubmitMessage = (messages: Array<MessageInfoType> | MessageInfoType) => {
     const { users = [] } = selectedChat || {};
     const { receiver } = getReceiverAndSender(users, userInfo._id);
+    const curTime = new Date();
     const baseParams: any = {
       fromId: userInfo._id,
     }
@@ -110,25 +112,33 @@ const ChatContainer:FC = () => {
         const messageInfo = { 
           msgType: type,
           msgContent: value,
-          time: new Date(),
+          time: curTime,
         };
         socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
           ...baseParams,
           ...messageInfo,
         });
-        dispatch(addMessage({ message: { ...message, ...messageInfo } }))
+        dispatch(addMessage({ message: { 
+          ...message, 
+          ...messageInfo, 
+          time: dayjs(curTime).format('YYYY-MM-DD HH:mm:ss') 
+        } }))
       })
     } else {
       const messageInfo = {
         msgType: messages.type,
         msgContent: messages.value,
-        time: new Date(),
+        time: curTime,
       };
       socket.emit(isGroup ? EventType.SEND_GROUP_MESSAGE : EventType.SEND_MESSAGE, {
         ...baseParams,
         ...messageInfo,
       });
-      dispatch(addMessage({ message: { ...message, ...messageInfo } }))
+      dispatch(addMessage({ message: { 
+        ...message, 
+        ...messageInfo, 
+        time: dayjs(curTime).format('YYYY-MM-DD HH:mm:ss') 
+      } }))
     }
   }
 

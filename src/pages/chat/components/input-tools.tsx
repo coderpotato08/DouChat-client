@@ -8,6 +8,7 @@ import { useSocket } from '@store/context/createContext';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { addMessage, selectedChatSelector, userSelector } from '@store/index';
 import { GetProp, GlobalToken, Upload, UploadProps, message, theme } from 'antd';
+import dayjs from 'dayjs';
 import { FC, useMemo } from 'react'
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components'
@@ -75,7 +76,7 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
         uid: createUidV4(),
         msgContent: data,
         msgType: MessageTypeEnum.FILE,
-        time: new Date(),
+        time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
       }
       if (isGroup) {
         socket.emit(EventType.SEND_GROUP_MESSAGE, {
