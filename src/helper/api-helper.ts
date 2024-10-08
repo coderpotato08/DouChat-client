@@ -1,4 +1,3 @@
-import { userInfo } from 'os';
 import {
   ApiEnum,
   LoadMeetingInfoParamsType,
