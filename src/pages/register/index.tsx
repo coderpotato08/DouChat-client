@@ -3,6 +3,7 @@ import CIcon from '@components/c-icon'
 import { RegisterParamsType, avatarUrl } from '@constant/api-types'
 import { GenderEnum } from '@constant/user-types'
 import { ApiHelper } from '@helper/api-helper'
+import { createAvatarBase64 } from '@helper/common-helper'
 import { createUidV4 } from '@helper/uuid-helper'
 import { Button, Form, Input, message } from 'antd'
 import { useForm } from 'antd/es/form/Form'
@@ -33,21 +34,19 @@ const Register:FC= () => {
   const [gender, setGender] = useState<GenderEnum>(GenderEnum.MAN);
   const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(null);
   const [imgLoading, setImgLoading] = useState<boolean>(false);
-  const [avatarImageKey, setAvatarImageKey] = useState<string>("")
-
-  const avatarImageUrl = useMemo(() => {
-    return avatarImageKey ? `${avatarUrl}/${avatarImageKey}.png` : "";
-  }, [avatarImageKey])
+  const [avatarImageUrl, setAvatarImageUrl] = useState<string>("");
 
   useEffect(() => {
     getRandomAvatar();
     form.resetFields();
+    createAvatarBase64('jack').then((base64) => console.log(base64))
   }, [])
 
-  const getRandomAvatar = () => {
+  const getRandomAvatar = async () => {
     if(imgLoading) return;
     setImgLoading(true);
-    setAvatarImageKey(createUidV4())
+    const uri = await createAvatarBase64(createUidV4());
+    setAvatarImageUrl(uri);
   }
 
   const changePasswordStatus = (e: any) => {
@@ -62,7 +61,6 @@ const Register:FC= () => {
         score += 1
       } else break;
     }
-    console.log(str, score)
     setPasswordStatus(score >= 3 ? PasswordStatus.STRONG : score === 2 ? PasswordStatus.MODERATE : PasswordStatus.WEAK)
   }
 
