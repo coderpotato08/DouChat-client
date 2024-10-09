@@ -5,12 +5,13 @@ import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
 import { styled } from "styled-components";
 import { ApiHelper } from "@helper/api-helper";
-import { useNavigate } from "react-router-dom";
 import { RoleType } from "@constant/meeting-types";
 import { useSocket } from "@store/context/createContext";
 import { EventType } from "@constant/socket-types";
 import { formLayout } from "@helper/common-helper";
 import { BaseModalProps } from "@constant/common-types";
+import { useOpenWebview } from "@hooks/webview/useOpenWebview";
+import { RouterPath } from "@constant/router-types";
 
 const FormItemLayout = formLayout(6, 16);
 
@@ -22,7 +23,9 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
     onCancel,
     confirmCallback
   } = props;
-  const navigate = useNavigate();
+  const openWebview = useOpenWebview(RouterPath.VideoMeeting, {
+
+  });
   const socket = useSocket();
   const { nickname, _id } = useAppSelector(userSelector);
   const [ form ] = Form.useForm();
@@ -44,7 +47,8 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
       })
   }
 
-  const onCreateMeeting = () => {
+  const onCreateMeeting = async () => {
+    await form.validateFields();
     const confirmValue: Required<FormTypes> = form.getFieldsValue();
     const params: CreateMeetingParamsType = {
       ...confirmValue,
@@ -59,10 +63,11 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
         })
         confirmCallback && confirmCallback();
         onCancel();
-        navigate(`/video-meeting/${res.meetingId}?role=${RoleType.CREATOR}`, {
-          state: {
-            role: RoleType.CREATOR,
-          }
+        openWebview({
+          id: res.meetingId,
+          params: {
+            role: RoleType.CREATOR
+          },
         })
       })
   };

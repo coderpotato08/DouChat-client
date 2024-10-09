@@ -48,6 +48,12 @@ const config: RTCConfiguration = {
   ]
 };
 
+// 处理peerId
+const formatPeerId = (id_a: string, id_b: string) => {
+  let arr = [id_a, id_b];
+  return arr.sort().join("_")
+}
+
 const UserAvator = (props: {
   nickname: string,
   status?: UserStatus,
@@ -95,12 +101,6 @@ const VideoMeeting = () => {
       (ele as HTMLVideoElement).srcObject = media;
     }
   }, []);
-
-  // 处理peerId
-  const formatPeerId = useCallback((id_a: string, id_b: string) => {
-    let arr = [id_a, id_b];
-    return arr.sort().join("_")
-  }, [])
 
   const createRTCp2pConnection = (obj: {peerId: string}) => {
     const peer = new RTCPeerConnection(config);

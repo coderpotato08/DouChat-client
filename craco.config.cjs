@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require("path");
 
 module.exports = {
   //webpack配置
@@ -14,6 +14,7 @@ module.exports = {
       "@hooks": path.resolve(__dirname, "./src/hooks"),
       "@helper": path.resolve(__dirname, "./src/helper"),
       "@constant": path.resolve(__dirname, "./src/constant"),
-    }
-  }
-}
+      "@utils": path.resolve(__dirname, "./src/utils"),
+    },
+  },
+};

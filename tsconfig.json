@@ -30,6 +30,7 @@
       "@hooks/*": ["hooks/*"],
       "@helper/*": ["helper/*"],
       "@constant/*": ["constant/*"],
+      "@utils/*": ["utils/*"],
     }  
   },
   "include": [

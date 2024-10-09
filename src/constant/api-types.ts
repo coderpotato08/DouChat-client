@@ -3,6 +3,7 @@ import { GenderEnum } from './user-types';
 export const socketHost = "http://localhost:3040" // 聊天室socket
 export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
 export const avatarUrl = "https://api.multiavatar.com"   // multiavatar 获取随机头像
+
 export enum ApiEnum {
   LOGIN = "/user/login", // 登陆
   REIGSTER = "/user/register",  // 注册
