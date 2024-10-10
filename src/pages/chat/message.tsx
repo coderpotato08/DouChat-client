@@ -157,11 +157,3 @@ const Message = () => {
 }
 
 export default Message;
-
-const Wrapper = styled.div`
-  & {
-    display: flex;
-    width: 100%;
-    height: 100vh;
-  }
-`

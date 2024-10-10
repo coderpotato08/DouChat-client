@@ -59,7 +59,8 @@ export const DraggableLayout: FC<DraggableLayout> = (props) => {
         preventUnhandled.stop();
       }
     })
-  }, [initialWidth])
+  }, [initialWidth]);
+
   return (
     <Wrapper>
       <GroupWrapper
@@ -85,11 +86,11 @@ const Wrapper = styled.div`
 const DraggableDivider = styled.div`
   & {
     position: absolute;
-    right: 0;
+    right: -2px;
     top: 0;
-    width: 2px;
+    width: 6px;
     height: 100%;
-    background: #f3f3f3;
+    background: transparent;
     cursor: col-resize;
   }
 `
@@ -101,6 +102,7 @@ export const GroupWrapper = styled.div`
     flex-direction: column;
     width: var(--local-resizing-width, var(--local-initial-width));
     height: 100vh;
+    border: 2px solid #f3f3f3;
     box-shadow: 0px 0 15px 5px rgba(0,0,0,.2);
   }
 `

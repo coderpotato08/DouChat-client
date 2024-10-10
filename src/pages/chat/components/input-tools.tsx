@@ -114,7 +114,7 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
                   icon={"icon-image"}/>
       </Upload>
       <Upload showUploadList={false}
-              action={`${window.location.origin}/api/${ApiEnum.UPLOAD_FILE}`}
+              action={`${window.location.origin}/api${ApiEnum.UPLOAD_FILE}`}
               beforeUpload={beforeFileUpload}
               onChange={onFileChange}>
         <ToolItem key={ToolKey.UPLOAD_FILE}
