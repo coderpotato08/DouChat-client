@@ -2,30 +2,31 @@ import CIcon from "@components/c-icon";
 import ChatAvatar from "@components/chat-avatar";
 import { YNEnum } from "@constant/common-types";
 import { ApiHelper } from "@helper/api-helper";
-import { formatShowMessage, formatMessageTime } from "@helper/common-helper";
+import { formatRecentOneMessage, formatMessageTime } from "@helper/common-helper";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Badge, Checkbox, GlobalToken, Input, Popconfirm, theme } from "antd";
+import { Badge, Checkbox, Dropdown, GlobalToken, Input, MenuProps, Modal, Popconfirm, theme } from "antd";
 import { CheckboxChangeEvent } from "antd/es/checkbox/Checkbox";
 import { isEmpty } from "lodash";
-import React, { FC, ReactNode, useEffect, useState } from "react";
+import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from 'styled-components';
 import { ChatSearch } from "./chat-search";
 import { ChatSearchDetailModal } from "./chat-search-detail-modal";
 import { usePopup } from "@hooks/usePopup";
+import classnames from "classnames";
 
 const { useToken } = theme;
 interface ChatGroupProps {
   list: any[]
   onChangeChat: (chatId: string) => void
-  onAddChat: (chat: any) => void 
+  onAddChat: (chat: any) => void
   onDeleteChat: (index: number) => void
 }
 
-const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
-  const { 
+const ChatGroup: FC<ChatGroupProps> = (props: ChatGroupProps) => {
+  const {
     list,
     onChangeChat,
     onAddChat,
@@ -35,74 +36,79 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
   const navigate = useNavigate();
   const userInfo = useAppSelector(userSelector);
   const { id: selectedChatId } = useParams();
-  const isNeedDeleteTips = LocalStorageHelper.getItem(StorageKeys.IS_SHOW_DELETE_CONTACT_TIP) || YNEnum.YES;
-  const [isShowTipsNext, setIsShowTipsNext] = useState<boolean>(false);
   const [isShowSearch, setIsShowSearch] = useState<boolean>(false);
   const [keyword, setKeyword] = useState<string>("");
   const [defaultKeyword, setDefaultKeyword] = useState<string>("");
   const [defaultSelectedChat, setDefaultSelectedChat] = useState<any>({});
   const [detailModel_open, detailModelPopup] = usePopup();
-
-  const handleShowTips = (e: CheckboxChangeEvent) => {
-    setIsShowTipsNext(e.target.checked);
-  }
+  const [rightSelectedItem, setRightSelectedItem] = useState<any>();
 
   const deleteContact = async (id: string, isGroup: boolean) => {
     const index: number = list.findIndex((item) => item._id === id);
     if (index === -1) return;
-    const { groupId, contactId } = list[index];
-    if(isShowTipsNext) {
-      LocalStorageHelper.setItem( // 下次是否不再提示
-        StorageKeys.IS_SHOW_DELETE_CONTACT_TIP, 
-        isShowTipsNext ? YNEnum.NO : YNEnum.YES
-      );
-    }
-    if (isGroup) {
-      await ApiHelper.deleteGroupContact({id})
-    } else {
-      await ApiHelper.deleteUserContact({id});
-    }
-    if (selectedChatId === (groupId || contactId)) {
-      navigate('/chat/message')
-    }
-    onDeleteChat(index);
+    Modal.warning({
+      centered: true,
+      okCancel: true,
+      title: '此聊天及其聊天记录将被删除',
+      okText: '确认',
+      cancelText: '取消',
+      onOk: async () => {
+        const { groupId, contactId } = list[index];
+        if (isGroup) {
+          await ApiHelper.deleteGroupContact({ id })
+        } else {
+          await ApiHelper.deleteUserContact({ id });
+        }
+        onDeleteChat(index);
+        if (selectedChatId === (groupId || contactId)) {
+          navigate('/chat/message')
+        }
+      },
+      onCancel: () => {},
+    })
   }
 
   const renderGroupItem = (item: any): ReactNode => {
     const {
-      _id,
-      contactId, 
-      groupId, 
+      groupId,
       createTime,
       users = [],
-      recentMessage = {}, 
+      recentMessage = {},
       unreadNum = 0,
       groupInfo = {},
     } = item;
     const {
       groupName,
-      usersAvaterList = [], 
+      usersAvaterList = [],
     } = groupInfo
-    const { 
+    const {
       time,
       msgType,
       msgContent = "",
     } = recentMessage;
     const isGroup = !isEmpty(groupId);
-    const chatId = isGroup ? groupId : contactId;
+    const chatIdKey = isGroup ? "groupId" : "contactId";
+    const chatId = item[chatIdKey];
     const receiver = (users[0] || {})._id === userInfo._id ? (users[1] || {}) : (users[0] || {});
-    const messageText = formatShowMessage(msgContent, msgType);
+    const messageText = formatRecentOneMessage(msgContent, msgType);
     const atTipText = unreadNum > 0 && messageText.indexOf(`@${userInfo.nickname}`) > -1 ? "[有人@我]" : "";
     return <div key={chatId}
-                id={`CHAT_${chatId}`}
-                className={selectedChatId === chatId ? "group-item active" : "group-item"}
-                onClick={() => onChangeChat(chatId)}>
+      id={`CHAT_${chatId}`}
+      className={classnames("group-item", {
+        "active": selectedChatId === chatId,
+        "right-selected": rightSelectedItem?.[chatIdKey] === chatId
+      })}
+      onClick={() => onChangeChat(chatId)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        setRightSelectedItem(item);
+      }}>
       <div className="avatar-box">
-        <ChatAvatar 
-          isGroup={isGroup} 
-          groupImgList={usersAvaterList} 
-          imgUrl={receiver.avatarImage}/>
-        <Badge className={"badge"} size="small" count={unreadNum}/>
+        <ChatAvatar
+          isGroup={isGroup}
+          groupImgList={usersAvaterList}
+          imgUrl={receiver.avatarImage} />
+        <Badge className={"badge"} size="small" count={unreadNum} />
       </div>
       <div className="info">
         <div className="name-line">
@@ -114,34 +120,6 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
             {atTipText && <span className={"at-tip"}>{atTipText}</span>}
             {messageText}
           </div>
-          {
-            isNeedDeleteTips === YNEnum.YES ? 
-              <Popconfirm
-                placement="right"
-                title={"确认要删除该聊天？删除后将清空聊天"}
-                description={<Checkbox onChange={handleShowTips}>不再提示</Checkbox>}
-                onConfirm={(e: any) => {
-                  e.stopPropagation();
-                  deleteContact(_id, isGroup)
-                }}
-                okText="Yes"
-                cancelText="No"
-              >
-                <div>
-                  <CIcon value={"icon-delete-bin-smile"} 
-                        size={16}
-                        color="#666"
-                        onClick={() => {}}/>
-                </div>
-              </Popconfirm> : <CIcon 
-                value={"icon-delete-bin-smile"}
-                size={16}
-                color="#666"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteContact(_id, isGroup)
-                }}/>
-          }
         </div>
       </div>
     </div>
@@ -164,44 +142,66 @@ const ChatGroup:FC<ChatGroupProps> = (props: ChatGroupProps) => {
 
   useEffect(() => {
     const ele = selectedChatId ? document.getElementById(`CHAT_${selectedChatId}`) : null;
-    if(ele) {
+    if (ele) {
       ele.scrollIntoView({
         block: "end",
-        inline: "nearest", 
+        inline: "nearest",
         behavior: "smooth",
       })
     }
   }, [selectedChatId])
 
+  const menuItems = useMemo<MenuProps['items']>(() => ([
+    {
+      label: '删除',
+      key: 'delete',
+      onClick: () => {
+        const { _id, groupId } = rightSelectedItem;
+        const isGroup = !isEmpty(groupId);
+        deleteContact(_id, isGroup)
+      },
+    },
+  ]), [rightSelectedItem]);
+
   return <ChatGroupWrapper>
     <SearchWrapper $isShowSearch={isShowSearch}>
       <Input placeholder="Search Message"
-             value={keyword}
-             onChange={(e) => setKeyword(e.target.value)}
-             onFocus={onSearchFocus}/>
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        onFocus={onSearchFocus} />
       <div className="cancel-search"
-           onClick={onSearchCancel}>取消</div>
+        onClick={onSearchCancel}>取消</div>
     </SearchWrapper>
-    <GroupWrapper $token={token}>
-      {
-        list.map((item) => renderGroupItem(item))
-      }
-    </GroupWrapper>
+    <Dropdown
+      overlayStyle={{ width: '150px' }}
+      menu={{ items: menuItems }}
+      trigger={['contextMenu']}
+      onOpenChange={(open) => {
+        if (!open) {
+          setRightSelectedItem(null)
+        }
+      }}>
+      <GroupWrapper $token={token}>
+        {
+          list.map((item) => renderGroupItem(item))
+        }
+      </GroupWrapper>
+    </Dropdown>
     <SearchInfoWrapper $visible={isShowSearch}>
-      {keyword && <ChatSearch 
+      {keyword && <ChatSearch
         keyword={keyword}
         onShowDetail={onDetailModelShow}
         onAddChat={onAddChat}
-        onCancel={onSearchCancel}/>}
+        onCancel={onSearchCancel} />}
     </SearchInfoWrapper>
     {
       detailModel_open &&
-      <ChatSearchDetailModal 
+      <ChatSearchDetailModal
         defaultSelectedChat={defaultSelectedChat}
         defaultKeyword={defaultKeyword}
         visible={detailModel_open}
-        onCancel={detailModelPopup}/>
-      }
+        onCancel={detailModelPopup} />
+    }
   </ChatGroupWrapper>
 }
 
@@ -230,7 +230,7 @@ const SearchWrapper = styled.div<{
       cursor: pointer;
       overflow: hidden;
       font-size: 14px;
-      width: ${({$isShowSearch}) => $isShowSearch ? "50px" : 0};
+      width: ${({ $isShowSearch }) => $isShowSearch ? "50px" : 0};
       height: 45px;
       text-align: center;
       line-height: 32px;
@@ -244,6 +244,7 @@ const GroupWrapper = styled.div<{
 }>`
   & {
     flex: 1;
+    padding: 0 4px;
     overflow-y: scroll;
     .group-item {
       cursor: pointer;
@@ -252,6 +253,10 @@ const GroupWrapper = styled.div<{
       padding: 12px 18px;
       transition: all .4s;
       background: #fff;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transform: translate3d(0, 0, 0);
+      border: 2px solid transparent;
       .avatar-box {
         position: relative;
         .badge {
@@ -304,18 +309,14 @@ const GroupWrapper = styled.div<{
     }
     .group-item:hover {
       background: #f2f2f2;
+      border-color: #f2f2f2;
     }
     .active, .active:hover  {
       background: ${props => props.$token.colorPrimaryBg};
+      border-color: ${props => props.$token.colorPrimaryBg};
     }
-    .active::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: ${props => props.$token.colorPrimary};
+    .right-selected {
+      border-color: ${props => props.$token.colorPrimary} !important;
     }
   }
 `
@@ -328,7 +329,7 @@ const SearchInfoWrapper = styled.div<{
     left: 0px;
     width: 100%;
     background: #fff;
-    height: ${({$visible}) => $visible ? "calc(100% - 45px)" : 0};
+    height: ${({ $visible }) => $visible ? "calc(100% - 45px)" : 0};
     transition: all .4s;
   }
 `

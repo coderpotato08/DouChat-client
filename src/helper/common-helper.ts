@@ -54,7 +54,7 @@ export const handleRemindStr = (
   return str;
 };
 
-export const formatShowMessage = (
+export const formatRecentOneMessage = (
   content: any,
   type: MessageTypeEnum
 ): string => {
