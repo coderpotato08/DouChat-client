@@ -1,18 +1,18 @@
-import { ContainerWrapper, GroupWrapper, ShadowFloatBox } from "@components/custom-styles";
+import { ShadowFloatBox } from "@components/custom-styles";
 import { useSocket } from "@store/context/createContext";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import ChatTitle from "./components/chat-title";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
-import { 
+import {
   friendNoteNumSelector,
   groupNoteNumSelector,
   setFriendNoteNum,
   setGroupNoteNum,
   subFriendNoteNum,
   subGroupNoteNum,
-  userSelector 
+  userSelector
 } from "@store/index";
 import { Avatar, Badge, Menu, MenuProps, Button, message } from "antd";
 import { ApplyStatusEnum } from "@constant/relationship-types";
@@ -23,6 +23,7 @@ import ChatAvatar from "@components/chat-avatar";
 import GroupInfo from "./components/group-info";
 import { EventType } from "@constant/socket-types";
 import { CloseOutlined } from "@ant-design/icons";
+import { DraggableLayout } from "@components/draggable-layout";
 
 enum TabKeys {
   FRIEND_NOTIFICATION = "FRIEND_NOTIFICATION",
@@ -46,12 +47,12 @@ const items: MenuProps['items'] = [
   {
     label: '好友',
     key: MenuKeys.FRIEND,
-    style: {flex: 1, textAlign: 'center', fontWeight: 'bold'}
+    style: { flex: 1, textAlign: 'center', fontWeight: 'bold' }
   },
   {
     label: '群聊',
     key: MenuKeys.GROUP,
-    style: {flex: 1, textAlign: 'center', fontWeight: 'bold'}
+    style: { flex: 1, textAlign: 'center', fontWeight: 'bold' }
   },
 ]
 
@@ -122,11 +123,11 @@ const Relationship: FC = () => {
     setCurGroupId(groupInfo._id);
   }
 
-  const handleApply = async (data: {nid: string, groupName: string}, status: ApplyStatusEnum, index: number) => {
+  const handleApply = async (data: { nid: string, groupName: string }, status: ApplyStatusEnum, index: number) => {
     const isAccept = status === ApplyStatusEnum.ACCEPT;
     const { nid, groupName } = data
     if (isFriend) {
-      ApiHelper.changeFriendStatus({id: nid, changeStatus: status})
+      ApiHelper.changeFriendStatus({ id: nid, changeStatus: status })
         .then(() => {
           message.success(isAccept ? "添加成功" : "已拒绝申请")
           setFriendNotificationList(preList => sortNotificationList(preList)
@@ -138,7 +139,7 @@ const Relationship: FC = () => {
           isAccept && loadFriendList();
         })
     } else {
-      socket.emit(EventType.ACCEPT_GROUP_INVITE, {id: nid, changeStatus: status})
+      socket.emit(EventType.ACCEPT_GROUP_INVITE, { id: nid, changeStatus: status })
       message.success(isAccept ? `已同意群「${groupName}」的申请` : `已拒绝群「${groupName}」的申请`);
       setGroupNotificationList(preList => sortNotificationList(preList)
         .map((item: any, i) => {
@@ -151,14 +152,14 @@ const Relationship: FC = () => {
   }
 
   const loadFriendList = () => {
-    ApiHelper.loadFriendList({userId: userInfo._id})
+    ApiHelper.loadFriendList({ userId: userInfo._id })
       .then(({ friendList = [] }) => {
         setFriendList(friendList);
       })
   }
-  
+
   const loadGroupList = () => {
-    ApiHelper.loadGroupList({userId: userInfo._id})
+    ApiHelper.loadGroupList({ userId: userInfo._id })
       .then((list) => {
         setGroupList(list);
       })
@@ -167,8 +168,8 @@ const Relationship: FC = () => {
   const loadFriendNoteList = () => {
     ApiHelper.loadFriendNotifications({ userId: userInfo._id })
       .then((list) => {
-        dispatch(setFriendNoteNum({ 
-          num: list.filter((item) => item.status === ApplyStatusEnum.APPLYING).length  
+        dispatch(setFriendNoteNum({
+          num: list.filter((item) => item.status === ApplyStatusEnum.APPLYING).length
         }));
         setFriendNotificationList(sortNotificationList(list));
       })
@@ -177,8 +178,8 @@ const Relationship: FC = () => {
   const loadGroupNoteList = () => {
     ApiHelper.loadGroupNotifications({ userId: userInfo._id })
       .then((list) => {
-        dispatch(setGroupNoteNum({ 
-          num: list.filter((item) => item.status === ApplyStatusEnum.APPLYING).length 
+        dispatch(setGroupNoteNum({
+          num: list.filter((item) => item.status === ApplyStatusEnum.APPLYING).length
         }))
         setGroupNotificationList(sortNotificationList(list))
       })
@@ -213,8 +214,8 @@ const Relationship: FC = () => {
   }
 
   useEffect(() => {
-    if(!currentMenu) return;
-    if(currentMenu === MenuKeys.FRIEND) {
+    if (!currentMenu) return;
+    if (currentMenu === MenuKeys.FRIEND) {
       loadFriendList();
     } else {
       loadGroupList();
@@ -226,140 +227,139 @@ const Relationship: FC = () => {
     loadGroupNoteList();
   }, []);
 
-  return <Wrapper>
-    <GroupWrapper>
-      <ChatTitle addGroupCallback={loadGroupList}/>
-      <NotificationWrapper>
-        <FloatBox onClick={() => onClickItem(TabKeys.FRIEND_NOTIFICATION)}>
-          好友通知
-          <Badge size="small" count={friendNoteNum}/>
-        </FloatBox>
-        <FloatBox onClick={() => onClickItem(TabKeys.GROUP_NOTIFICATION)}>
-          群通知
-          <Badge size="small" count={groupNoteNum}/>
-        </FloatBox>
-      </NotificationWrapper>
-      <Menu onClick={onClickMenu} 
-            selectedKeys={[currentMenu]} 
-            mode="horizontal" 
-            items={items}/>
-      <ListBox>
+  const isShowNoteList = currentKey && [
+    TabKeys.FRIEND_NOTIFICATION,
+    TabKeys.GROUP_NOTIFICATION
+  ].includes(currentKey as TabKeys)
+  return <DraggableLayout
+    menuRender={
+      <>
+        <ChatTitle addGroupCallback={loadGroupList} />
+        <NotificationWrapper>
+          <FloatBox onClick={() => onClickItem(TabKeys.FRIEND_NOTIFICATION)}>
+            好友通知
+            <Badge size="small" count={friendNoteNum} />
+          </FloatBox>
+          <FloatBox onClick={() => onClickItem(TabKeys.GROUP_NOTIFICATION)}>
+            群通知
+            <Badge size="small" count={groupNoteNum} />
+          </FloatBox>
+        </NotificationWrapper>
+        <Menu onClick={onClickMenu}
+          selectedKeys={[currentMenu]}
+          mode="horizontal"
+          items={items} />
+        <ListBox>
+          {
+            currentMenu === MenuKeys.FRIEND && <>
+              {
+                friendList.length > 0 ?
+                  friendList.map((friend) => {
+                    const { avatarImage, nickname } = friend.friendInfo
+                    return <BaseItem key={friend._id} onClick={() => onClickFriend(friend.friendInfo)}>
+                      <Avatar size={48} src={avatarImage} />
+                      <div className="info">
+                        <div>{nickname}</div>
+                        <div>{"这个人很懒什么都没留下～"}</div>
+                      </div>
+                    </BaseItem>
+                  }) : <NoData>暂无好友</NoData>
+              }
+            </>
+          }
+          {
+            currentMenu === MenuKeys.GROUP && <>
+              {
+                groupList.length > 0 ?
+                  groupList.map((group) => {
+                    const { groupInfo, _id } = group;
+                    return <BaseItem key={_id} onClick={() => onClickGroup(groupInfo)}>
+                      <ChatAvatar isGroup groupImgList={groupInfo.usersAvaterList} />
+                      <div className="info">
+                        <div>{groupInfo.groupName}</div>
+                        <div>{groupInfo.sign}</div>
+                      </div>
+                    </BaseItem>
+                  }) : <NoData>暂无群聊</NoData>
+              }
+            </>
+          }
+        </ListBox>
+      </>
+    }
+    contentRender={
+      <>
         {
-          currentMenu === MenuKeys.FRIEND && <>
-            {
-              friendList.length > 0 ? 
-              friendList.map((friend) => {
-                const { avatarImage, nickname } = friend.friendInfo
-                return <BaseItem key={friend._id} onClick={() => onClickFriend(friend.friendInfo)}>
-                  <Avatar size={48} src={avatarImage}/>
-                  <div className="info">
-                    <div>{nickname}</div>
-                    <div>{"这个人很懒什么都没留下～"}</div>
-                  </div>
-                </BaseItem>
-              }) : <NoData>暂无好友</NoData>
-            }
-          </>
+          isShowNoteList && <ContainerTitle>
+            {TabTitle[currentKey as TabKeys]}
+          </ContainerTitle>
         }
         {
-          currentMenu === MenuKeys.GROUP && <>
-            {
-              groupList.length > 0 ? 
-              groupList.map((group) => {
-                const { groupInfo, _id } = group;
-                return <BaseItem key={_id} onClick={() => onClickGroup(groupInfo)}>
-                  <ChatAvatar isGroup groupImgList={groupInfo.usersAvaterList}/>
-                  <div className="info">
-                    <div>{groupInfo.groupName}</div>
-                    <div>{groupInfo.sign}</div>
-                  </div>
-                </BaseItem>
-              }) : <NoData>暂无群聊</NoData>
-            }
-          </>
+          isShowNoteList && <NotificationBox>
+            <TransitionGroup>
+              {
+                notificationList.length > 0 &&
+                notificationList.map((notification, index) => {
+                  const {
+                    status,
+                    createTime,
+                    inviter = {},
+                    groupInfo = {},
+                    userId = {},
+                  } = notification;
+                  return <CSSTransition key={notification._id} timeout={300} classNames='note'>
+                    <NotificationItem>
+                      <Avatar size={48} src={isFriend ? userId.avatarImage : inviter.avatarImage} />
+                      <div className={"info"}>
+                        <div className={"info-content"}>
+                          <div className={"nickname"}>{isFriend ? userId.nickname : inviter.nickname}</div>
+                          {isFriend ? "请求添加你为好友" : `邀请你加入群聊 「${groupInfo.groupName}」`}
+                        </div>
+                        <div className={"time"}>
+                          {dayjs(createTime).format("YYYY-MM-DD HH:mm")}
+                        </div>
+                      </div>
+                      {
+                        status === ApplyStatusEnum.APPLYING ? <div className={"buttons"}>
+                          <Button onClick={() => handleApply(
+                            { nid: notification._id, groupName: groupInfo.groupName },
+                            ApplyStatusEnum.ACCEPT,
+                            index
+                          )}>接受</Button>
+                          <Button onClick={() => handleApply(
+                            { nid: notification._id, groupName: groupInfo.groupName },
+                            ApplyStatusEnum.REJECTED,
+                            index
+                          )} danger type={"primary"}>拒绝</Button>
+                        </div> : <div className={"status-label"}>
+                          {status === ApplyStatusEnum.ACCEPT ? "已同意" : "已拒绝"}
+                        </div>
+                      }
+                      <CloseOutlined className={"close-btn"}
+                        onClick={() => onDeleteNotification(index)} />
+                    </NotificationItem>
+                  </CSSTransition>
+                })
+              }
+            </TransitionGroup>
+          </NotificationBox>
         }
-      </ListBox>
-    </GroupWrapper>
-    <ContainerWrapper>
-      {
-        currentKey && [
-          TabKeys.FRIEND_NOTIFICATION,
-          TabKeys.GROUP_NOTIFICATION
-        ].includes(currentKey as TabKeys) && 
-          <ContainerTitle>{TabTitle[currentKey as TabKeys]}</ContainerTitle>
-      }
-      {
-        (currentKey === TabKeys.FRIEND_NOTIFICATION || 
-        currentKey === TabKeys.GROUP_NOTIFICATION) && <NotificationBox>
-          <TransitionGroup>
-            {
-              notificationList.length > 0 && 
-              notificationList.map((notification, index) => {
-                const { 
-                  status, 
-                  createTime,
-                  inviter = {},
-                  groupInfo = {},
-                  userId = {}, 
-                } = notification;
-                return <CSSTransition key={notification._id} timeout={300} classNames='note'>
-                  <NotificationItem>
-                    <Avatar size={48} src={isFriend ? userId.avatarImage : inviter.avatarImage}/>
-                    <div className={"info"}>
-                      <div className={"info-content"}>
-                        <div className={"nickname"}>{isFriend ? userId.nickname : inviter.nickname}</div>
-                        {isFriend ? "请求添加你为好友" : `邀请你加入群聊 「${groupInfo.groupName}」`}
-                      </div>
-                      <div className={"time"}>
-                        {dayjs(createTime).format("YYYY-MM-DD HH:mm")}
-                      </div>
-                    </div>
-                    {
-                      status === ApplyStatusEnum.APPLYING ? <div className={"buttons"}>
-                        <Button onClick={() => handleApply(
-                          {nid: notification._id, groupName: groupInfo.groupName}, 
-                          ApplyStatusEnum.ACCEPT,
-                          index
-                        )}>接受</Button>
-                        <Button onClick={() => handleApply(
-                          {nid: notification._id, groupName: groupInfo.groupName},
-                          ApplyStatusEnum.REJECTED,
-                          index
-                        )} danger type={"primary"}>拒绝</Button>
-                      </div> : <div className={"status-label"}>
-                        {status === ApplyStatusEnum.ACCEPT ? "已同意" : "已拒绝"}
-                      </div>
-                    }
-                    <CloseOutlined className={"close-btn"} 
-                                   onClick={() => onDeleteNotification(index)}/>
-                  </NotificationItem>
-                </CSSTransition>
-              })
-            }
-          </TransitionGroup>
-        </NotificationBox>
-      }
-      {
-        currentKey === TabKeys.FRIEND_INFO && 
+        {
+          currentKey === TabKeys.FRIEND_INFO &&
           <FriendInfo friendId={curFriendId}
-                      refreshFriendInfo={refreshFriendInfo}/>
-      }
-      {
-        currentKey === TabKeys.GROUP_INFO && 
+            refreshFriendInfo={refreshFriendInfo} />
+        }
+        {
+          currentKey === TabKeys.GROUP_INFO &&
           <GroupInfo groupId={curGroupId}
-                     refreshGroupInfo={refreshGroupInfo}/>
-      }
-    </ContainerWrapper>
-  </Wrapper>
+            refreshGroupInfo={refreshGroupInfo} />
+        }
+      </>
+    } />
 }
 
 export default Relationship;
 
-const Wrapper = styled.div`
-  & {
-    display: flex;
-  }
-`
 const NotificationWrapper = styled.div`
   & {
     padding: 0 12px;

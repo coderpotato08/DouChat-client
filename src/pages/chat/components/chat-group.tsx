@@ -269,6 +269,9 @@ const GroupWrapper = styled.div<{
           height: 24px;
           align-items: center;
           .name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             font-size: 16px;
             font-weight: 500;
             flex: 1;

@@ -1,9 +1,11 @@
+const keyPrefix = "__DouChat_"
 export enum StorageKeys {
-  ONLINE_USER = "ONLINE_USER",
-  ONLINE_NUM = "ONLINE_NUM",
-  USER_INFO = "USER_INFO",
-  TOKEN = "TOKEN",
-  IS_SHOW_DELETE_CONTACT_TIP = "IS_SHOW_DELETE_CONTACT_TIP", // 删除聊天栏 下次是否不再提醒
+  ONLINE_USER = "online_user",
+  ONLINE_NUM = "online_num",
+  USER_INFO = "user_info",
+  TOKEN = "token",
+  IS_SHOW_DELETE_CONTACT_TIP = "is_show_delete_contact_tip", // 删除聊天栏 下次是否不再提醒
+  MENU_LOCAL_WIDTH = "menu_local_width",
 }
 
 type WepperExpireData = {
@@ -13,16 +15,19 @@ type WepperExpireData = {
 
 export class LocalStorageHelper {
   static getItem(key: string) {
-    const res = localStorage.getItem(key);
+    const fullKey = keyPrefix + key;
+    const res = localStorage.getItem(fullKey);
     return res && res !== "undefined" ? JSON.parse(res) : null;
   }
   static setItem(key: string, value: any) {
     if (!key) return;
-    localStorage.setItem(key, JSON.stringify(value));
+    const fullKey = keyPrefix + key;
+    localStorage.setItem(fullKey, JSON.stringify(value));
   }
   static removeItem(key: string) {
+    const fullKey = keyPrefix + key;
     if (LocalStorageHelper.getItem(key)) {
-      localStorage.removeItem(key);
+      localStorage.removeItem(fullKey);
     }
   }
   /**

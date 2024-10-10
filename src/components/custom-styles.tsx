@@ -1,25 +1,4 @@
-import styled from "styled-components"
-
-export const GroupWrapper = styled.div`
-  & {
-    display: flex;
-    flex-direction: column;
-    width: 25%;
-    min-width: 310px;
-    height: 100vh;
-    border-right: 2px solid #ececec;
-    box-shadow: 0px 0 15px 5px rgba(0,0,0,.2);
-  }
-`
-export const ContainerWrapper = styled.div`
-  & {
-    position: relative;
-    width: calc(100vw - 345px);
-    overflow-y: scroll;
-    height: 100vh;
-    background: #F3F3F3;
-  }
-`
+import styled from "styled-components";
 
 export const ShadowFloatBox = styled.div`
   & {

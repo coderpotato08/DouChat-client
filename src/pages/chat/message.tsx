@@ -16,10 +16,10 @@ import {
 import { SocketProvider, useSocket } from "@store/context/createContext";
 import ChatTitle from "./components/chat-title";
 import ChatGroup from "./components/chat-group";
-import { ContainerWrapper, GroupWrapper } from "@components/custom-styles";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
 import { isEmpty } from "lodash";
+import { DraggableLayout } from "@components/draggable-layout";
 
 const Message = () => {
   const socket = useSocket();
@@ -143,19 +143,16 @@ const Message = () => {
   }, [recentSubmitMessage])
 
   return <SocketProvider>
-    <Wrapper>
-      <GroupWrapper>
+    <DraggableLayout
+      menuRender={<>
         <ChatTitle/>
         <ChatGroup
           list={chatList}
           onChangeChat={onClickChat}
           onDeleteChat={onDeleteChat}
           onAddChat={onAddChat}/>
-      </GroupWrapper>
-      <ContainerWrapper>
-        <Outlet/>
-      </ContainerWrapper>
-    </Wrapper>
+      </>}
+      contentRender={<Outlet/>}/>
   </SocketProvider>
 }
 
