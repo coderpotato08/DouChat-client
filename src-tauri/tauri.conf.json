@@ -63,10 +63,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 750,
         "resizable": true,
         "title": "chat-room",
-        "width": 800
+        "width": 1000
       }
     ]
   }
