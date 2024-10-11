@@ -4,11 +4,12 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
 import { Avatar, Badge, Button, notification, theme } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { 
-  setTotalUnreadNum, 
+import {
+  setTotalUnreadNum,
   setChatList as setStoreChatList,
-  totalUnreadNumSelector, 
-  userSelector } from '@store/index';
+  totalUnreadNumSelector,
+  userSelector
+} from '@store/index';
 import { useSocket } from '@store/context/createContext';
 import { EventType } from '@constant/socket-types';
 import { CreateMeetingParamsType, LoadGroupContactListParamsType, UserContactsParamsType } from '@constant/api-types';
@@ -29,12 +30,12 @@ const menuList = [
     icon: 'icon-friend',
   },
 ]
-const btnStyle:CSSProperties = {
+const btnStyle: CSSProperties = {
   position: "absolute",
   bottom: "12px",
   right: "12px",
 }
-const Chat:FC = () => {
+const Chat: FC = () => {
   const { pathname } = useLocation();
   const { token } = useToken();
   const socket = useSocket();
@@ -73,7 +74,7 @@ const Chat:FC = () => {
     const groupContactList = await ApiHelper.loadGroupContactList(params);
     return groupContactList;
   }
-  
+
   const loadAllContactList = async () => {
     const [userChatList, groupChatList] = await Promise.all([
       loadUserChatList(),
@@ -84,31 +85,31 @@ const Chat:FC = () => {
         const aTime = a.recentMessage?.time || a.createTime;
         const bTime = b.recentMessage?.time || b.createTime;
         return dayjs(bTime).diff(dayjs(aTime));
-      })    
+      })
     dispatch(setStoreChatList(chatList));
   }
 
   const onReceiveInviteMeeting = (data: { meetingId: string } & CreateMeetingParamsType) => {
     const { creator, meetingName, meetingId } = data;
     api.open({
-      key: meetingId, 
+      key: meetingId,
       message: <InviteMessageWrapper>
-        <Avatar style={{marginRight: '12px', flexShrink: 0}} size={48}/>
+        <Avatar style={{ marginRight: '12px', flexShrink: 0 }} size={48} />
         <div className='info'>
           <div>{creator.nickname}</div>
           <div>邀请您视频会议-{meetingName}</div>
         </div>
-        <Button key={"reveive"} 
-                className={"receive-btn"} 
-                type="primary"
-                onClick={() => receiveInvite(meetingId)}>
+        <Button key={"reveive"}
+          className={"receive-btn"}
+          type="primary"
+          onClick={() => receiveInvite(meetingId)}>
           接听
         </Button>
       </InviteMessageWrapper>,
       btn: <Button danger
-                   style={btnStyle}
-                   type="primary"
-                   onClick={() => rejectInvite(meetingId)}>拒绝</Button>,
+        style={btnStyle}
+        type="primary"
+        onClick={() => rejectInvite(meetingId)}>拒绝</Button>,
       duration: null,
       onClose: () => rejectInvite(meetingId),
     });
@@ -135,14 +136,14 @@ const Chat:FC = () => {
   useEffect(() => {
     handleSocketEvent("on");
     loadGlobalInfo();
-    loadAllContactList();  
+    loadAllContactList();
     return () => {
       handleSocketEvent("off");
     }
   }, []);
 
   useEffect(() => {
-    if(pathname.includes("message")) {
+    if (pathname.includes("message")) {
       setSelectedKey("message");
     } else {
       const splitPath = pathname.split("/");
@@ -156,22 +157,22 @@ const Chat:FC = () => {
       <MenuWrapper>
         <AvatarWrapper>
           <Avatar size={48}
-                  src={userInfo.avatarImage}/>
+            src={userInfo.avatarImage} />
         </AvatarWrapper>
         {
           menuList.map((item) => {
             const isActive = selectedKey === item.key;
             return <MenuItem key={item.key} onClick={() => onClickMenu(item)}>
-              <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`} 
-                    size={28} 
-                    color={isActive ? token.colorPrimary : '#666'}/>
-              {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'}/>}
+              <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`}
+                size={28}
+                color={isActive ? token.colorPrimary : '#666'} />
+              {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'} />}
             </MenuItem>
           })
         }
       </MenuWrapper>
       <ContentWrapper>
-        <Outlet/>
+        <Outlet />
       </ContentWrapper>
       {contextHolder}
     </ChatWrapper>

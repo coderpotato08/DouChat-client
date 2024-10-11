@@ -13,9 +13,9 @@ enum ToolType {
   CREATE_MEETING = 'create-meeing',
 }
 const toolList = [
-  {key: ToolType.ADD_FRIEND, name: "添加好友", icon: "icon-add_friends"},
-  {key: ToolType.CREATE_MEETING, name: "创建会议", icon: "icon-video-meeting"},
-  {key: ToolType.CREATE_GROUP, name: "创建群聊", icon: "icon-add-group"},
+  { key: ToolType.ADD_FRIEND, name: "添加好友", icon: "icon-add_friends" },
+  { key: ToolType.CREATE_MEETING, name: "创建会议", icon: "icon-video-meeting" },
+  { key: ToolType.CREATE_GROUP, name: "创建群聊", icon: "icon-add-group" },
 ]
 
 export interface ToolListProps {
@@ -23,7 +23,7 @@ export interface ToolListProps {
   addFriendCallback?: () => void
   addGroupCallback?: () => void
 }
-const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
+const ToolList: FC<ToolListProps> = (props: ToolListProps) => {
   const {
     createMeetingCallback,
     addFriendCallback,
@@ -36,10 +36,10 @@ const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
   const renderToolListContent = useCallback(() => {
     return <ToolWrapper>
       {
-        toolList.map((tool) => <ToolItem key={tool.key} 
-                                         onClick={() => onClickTool(tool.key)}>
+        toolList.map((tool) => <ToolItem key={tool.key}
+          onClick={() => onClickTool(tool.key)}>
           <div className={"tool-icon"}>
-            <CIcon size={36} value={tool.icon}/>
+            <CIcon size={36} value={tool.icon} />
           </div>
           <div className={"tool-name"}>{tool.name}</div>
         </ToolItem>)
@@ -48,7 +48,7 @@ const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
   }, [])
 
   const onClickTool = useCallback((type: ToolType) => {
-    switch(type) {
+    switch (type) {
       case ToolType.ADD_FRIEND:
         addFriendModalPopup();
         break;
@@ -60,29 +60,29 @@ const ToolList:FC<ToolListProps> = (props: ToolListProps) => {
         break;
     }
   }, [])
-  
+
   return <>
     <Popover placement={"bottom"}
-             zIndex={990}
-             color={"#f9f9f9"}
-             overlayInnerStyle={{padding: 0}}
-             content={renderToolListContent}>
+      zIndex={990}
+      color={"#f9f9f9"}
+      overlayInnerStyle={{ padding: 0 }}
+      content={renderToolListContent}>
       <div>
-        <CIcon style={{cursor: 'pointer'}} 
-               value="icon-more" 
-               size={24} 
-               color="#000"/>
+        <CIcon style={{ cursor: 'pointer' }}
+          value="icon-more"
+          size={24}
+          color="#000" />
       </div>
     </Popover>
     <CreateMeetingModal visible={createMeetingMdoal_open}
-                        onCancel={createMeetingMdoalPopup}
-                        confirmCallback={createMeetingCallback}/>
+      onCancel={createMeetingMdoalPopup}
+      confirmCallback={createMeetingCallback} />
     <AddFriendModal visible={addFriendModal_open}
-                    onCancel={addFriendModalPopup}
-                    confirmCallback={addFriendCallback}/>
+      onCancel={addFriendModalPopup}
+      confirmCallback={addFriendCallback} />
     <AddGroupModal visible={addGroupModal_open}
-                   onCancel={addGroupModalPopup}
-                   confirmCallback={addGroupCallback}/>
+      onCancel={addGroupModalPopup}
+      confirmCallback={addGroupCallback} />
   </>
 }
 
@@ -98,7 +98,7 @@ const ToolWrapper = styled.div`
     padding: 12px;
   }
 `
-const ToolItem= styled.div`
+const ToolItem = styled.div`
   & {
     position: relative;
     cursor: pointer;

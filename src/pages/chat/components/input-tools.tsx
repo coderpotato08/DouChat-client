@@ -29,14 +29,14 @@ const ToolItem = (props: {
 }) => {
   const { token } = useToken();
   return <ToolItemWrapper $token={token}>
-    <CIcon value={props.icon} size={32} color={'#999'}/>
+    <CIcon value={props.icon} size={32} color={'#999'} />
     <div className={'tool-title'}>{props.title}</div>
   </ToolItemWrapper>
 }
 
 const handleResponse = (response: any) => {
   const { code, data, msg } = response;
-  if(code === 10000) {
+  if (code === 10000) {
     return data;
   } else {
     message.error(msg || "上传失败，请稍后再试");
@@ -46,7 +46,7 @@ const handleResponse = (response: any) => {
 interface InputToolsProps {
   visible: boolean,
 }
-const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
+const InputTools: FC<InputToolsProps> = (props: InputToolsProps) => {
   const {
     visible,
   } = props;
@@ -61,7 +61,7 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
   const beforeFileUpload = (file: FileBeforeUploadType) => {
     const { size } = file;
     const isLimit1G = size / 1024 / 1024 / 1024 <= 1;
-    if(!isLimit1G) {
+    if (!isLimit1G) {
       message.error('文件大小不能超过 1GB!');
       return false
     }
@@ -84,11 +84,13 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
           fromId: userInfo._id,
           groupId: selectedChatId,
         });
-        dispatch(addMessage({ message: {
-          ...fileMessage,
-          fromId: userInfo,
-          groupId: selectedChatId,
-        } }))
+        dispatch(addMessage({
+          message: {
+            ...fileMessage,
+            fromId: userInfo,
+            groupId: selectedChatId,
+          }
+        }))
       } else {
         const { users = [] } = selectedChat;
         const { receiver, sender } = getReceiverAndSender(users, userInfo._id);
@@ -97,11 +99,13 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
           fromId: userInfo._id,
           toId: receiver._id,
         });
-        dispatch(addMessage({ message: {
-          ...fileMessage,
-          fromId: userInfo,
-          toId: receiver,
-        } }));
+        dispatch(addMessage({
+          message: {
+            ...fileMessage,
+            fromId: userInfo,
+            toId: receiver,
+          }
+        }));
       }
     }
   }
@@ -110,16 +114,16 @@ const InputTools:FC<InputToolsProps> = (props: InputToolsProps) => {
     <ToolsWrapper $isShowMore={visible}>
       <Upload>
         <ToolItem key={ToolKey.SEND_IMAGE}
-                  title={"图片"}
-                  icon={"icon-image"}/>
+          title={"图片"}
+          icon={"icon-image"} />
       </Upload>
       <Upload showUploadList={false}
-              action={`${window.location.origin}/api${ApiEnum.UPLOAD_FILE}`}
-              beforeUpload={beforeFileUpload}
-              onChange={onFileChange}>
+        action={`${window.location.origin}/api${ApiEnum.UPLOAD_FILE}`}
+        beforeUpload={beforeFileUpload}
+        onChange={onFileChange}>
         <ToolItem key={ToolKey.UPLOAD_FILE}
-                  title={"文件"}
-                  icon={"icon-upload-file"}/>
+          title={"文件"}
+          icon={"icon-upload-file"} />
       </Upload>
     </ToolsWrapper>
   )

@@ -64,7 +64,7 @@ const ChatGroup: FC<ChatGroupProps> = (props: ChatGroupProps) => {
           navigate('/chat/message')
         }
       },
-      onCancel: () => {},
+      onCancel: () => { },
     })
   }
 

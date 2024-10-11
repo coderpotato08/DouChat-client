@@ -17,11 +17,11 @@ interface FriendInfoProps {
   refreshFriendInfo: () => void,
 }
 const FormLayout = formLayout(8, 16)
-const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
+const FriendInfo: FC<FriendInfoProps> = (props: FriendInfoProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const userInfo = useAppSelector(userSelector);
-  const [ friendInfo, setFriendInfo ] = useState<any>({});
+  const [friendInfo, setFriendInfo] = useState<any>({});
 
   useEffect(() => {
     ApiHelper.loadUserInfo({ userId: props.friendId })
@@ -52,29 +52,29 @@ const FriendInfo:FC<FriendInfoProps> = (props: FriendInfoProps) => {
       })
   }
 
-  const renderOptions = ():ReactNode => {
+  const renderOptions = (): ReactNode => {
     return <OptionsWrapper>
       <Popconfirm
         title={`是否要移除好友？`}
         onConfirm={onDeleteFriend}
-        onCancel={() => {}}
+        onCancel={() => { }}
         okText="确定"
         cancelText="取消">
         <Button size="large"
-              className="btn"
-              danger
-              type={"primary"}>移除好友</Button>
+          className="btn"
+          danger
+          type={"primary"}>移除好友</Button>
       </Popconfirm>
-      <Button size="large" 
-              className={"btn"}
-              type={"primary"}
-              onClick={onClickSendMessage}>发消息</Button>
+      <Button size="large"
+        className={"btn"}
+        type={"primary"}
+        onClick={onClickSendMessage}>发消息</Button>
     </OptionsWrapper>
   }
 
   return <InfoBox title={"好友信息"} optionsNode={renderOptions()}>
     <HeaderInfo>
-      <Avatar size={108} src={friendInfo.avatarImage}/>
+      <Avatar size={108} src={friendInfo.avatarImage} />
       <div className={"nickname"}>{friendInfo.nickname}</div>
       <div className={"sign"}>{friendInfo.sign || "这个人很懒什么都没留下～"}</div>
       <Divider orientation="center">个人信息</Divider>

@@ -6,48 +6,48 @@ import styled from 'styled-components'
 
 const { useToken } = theme;
 type ItemNodeType = "avatarNode" | "nameNode" | "descriptionNode"
-type ReturnNodesType<T extends string> = {[K in T]: ReactNode | null}
+type ReturnNodesType<T extends string> = { [K in T]: ReactNode | null }
 
 const getItemNodes = (
-  type: "friend" | "group" | "message", 
-  item: any, 
+  type: "friend" | "group" | "message",
+  item: any,
   keyword: string
 ): ReturnNodesType<ItemNodeType> => {
-  if(type === "friend") {
+  if (type === "friend") {
     const { nickname, avatarImage, username } = item;
     const isNameMatch = nickname!.indexOf(keyword) > -1
     return {
-      avatarNode: <Avatar style={{flexShrink: 0}} src={avatarImage} size={48}/>,
-      nameNode: <HighlightText text={nickname} keyword={keyword}/>,
-      descriptionNode: !isNameMatch ? <div><HighlightText text={username} keyword={keyword}/></div> : null,
+      avatarNode: <Avatar style={{ flexShrink: 0 }} src={avatarImage} size={48} />,
+      nameNode: <HighlightText text={nickname} keyword={keyword} />,
+      descriptionNode: !isNameMatch ? <div><HighlightText text={username} keyword={keyword} /></div> : null,
     }
   } else if (type === "group") {
     const { usersAvaterList, filterUserList, groupName } = item;
     const isGroupNameMatch = groupName!.indexOf(keyword) > -1;
     const { nickname, username } = filterUserList[0] || {};
     return {
-      avatarNode: <ChatAvatar isGroup={true} groupImgList={usersAvaterList}/>,
-      nameNode: <HighlightText text={groupName} keyword={keyword}/>,
+      avatarNode: <ChatAvatar isGroup={true} groupImgList={usersAvaterList} />,
+      nameNode: <HighlightText text={groupName} keyword={keyword} />,
       descriptionNode: !isGroupNameMatch ? <div>包含：
-        <HighlightText text={`${nickname}(${username})`} keyword={keyword}/>
+        <HighlightText text={`${nickname}(${username})`} keyword={keyword} />
       </div> : null,
     }
   } else {
     const { matchedMessages, friendInfo, groupInfo } = item;
-    const descriptionNode = matchedMessages.length > 1 ? 
+    const descriptionNode = matchedMessages.length > 1 ?
       <div>{matchedMessages.length}条相关聊天记录</div> :
-      <div><HighlightText text={`${matchedMessages[0]}`} keyword={keyword}/></div>
-    if(friendInfo) {
-      const { avatarImage, nickname } =  friendInfo;
+      <div><HighlightText text={`${matchedMessages[0]}`} keyword={keyword} /></div>
+    if (friendInfo) {
+      const { avatarImage, nickname } = friendInfo;
       return {
-        avatarNode: <Avatar style={{flexShrink: 0}} src={avatarImage} size={48}/>,
+        avatarNode: <Avatar style={{ flexShrink: 0 }} src={avatarImage} size={48} />,
         nameNode: nickname,
         descriptionNode
       }
     } else {
       const { usersAvaterList, groupName } = groupInfo;
       return {
-        avatarNode: <ChatAvatar isGroup={true} groupImgList={usersAvaterList}/>,
+        avatarNode: <ChatAvatar isGroup={true} groupImgList={usersAvaterList} />,
         nameNode: groupName,
         descriptionNode
       }
@@ -62,7 +62,7 @@ interface ChatSearchItemProps {
   isActive?: boolean,
 }
 
-export const ChatSearchItem:FC<ChatSearchItemProps> = (props: ChatSearchItemProps) => {
+export const ChatSearchItem: FC<ChatSearchItemProps> = (props: ChatSearchItemProps) => {
   const {
     type,
     keyword,
@@ -98,7 +98,7 @@ const InfoItem = styled.div<{
     padding: 8px;
     transition: all .4s;
     border-bottom: 1px solid rgba(0,0,0,.05);
-    background: ${({$active, $token}) => $active ? $token.colorInfoBg : "#fff"};
+    background: ${({ $active, $token }) => $active ? $token.colorInfoBg : "#fff"};
     .info {
       color: #333;
       display: flex;
@@ -127,7 +127,7 @@ const InfoItem = styled.div<{
     background: ${props => props.$token.colorPrimary};
   }
   &:hover {
-    background-color: ${({$active, $token}) => $active ? $token.colorInfoBg : "#f2f2f2"};
+    background-color: ${({ $active, $token }) => $active ? $token.colorInfoBg : "#f2f2f2"};
   }
   &:last-child {
     border: none

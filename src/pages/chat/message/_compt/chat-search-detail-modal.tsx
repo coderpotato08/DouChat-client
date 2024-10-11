@@ -30,28 +30,28 @@ const MessageInfo = (props: {
 }) => {
   const { keyword, message } = props
   const { msgType, msgContent } = message;
-  if(msgType === MessageTypeEnum.TEXT || msgType === MessageTypeEnum.IMAGE) {
+  if (msgType === MessageTypeEnum.TEXT || msgType === MessageTypeEnum.IMAGE) {
     return <TextMessageInfo>
-      <HighlightText text={msgContent} keyword={keyword}/>
+      <HighlightText text={msgContent} keyword={keyword} />
     </TextMessageInfo>
   } else if (msgType === MessageTypeEnum.FILE) {
     const { filename, mimetype, size } = msgContent;
     return <FileMessageInfo>
       <div className={'file-info'}>
-        <HighlightText text={filename} keyword={keyword}/>
+        <HighlightText text={filename} keyword={keyword} />
         <div>{size ? formatBytes(size) : "未知大小"}</div>
       </div>
-      <FileIcon mimeType={mimetype}/>
+      <FileIcon mimeType={mimetype} />
     </FileMessageInfo>
   }
-  return <div/>
+  return <div />
 }
 
 interface ChatSearchDetailModalProps extends BaseModalProps {
   defaultKeyword?: string
   defaultSelectedChat?: any
 }
-export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: ChatSearchDetailModalProps) => {
+export const ChatSearchDetailModal: FC<ChatSearchDetailModalProps> = (props: ChatSearchDetailModalProps) => {
   const {
     visible,
     onCancel,
@@ -87,17 +87,17 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
   }
 
   useEffect(() => {
-    if(isEmpty(selectedChat)) return;
+    if (isEmpty(selectedChat)) return;
     const { chatId, groupInfo, friendInfo } = selectedChat
     const isGroup = chatId.indexOf("_") === -1;
     if (isGroup) {
-      const params = {keyword, groupId: groupInfo._id};
+      const params = { keyword, groupId: groupInfo._id };
       ApiHelper.searchMatchGroupMessageList(params)
         .then((list) => {
           setMessageList(list);
         })
     } else {
-      const params = {keyword, userId: userInfo._id, friendId: friendInfo._id};
+      const params = { keyword, userId: userInfo._id, friendId: friendInfo._id };
       ApiHelper.searchMatchUserMessageList(params)
         .then((list) => {
           setMessageList(list)
@@ -106,7 +106,7 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
   }, [selectedChat])
 
   useEffect(() => {
-    if(keyword) {
+    if (keyword) {
       onSearch(keyword);
     } else {
       setMessageChatList([]);
@@ -128,10 +128,10 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
       <Wrapper>
         <SearchWrapper>
           <Input.Search
-            style={{width: "90%"}}
+            style={{ width: "90%" }}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            allowClear/>
+            allowClear />
         </SearchWrapper>
         {
           keyword &&
@@ -139,13 +139,13 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
             <GroupWrapper>
               {
                 messageChatList.map((chat) => {
-                  return <ChatSearchItem 
-                            isActive={selectedChat.chatId === chat.chatId}
-                            key={chat.chatId}
-                            type={'message'}
-                            keyword={keyword}
-                            searchedItem={chat}
-                            onClick={() => setSelectedChat(chat)}/>
+                  return <ChatSearchItem
+                    isActive={selectedChat.chatId === chat.chatId}
+                    key={chat.chatId}
+                    type={'message'}
+                    keyword={keyword}
+                    searchedItem={chat}
+                    onClick={() => setSelectedChat(chat)} />
                 })
               }
             </GroupWrapper>
@@ -154,11 +154,11 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
                 messageList.length > 0 &&
                 <MatchTip $token={token}>
                   <div>
-                    <span style={{color: token.colorPrimary}}>{messageList.length}</span>
+                    <span style={{ color: token.colorPrimary }}>{messageList.length}</span>
                     条与"{keyword}"相关的搜索结果
                   </div>
                   <div className={'enter-chat'}
-                       onClick={onGoToChat}>
+                    onClick={onGoToChat}>
                     进入聊天<RightOutlined />
                   </div>
                 </MatchTip>
@@ -173,16 +173,16 @@ export const ChatSearchDetailModal:FC<ChatSearchDetailModalProps> = (props: Chat
                       const isUsernameMatch = username.indexOf(keyword) > -1;
                       const nameStr = nickname + (isUsernameMatch ? `(${username})` : "")
                       return <MessageItem key={_id} $token={token}>
-                        <Avatar className={'avatar-image'} src={avatarImage} size={42}/>
+                        <Avatar className={'avatar-image'} src={avatarImage} size={42} />
                         <div className={'info-content'}>
                           <div className={'header-info'}>
                             <div>
-                              <HighlightText text={nameStr} keyword={keyword}/>
+                              <HighlightText text={nameStr} keyword={keyword} />
                             </div>
                             <div>{formatMessageTime(time, false)}</div>
                           </div>
                           <div className={'message-info'}>
-                            <MessageInfo message={{msgType, msgContent}} keyword={keyword}/>
+                            <MessageInfo message={{ msgType, msgContent }} keyword={keyword} />
                             <div className={'affix'}>定位到聊天位置</div>
                           </div>
                         </div>
@@ -257,7 +257,7 @@ const MatchTip = styled.div<{
     justify-content: space-between;
     .enter-chat {
       cursor: pointer;
-      color: ${({$token}) => $token.colorPrimaryText};
+      color: ${({ $token }) => $token.colorPrimaryText};
     }
   }
 `
@@ -290,7 +290,7 @@ const MessageItem = styled.div<{
         cursor: pointer;
         display: none;
         font-size: 12px;
-        color: ${({$token}) => $token.colorPrimaryText};
+        color: ${({ $token }) => $token.colorPrimaryText};
       }
     }
     &:hover .affix {

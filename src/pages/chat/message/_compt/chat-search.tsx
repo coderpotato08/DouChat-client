@@ -28,7 +28,7 @@ interface ChatSearchProps {
   onShowDetail: (chat?: any) => void
   onCancel: () => void
 }
-export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
+export const ChatSearch: FC<ChatSearchProps> = (props: ChatSearchProps) => {
   const {
     keyword,
     onAddChat,
@@ -63,7 +63,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
   }, 500), []);
 
   const onClickItem = async (item: any, type: "friend" | "group" | "message") => {
-    const { 
+    const {
       _id = "",
       chatId = "",
       groupName = "",
@@ -71,7 +71,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
     const isGroup = type === "message" ? chatId.indexOf("_") === -1 : !!groupName;
     const toId = isGroup ? "" : (_id || chatId.split("_")[1]);
     const groupId = isGroup ? (chatId || _id) : "";
-    if(isGroup) {
+    if (isGroup) {
       const params = { userId: userInfo._id, groupId };
       const { contact } = await ApiHelper.createGroupContact(params);
       onAddChat(contact);
@@ -92,7 +92,7 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
   }
 
   useEffect(() => {
-    if(keyword) {
+    if (keyword) {
       onSearch(keyword);
     } else {
       setFriendSearchList([]);
@@ -111,10 +111,10 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
           {
             (showMoreFriend ? friendSearchList : friendSearchList.slice(0, 3)).map((friend: UserInfoType) => {
               return <ChatSearchItem key={friend._id}
-                                     type={'friend'}
-                                     keyword={keyword}
-                                     searchedItem={friend}
-                                     onClick={() => onClickItem(friend, "friend")}/>
+                type={'friend'}
+                keyword={keyword}
+                searchedItem={friend}
+                onClick={() => onClickItem(friend, "friend")} />
             })
           }
           {
@@ -131,10 +131,10 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
           {
             (showMoreGroup ? groupSearchList : groupSearchList.slice(0, 3)).map((group: any) => {
               return <ChatSearchItem key={group._id}
-                                     type={'group'}
-                                     keyword={keyword}
-                                     searchedItem={group}
-                                     onClick={() => onClickItem(group, "group")}/>
+                type={'group'}
+                keyword={keyword}
+                searchedItem={group}
+                onClick={() => onClickItem(group, "group")} />
             })
           }
           {
@@ -151,10 +151,10 @@ export const ChatSearch:FC<ChatSearchProps> = (props: ChatSearchProps) => {
           {
             messageSearchList.slice(0, 3).map((messageChat: any) => {
               return <ChatSearchItem key={messageChat.chatId}
-                                     type={'message'}
-                                     keyword={keyword}
-                                     searchedItem={messageChat}
-                                     onClick={() => onShowSearchDetail(messageChat)}/>
+                type={'message'}
+                keyword={keyword}
+                searchedItem={messageChat}
+                onClick={() => onShowSearchDetail(messageChat)} />
             })
           }
           {
@@ -200,7 +200,7 @@ const ListBoxWrapper = styled.div<{
     }
     .more {
       cursor: pointer;
-      color: ${({$token}) => $token.colorPrimary};
+      color: ${({ $token }) => $token.colorPrimary};
       border-top: 1px solid rgba(0,0,0,.05);
       border-bottom: none;
     }

@@ -12,45 +12,45 @@ import { Demo1 } from '@pages/demo/demo1';
 const router: RouteObject[] = [
   {
     path: "/",
-    element: <Navigate to={"/login"}/> 
+    element: <Navigate to={"/login"} />
   },
   {
     path: "/login",
-    element: <Login/>
+    element: <Login />
   },
   {
     path: "/chat",
-    element: <Chat/>,
+    element: <Chat />,
     children: [
       {
         path: "message",
-        element: <Message/>,
+        element: <Message />,
         children: [
           {
             path: ":id",
-            element: <ChatContainer/>,
+            element: <ChatContainer />,
           },
         ]
       },
       {
         path: "relationship",
         element: <SocketProvider>
-          <Relationship/>
+          <Relationship />
         </SocketProvider>
       }
     ]
   },
   {
     path: "/video-meeting/:id",
-    element: <VideoMeeting/>
+    element: <VideoMeeting />
   },
   {
     path: "/register",
-    element: <Register/>
-  }, 
+    element: <Register />
+  },
   {
     path: "/demo1",
-    element: <Demo1/>
+    element: <Demo1 />
   }
 ]
 

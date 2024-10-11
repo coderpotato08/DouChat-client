@@ -1,4 +1,3 @@
-import { FileFilled } from "@ant-design/icons";
 import { FileIcon } from "@components/file-icon";
 import { MessageTypeEnum } from "@constant/user-types";
 import { formatBytes, formatMessageTime } from "@helper/common-helper";
@@ -16,16 +15,16 @@ interface MessageBoxProps {
 
 const formatTime = (prevTime: string | null, curTime: string) => {
   const preDate = dayjs(prevTime), curDate = dayjs(curTime);
-  if(curDate.diff(preDate, "minute") < 5) return "";
+  if (curDate.diff(preDate, "minute") < 5) return "";
   return formatMessageTime(curTime)
 }
 
-const lineStyle: CSSProperties = {width: "100%"}
-const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
-  const { 
-    isSelf, 
+const lineStyle: CSSProperties = { width: "100%" }
+const MessageBox: FC<MessageBoxProps> = (props: MessageBoxProps) => {
+  const {
+    isSelf,
     isGroup,
-    messageInfo 
+    messageInfo
   } = props;
   const { fromId: sender = {}, msgContent = {} } = messageInfo;
 
@@ -35,43 +34,43 @@ const MessageBox:FC<MessageBoxProps> = (props: MessageBoxProps) => {
     marginLeft: isSelf ? "auto" : "0",
     marginRight: 0,
   }), [isSelf]);
-  
+
   const showTime = formatTime(props.prevTime, messageInfo.time);
-  return messageInfo.msgType !== MessageTypeEnum.TIPS ? 
+  return messageInfo.msgType !== MessageTypeEnum.TIPS ?
     <Wrapper id={messageInfo._id || messageInfo.uid}>
       {showTime && <div className="time">{showTime}</div>}
       <Flex style={lineStyle} justify={isSelf ? "flex-end" : "flex-start"} gap={15}>
-        {!isSelf && <Avatar src={sender.avatarImage} size={48}/>}
+        {!isSelf && <Avatar src={sender.avatarImage} size={48} />}
         <div>
           {isGroup && <div className={"nickname"}
-                          style={{marginLeft: isSelf ? "auto" : 0}}>
+            style={{ marginLeft: isSelf ? "auto" : 0 }}>
             {sender.nickname}
           </div>}
           <MessageBoxWrapper style={boxStyle} $isSelf={isSelf} $type={messageInfo.msgType}>
             {
               (messageInfo.msgType === MessageTypeEnum.TEXT || messageInfo.msgType === MessageTypeEnum.IMAGE) &&
-                <div style={{width: "fit-content"}} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />
+              <div style={{ width: "fit-content" }} dangerouslySetInnerHTML={{ __html: messageInfo.msgContent }} />
             }
             {
               messageInfo.msgType === MessageTypeEnum.FILE &&
-                <FileMessage href={msgContent.url} 
-                             download={msgContent.filename}>
-                  <div className="info">
-                    <div className={"info-name"}>{msgContent.filename}</div>
-                    <div className={"info-size"}>
-                      {msgContent.size ? formatBytes(msgContent.size) : "未知大小"}
-                    </div>
+              <FileMessage href={msgContent.url}
+                download={msgContent.filename}>
+                <div className="info">
+                  <div className={"info-name"}>{msgContent.filename}</div>
+                  <div className={"info-size"}>
+                    {msgContent.size ? formatBytes(msgContent.size) : "未知大小"}
                   </div>
-                  <div className={"info-file-icon"}>
-                    <FileIcon mimeType={msgContent.mimetype}/>
-                  </div>
-                </FileMessage>
+                </div>
+                <div className={"info-file-icon"}>
+                  <FileIcon mimeType={msgContent.mimetype} />
+                </div>
+              </FileMessage>
             }
           </MessageBoxWrapper>
         </div>
-        {isSelf && <Avatar src={sender.avatarImage} size={48}/>}
+        {isSelf && <Avatar src={sender.avatarImage} size={48} />}
       </Flex>
-    </Wrapper> : 
+    </Wrapper> :
     <TipMessage key={messageInfo.uid || messageInfo._id}>
       {showTime && <div className="time">{showTime}</div>}
       <div className="tip">{messageInfo.msgContent}</div>
@@ -113,19 +112,19 @@ const MessageBoxWrapper = styled.div<{
     min-height: 42px;
     border-radius: 4px;
     word-break: break-all;
-    color: ${({$isSelf}) => $isSelf ? "#fff" : "#000"};
+    color: ${({ $isSelf }) => $isSelf ? "#fff" : "#000"};
   }
   &::after {
     content: '';
     position: absolute;
     top: 11px;
-    left: ${({$isSelf}) => $isSelf ? "unset" : "-20px"};
-    right: ${({$isSelf}) => $isSelf ? "-20px" : "unset"};
+    left: ${({ $isSelf }) => $isSelf ? "unset" : "-20px"};
+    right: ${({ $isSelf }) => $isSelf ? "-20px" : "unset"};
     border-width: 8px 10px 8px 10px;
     border-style: solid;
-    border-color: ${({$isSelf, $type}) => 
-      $isSelf ? `transparent transparent transparent ${$type === MessageTypeEnum.FILE ? "#fff" : "#1677ff"}` : 
-                `transparent #fff transparent transparent`};
+    border-color: ${({ $isSelf, $type }) =>
+    $isSelf ? `transparent transparent transparent ${$type === MessageTypeEnum.FILE ? "#fff" : "#1677ff"}` :
+      `transparent #fff transparent transparent`};
   }
 `
 const TipMessage = styled.div`

@@ -6,16 +6,17 @@ const potato_image = require('@assets/imgs/potato.png');
 interface ChatTitleProps extends ToolListProps {
 
 }
-const ChatTitle:FC<ChatTitleProps> = (props: ChatTitleProps) => {
+
+const ChatTitle: FC<ChatTitleProps> = (props: ChatTitleProps) => {
   const {
     ...callbacks
   } = props;
   return <ChatTitleWrapper>
     <div className="title">
-      <img src={potato_image} alt="🥔"/>
+      <img src={potato_image} alt="🥔" />
       DouChat
     </div>
-    <ToolList {...callbacks}/>
+    <ToolList {...callbacks} />
   </ChatTitleWrapper>
 }
 

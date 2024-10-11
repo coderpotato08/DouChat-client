@@ -1,14 +1,14 @@
-import CIcon from "../../../components/c-icon";
+import CIcon from "../../../../components/c-icon";
 import styled from "styled-components";
 import { Flex, Button, theme, GlobalToken, Popover, Avatar } from "antd";
 import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { base64ToImageFile, handleRemindStr, textAndImageFormat, textFormat } from "../../../helper/common-helper";
+import { base64ToImageFile, handleRemindStr, textAndImageFormat, textFormat } from "../../../../helper/common-helper";
 import { debounce } from "lodash";
-import EmojiPicker from "../../../components/emoji-picker";
-import { ApiHelper } from "../../../helper/api-helper";
+import EmojiPicker from "../../../../components/emoji-picker";
+import { ApiHelper } from "../../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { isGroupSelector, userSelector } from "@store/index";
-import InputTools from "./input-tools";
+import InputTools from "../../components/input-tools";
 import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
 import { useParams } from "react-router-dom";
 
@@ -19,9 +19,9 @@ interface ChatInputProps {
 
 const imgMap = new Map(); // base64 => file
 const imgFixStyle = "max-width: 100%; height: auto; width: auto; max-height: 120px;"
-const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
-  const { 
-    onSubmit 
+const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
+  const {
+    onSubmit
   } = props;
   let metaPress = false;
   const { token } = useToken();
@@ -40,7 +40,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
 
   const onMessageInput = (e: FormEvent) => {
     const messageStr = (e.target as HTMLInputElement).innerHTML
-    if(remindOpen) {  // 处理查询@用户
+    if (remindOpen) {  // 处理查询@用户
       debounceSearchUsers(messageStr);
     }
     setMessage(messageStr);
@@ -61,7 +61,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
         metaPress = true;
         break;
       case "@": // @ 用户
-        if(!isGroup) return;
+        if (!isGroup) return;
         loadGroupUsers();
         setRemindOpen(true)
         break;
@@ -69,10 +69,10 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
         onCloseRemindBox();
         break;
       case "Enter":
-        if(metaPress) return;
+        if (metaPress) return;
         // onClickSubmit();
         break;
-      default: 
+      default:
         break;
     }
   }
@@ -83,7 +83,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
       case "Meta":
         metaPress = false;
         break;
-      default: 
+      default:
         break;
     }
   }
@@ -103,9 +103,9 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
     const imgNodes = messageInputRef.current!.querySelectorAll('img');
     const imgReq: Promise<any>[] = [];
     // 图文信息 处理图片url；
-    if(imgNodes && imgNodes.length > 0) {
+    if (imgNodes && imgNodes.length > 0) {
       imgNodes.forEach((node: HTMLImageElement) => {
-        if(imgMap.has(node.src)) {
+        if (imgMap.has(node.src)) {
           const formData = new FormData();
           formData.append('image', imgMap.get(node.src));
           imgReq.push(ApiHelper.uploadImage(formData));
@@ -130,7 +130,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
           submitMessage([...messageList, ...imgMessageList])
         })
     } else {
-      submitMessage({value: textFormat(message), type: MessageTypeEnum.TEXT});
+      submitMessage({ value: textFormat(message), type: MessageTypeEnum.TEXT });
     }
   }
 
@@ -178,11 +178,11 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
         groupUsers && groupUsers.length > 0 &&
         groupUsers.map((user, index) => <UserItem
           key={user._id}
-          $token={token} 
+          $token={token}
           $isActive={index === selectedUserIndex}
           onMouseEnter={() => setSelectedUserIndex(index)}
           onClick={() => onSelectRemindUser(index)}>
-          <Avatar src={user.avatarImage} size={24}/>
+          <Avatar src={user.avatarImage} size={24} />
           <div className={"nickname"}>{user.nickname}</div>
         </UserItem>)
       }
@@ -198,7 +198,7 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
         let base64Url = imgNode.src;
         imgNode.setAttribute("style", imgFixStyle);
         if (!imgMap.has(base64Url)) {
-          const {key, file} = base64ToImageFile(base64Url);
+          const { key, file } = base64ToImageFile(base64Url);
           imgMap.set(key, file);
         }
       })
@@ -223,38 +223,38 @@ const ChatInput:FC<ChatInputProps> = (props: ChatInputProps) => {
     <Wrapper>
       <Flex className="wrapper" gap={10} align="flexStart">
         <div className="add-option" onClick={handleShowTools}>
-          <CIcon value="icon-tianjia" size={24} color={"#666"}/>
+          <CIcon value="icon-tianjia" size={24} color={"#666"} />
         </div>
         <Popover
           open={remindOpen}
           trigger={"click"}
           placement={"topLeft"}
-          overlayInnerStyle={{padding: "4px"}}
+          overlayInnerStyle={{ padding: "4px" }}
           content={renderRemindList()}
-          onOpenChange={onCloseRemindBox}>       
+          onOpenChange={onCloseRemindBox}>
           <MessageInput>
-            <EmojiPicker onSelect={onSelectEmoji}/>
+            <EmojiPicker onSelect={onSelectEmoji} />
             <div className={"chat-input"}
-                ref={messageInputRef}
-                contentEditable="true" 
-                spellCheck="false"
-                onKeyDown={onInputKeyDown}
-                onKeyUp={onInputKeyUp}
-                onInput={onMessageInput}
-                onPaste={onInputPaste}>
+              ref={messageInputRef}
+              contentEditable="true"
+              spellCheck="false"
+              onKeyDown={onInputKeyDown}
+              onKeyUp={onInputKeyUp}
+              onInput={onMessageInput}
+              onPaste={onInputPaste}>
             </div>
-            <Button className="submit-btn" 
-                    type="primary" 
-                    onClick={onClickSubmit}>
+            <Button className="submit-btn"
+              type="primary"
+              onClick={onClickSubmit}>
               SUBMIT
             </Button>
           </MessageInput>
         </Popover>
         <div className="voice">
-          <CIcon value="icon-yuyin" size={20} color={"#545454"}/>
+          <CIcon value="icon-yuyin" size={20} color={"#545454"} />
         </div>
       </Flex>
-      <InputTools visible={isShowMore}/>
+      <InputTools visible={isShowMore} />
     </Wrapper>
   </InputContainer>
 }
@@ -340,7 +340,7 @@ const UserItem = styled.div<{
     transition: all .4s;
     padding: 6px;
     border-radius: 4px;
-    background-color: ${({$isActive, $token}) => $isActive ? $token.colorInfoBg : ""};
+    background-color: ${({ $isActive, $token }) => $isActive ? $token.colorInfoBg : ""};
     .nickname {
       margin-left: 8px;
       font-size: 12px;

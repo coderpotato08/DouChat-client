@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo } from "react";
-import styled from "styled-components"
 import { EventType } from "@constant/socket-types";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
 import {
@@ -11,11 +10,11 @@ import {
   recentSubmitMessageSelector,
   setChatList as setStoreChatList,
   subTotalUnreadNum,
-  userSelector 
+  userSelector
 } from "@store/index";
 import { SocketProvider, useSocket } from "@store/context/createContext";
-import ChatTitle from "./components/chat-title";
-import ChatGroup from "./components/chat-group";
+import ChatTitle from "../components/chat-title";
+import ChatGroup from "./_compt/chat-group";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { createUidV4 } from "@helper/uuid-helper";
 import { isEmpty } from "lodash";
@@ -36,14 +35,14 @@ const Message = () => {
     const { fromId, toId, groupId } = msgData;
     const isReceiveGroup = !isEmpty(groupId);
     const receiveContactId = isReceiveGroup ? groupId : [toId._id, fromId._id].join("_");
-    if(receiveContactId !== selectedChatId) { // 非当前选中的聊天栏的消息，需要未读+1
+    if (receiveContactId !== selectedChatId) { // 非当前选中的聊天栏的消息，需要未读+1
       const index = chatList.findIndex((chat) => (chat.groupId || chat.contactId) === receiveContactId);
       const newChatList = chatList.map((chat: any) => {
         const newChat = { ...chat };
         const curContactId = isReceiveGroup ? chat.groupId : chat.contactId
-        if(curContactId === receiveContactId) {
-          newChat.recentMessage = { ...msgData, uid: createUidV4()}
-          if(!isReceiveGroup) {
+        if (curContactId === receiveContactId) {
+          newChat.recentMessage = { ...msgData, uid: createUidV4() }
+          if (!isReceiveGroup) {
             newChat.unreadNum += 1;
             dispatch(addTotalUnreadNum());
           }
@@ -57,12 +56,12 @@ const Message = () => {
     }
   }, [selectedChatId, chatList])
 
-  const onGroupMessageUnread = useCallback(({groupId, messageId}: {groupId: string, messageId: string}) => {
+  const onGroupMessageUnread = useCallback(({ groupId, messageId }: { groupId: string, messageId: string }) => {
     const newChatList = chatList.map((chat: any) => {
-      const newChat = {...chat}
-      if(chat.groupId && chat.groupId === groupId) {
+      const newChat = { ...chat }
+      if (chat.groupId && chat.groupId === groupId) {
         if (selectedChatId === groupId) { // 将消息置为已读
-          socket.emit(EventType.READ_GROUP_MESSAGE, {userId: userInfo._id, groupId, messageId})
+          socket.emit(EventType.READ_GROUP_MESSAGE, { userId: userInfo._id, groupId, messageId })
         } else {
           newChat.unreadNum += 1;
           dispatch(addTotalUnreadNum());
@@ -86,8 +85,8 @@ const Message = () => {
     const { groupId, contactId, unreadNum } = item;
     let socketParams;
     if (groupId) {
-      socket.emit(EventType.ADD_GROUOP_USER, {groupId, userId: userInfo._id});
-      socketParams = {userId: userInfo._id, groupId};
+      socket.emit(EventType.ADD_GROUOP_USER, { groupId, userId: userInfo._id });
+      socketParams = { userId: userInfo._id, groupId };
     } else {
       const users = item.contactId.split("_");
       const fromId = users[0] === userInfo._id ? users[1] : users[0];
@@ -102,8 +101,8 @@ const Message = () => {
       const { unreadNum } = chat;
       const itemId = item.groupId || item.contactId;
       const chatId = chat.groupId || chat.contactId;
-      if(chatId === itemId && unreadNum > 0) {
-        dispatch(subTotalUnreadNum({num: unreadNum}));
+      if (chatId === itemId && unreadNum > 0) {
+        dispatch(subTotalUnreadNum({ num: unreadNum }));
         newChat.unreadNum = 0
       }
       return newChat
@@ -130,11 +129,11 @@ const Message = () => {
   }, [onReceiveMessage, onGroupMessageUnread]);
 
   useEffect(() => {
-    if(!isEmpty(recentSubmitMessage)) {
+    if (!isEmpty(recentSubmitMessage)) {
       dispatch(setStoreChatList(chatList.map((chat: any) => {
         const newChat = { ...chat }
         const contactId = isGroup ? chat.groupId : chat.contactId
-        if(contactId === selectedChatId) {
+        if (contactId === selectedChatId) {
           newChat.recentMessage = recentSubmitMessage
         }
         return newChat;
@@ -145,14 +144,14 @@ const Message = () => {
   return <SocketProvider>
     <DraggableLayout
       menuRender={<>
-        <ChatTitle/>
+        <ChatTitle />
         <ChatGroup
           list={chatList}
           onChangeChat={onClickChat}
           onDeleteChat={onDeleteChat}
-          onAddChat={onAddChat}/>
+          onAddChat={onAddChat} />
       </>}
-      contentRender={<Outlet/>}/>
+      contentRender={<Outlet />} />
   </SocketProvider>
 }
 

@@ -23,8 +23,8 @@ interface GroupInfoProps {
   groupId: string
   refreshGroupInfo: () => void
 }
-const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
-  const { 
+const GroupInfo: FC<GroupInfoProps> = (props: GroupInfoProps) => {
+  const {
     groupId = "",
     refreshGroupInfo
   } = props;
@@ -40,11 +40,11 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   const [userList, setUserList] = useState<any[]>([]);
   const [showMore, setShowMore] = useState<boolean>(false);
   const [signEditable, setSignEditable] = useState<boolean>(false);
-  const { 
+  const {
     usersAvaterList,
-    groupName, 
+    groupName,
     groupNumber,
-    sign, 
+    sign,
     creator
   } = groupInfo;
 
@@ -61,18 +61,18 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   }, [showMore, userList]);
 
   useEffect(() => {
-    if(expandRef.current) {
+    if (expandRef.current) {
       expandRef.current.scrollIntoView({
         block: "end",
-        inline: "nearest", 
+        inline: "nearest",
         behavior: "smooth",
       })
     }
   }, [showMore]);
 
   const onQuitGroup = () => {
-    if(isCreator) {
-      ApiHelper.disbandGroup({groupId: groupInfo._id})
+    if (isCreator) {
+      ApiHelper.disbandGroup({ groupId: groupInfo._id })
         .then(() => {
           message.success(`${groupInfo.groupName} 已解散成功`, 1.5, refreshGroupInfo)
         })
@@ -83,7 +83,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       })
         .then(() => {
           message.success(`已退出群聊`, 1.5, refreshGroupInfo)
-          socket.emit(EventType.GROUP_USER_QUIT, {userInfo, groupId: groupInfo._id})
+          socket.emit(EventType.GROUP_USER_QUIT, { userInfo, groupId: groupInfo._id })
         })
     }
   }
@@ -99,31 +99,31 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       })
   }
 
-  const renderOptions = ():ReactNode => {
+  const renderOptions = (): ReactNode => {
     return <OptionsWrapper>
       <Popconfirm
         title={`是否${isCreator ? "解散" : "退出"}群聊？`}
         onConfirm={onQuitGroup}
-        onCancel={() => {}}
+        onCancel={() => { }}
         okText="确定"
         cancelText="取消">
         <Button size="large"
-                className="btn"
-                danger
-                type={"primary"}>{isCreator ? "解散群聊" : "退出群聊"}</Button>
+          className="btn"
+          danger
+          type={"primary"}>{isCreator ? "解散群聊" : "退出群聊"}</Button>
       </Popconfirm>
-      <Button size="large" 
-              className="btn"
-              type={"primary"}
-              onClick={onClickSendMessage}>发消息</Button>
+      <Button size="large"
+        className="btn"
+        type={"primary"}
+        onClick={onClickSendMessage}>发消息</Button>
     </OptionsWrapper>
   }
 
   const onAddUsers = (list: string[]) => {
-    const params = { 
+    const params = {
       inviterId: userInfo._id,
       groupId: groupInfo._id,
-      userList: list 
+      userList: list
     };
     ApiHelper.inviteGroupUsers(params)
       .then(() => {
@@ -138,7 +138,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
       ApiHelper.updateGroupInfo({ groupId, sign })
         .then(() => {
           message.success("群签名修改成功");
-          setGroupInfo((preInfo: any) => ({...preInfo, sign}))
+          setGroupInfo((preInfo: any) => ({ ...preInfo, sign }))
         })
     }
   }
@@ -154,7 +154,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   }
 
   useEffect(() => {
-    if(signEditable) signInputRef.current?.focus()
+    if (signEditable) signInputRef.current?.focus()
   }, [signEditable])
 
   useEffect(() => {
@@ -164,7 +164,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
   return <>
     <InfoBox title={"群信息"} optionsNode={renderOptions()}>
       <HeaderInfo>
-        <ChatAvatar isGroup size={"large"} groupImgList={usersAvaterList}/>
+        <ChatAvatar isGroup size={"large"} groupImgList={usersAvaterList} />
         <div className={"group-name"}>{groupName}</div>
         <div className="sign-line">
           {
@@ -179,9 +179,9 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
           {
             isCreator &&
             <CIcon value={"icon-edit"}
-                   style={{cursor: "pointer"}}
-                   size={16} 
-                   onClick={() => setSignEditable(pre => !pre)}/>
+              style={{ cursor: "pointer" }}
+              size={16}
+              onClick={() => setSignEditable(pre => !pre)} />
           }
         </div>
         <Divider orientation="center">群信息</Divider>
@@ -198,7 +198,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         {
           showUserList.map((user: UserInfoType) => <UserItem $token={token} key={user._id}>
             <div className={"icon"}>
-              <Avatar size={48} src={user.avatarImage}/>
+              <Avatar size={48} src={user.avatarImage} />
               {user._id === userInfo._id && <div className={"me-tag"}>我</div>}
               {user._id === creator._id && <div className={"creator-tag"}>群主</div>}
             </div>
@@ -207,7 +207,7 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         }
         <UserItem $token={token} onClick={onPopup}>
           <div className={"icon"}>
-            <CIcon size={48} value={"icon-add-user"} color="#666"/>
+            <CIcon size={48} value={"icon-add-user"} color="#666" />
           </div>
           <div className="label">添加</div>
         </UserItem>
@@ -219,10 +219,10 @@ const GroupInfo:FC<GroupInfoProps> = (props: GroupInfoProps) => {
         </ExpandBtn>
       }
     </InfoBox>
-    <AddGroupUserModal selected={groupUserIds} 
-                       visible={open} 
-                       onCancel={onPopup} 
-                       onConfirm={onAddUsers}/>
+    <AddGroupUserModal selected={groupUserIds}
+      visible={open}
+      onCancel={onPopup}
+      onConfirm={onAddUsers} />
   </>
 }
 

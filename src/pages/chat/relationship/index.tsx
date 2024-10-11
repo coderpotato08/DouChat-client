@@ -2,7 +2,7 @@ import { ShadowFloatBox } from "@components/custom-styles";
 import { useSocket } from "@store/context/createContext";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
-import ChatTitle from "./components/chat-title";
+import ChatTitle from "../components/chat-title";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
 import {
@@ -18,9 +18,9 @@ import { Avatar, Badge, Menu, MenuProps, Button, message } from "antd";
 import { ApplyStatusEnum } from "@constant/relationship-types";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import dayjs from "dayjs";
-import FriendInfo from "./components/friend-info";
+import FriendInfo from "./_compt/friend-info";
 import ChatAvatar from "@components/chat-avatar";
-import GroupInfo from "./components/group-info";
+import GroupInfo from "./_compt/group-info";
 import { EventType } from "@constant/socket-types";
 import { CloseOutlined } from "@ant-design/icons";
 import { DraggableLayout } from "@components/draggable-layout";
@@ -336,6 +336,8 @@ const Relationship: FC = () => {
                         </div>
                       }
                       <CloseOutlined className={"close-btn"}
+                        onPointerEnterCapture={() => { }}
+                        onPointerLeaveCapture={() => { }}
                         onClick={() => onDeleteNotification(index)} />
                     </NotificationItem>
                   </CSSTransition>
