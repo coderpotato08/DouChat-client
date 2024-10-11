@@ -3,7 +3,12 @@ import { WebviewWindow, WindowOptions } from "@tauri-apps/api/window";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { isTauri } from "@utils/env";
-import { CallbackKeys, CallbacksConfig, OpenWebviewFuncProps, RouterMapType } from "./types";
+import {
+  CallbackKeys,
+  CallbacksConfig,
+  OpenWebviewFuncProps,
+  RouterMapType,
+} from "./types";
 import { RouterPath } from "@constant/router-types";
 import { hasObjectParam, splitObjectByPrefix } from "@utils/object";
 import { APP_NANE_PREFIX, dataKeyName } from "@constant/common-types";
@@ -11,8 +16,9 @@ import { getUuid } from "@helper/uuid-helper";
 import { LocalStorageHelper } from "@helper/storage-helper";
 import { getFullUrl } from "@utils/url";
 
-type OpenWebviewFunc = <T extends RouterPath, R extends RouterMapType>
-  (props?: OpenWebviewFuncProps<T, R>) => Promise<any>;
+type OpenWebviewFunc = <T extends RouterPath, R extends RouterMapType>(
+  props?: OpenWebviewFuncProps<T, R>
+) => Promise<any>;
 
 export const getFullCallbackKey = (key: CallbackKeys) => {
   return `tauri-event://${key}`;
@@ -52,44 +58,46 @@ export const useOpenWebview = (
     }
   };
 
-  const initWebview = <T extends RouterPath, R extends RouterMapType>(
-    props?: OpenWebviewFuncProps<T, R>
-  ): WebviewWindow => {
-    // 处理跳转链接
-    const formatUrl = `${url}${props?.id ? "/" + props.id : ""}`;
-
-    // 拆分出nova开头的params
-    const [innerParams, inputParams] = splitObjectByPrefix(
-      props?.params || {},
-      APP_NANE_PREFIX,
-    );
-
-    let params: Record<string, any> = {}
-    const dataJson = JSON.stringify(inputParams || {});
-    if (dataJson.length > 255 || hasObjectParam(inputParams)) {
-      const dataKey = 'input_key_' + getUuid();
-      LocalStorageHelper.setLocalData(dataKey, inputParams, 60);
-      params = {[dataKeyName]: dataKey, innerParams};
-    } else {
-      params = {...innerParams, ...inputParams};
-    }
-
-    const fullUrl = getFullUrl(formatUrl, params);
-
-    return new WebviewWindow(`tarui-page:/${formatUrl}`, {
+  const initWebview = (options: {
+    urlKey: string; // 带/:id的url，用作WebviewWindow的唯一标识
+    fullUrl: string; // 带/:id和query的完整url
+  }): WebviewWindow => {
+    const { urlKey, fullUrl } = options;
+    return new WebviewWindow(`tarui-page:/${urlKey}`, {
       url: fullUrl,
       ...(options || {}),
     });
   };
 
   return async (props?) => {
+    // url与query前置处理
+    const urlKey = `${url}${props?.id ? "/" + props.id : ""}`;
+
+    // 拆分出nova开头的params
+    const [innerParams, inputParams] = splitObjectByPrefix(
+      props?.params || {},
+      APP_NANE_PREFIX
+    );
+
+    let params: Record<string, any> = {};
+    const dataJson = JSON.stringify(inputParams || {});
+    if (dataJson.length > 255 || hasObjectParam(inputParams)) {
+      const dataKey = "input_key_" + getUuid();
+      LocalStorageHelper.setLocalData(dataKey, inputParams, 60);
+      params = { [dataKeyName]: dataKey, innerParams };
+    } else {
+      params = { ...innerParams, ...inputParams };
+    }
+
+    const fullUrl = getFullUrl(urlKey, params);
+
     if (isTauri()) {
       if (!webview.current) {
         if (props?.callbacks) {
           handleEventListener(props.callbacks);
         }
         return new Promise((resolve, reject) => {
-          webview.current = initWebview(props);
+          webview.current = initWebview({ urlKey, fullUrl });
           webview.current.once("tauri://created", function () {
             console.log("成功创建 webview 窗口");
             resolve(void 0);
@@ -108,10 +116,8 @@ export const useOpenWebview = (
       }
     } else {
       // 浏览器调试兜底
-      navigate(url);
+      navigate(fullUrl);
       return Promise.resolve(void 0);
     }
   };
 };
-
-
