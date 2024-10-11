@@ -2,7 +2,7 @@ import { FC, useState, useEffect, CSSProperties, useCallback } from 'react';
 import styled from 'styled-components';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
-import { Avatar, Badge, Button, notification, theme } from 'antd';
+import { Avatar, Badge, Button, GlobalToken, Menu, notification, theme } from 'antd';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   setTotalUnreadNum,
@@ -43,7 +43,7 @@ const Chat: FC = () => {
   const navigate = useNavigate();
   const totalUnreadNum = useAppSelector(totalUnreadNumSelector)
   const userInfo = useAppSelector(userSelector);
-  const [api, contextHolder] = notification.useNotification()
+  const [api, meetingNotificationHolder] = notification.useNotification()
   const [selectedKey, setSelectedKey] = useState('message');
 
   const onClickMenu = (item: any) => {
@@ -152,6 +152,7 @@ const Chat: FC = () => {
     }
   }, [pathname])
 
+  const keyIndex = menuList.findIndex((item) => item.key === selectedKey);
   return (
     <ChatWrapper>
       <MenuWrapper>
@@ -159,22 +160,27 @@ const Chat: FC = () => {
           <Avatar size={48}
             src={userInfo.avatarImage} />
         </AvatarWrapper>
-        {
-          menuList.map((item) => {
-            const isActive = selectedKey === item.key;
-            return <MenuItem key={item.key} onClick={() => onClickMenu(item)}>
-              <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`}
-                size={28}
-                color={isActive ? token.colorPrimary : '#666'} />
-              {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'} />}
-            </MenuItem>
-          })
-        }
+        <MenuListWrapper>
+          {
+            menuList.map((item) => {
+              const isActive = selectedKey === item.key;
+              return <MenuItem key={item.key} onClick={() => onClickMenu(item)}>
+                <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`}
+                  size={28}
+                  color={isActive ? token.colorPrimary : '#666'} />
+                {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'} />}
+              </MenuItem>
+            })
+          }
+          {
+            !!selectedKey && <ActiveMark $keyIndex={keyIndex} $token={token} />
+          }
+        </MenuListWrapper>
       </MenuWrapper>
       <ContentWrapper>
         <Outlet />
       </ContentWrapper>
-      {contextHolder}
+      {meetingNotificationHolder}
     </ChatWrapper>
   )
 }
@@ -198,7 +204,7 @@ const MenuWrapper = styled.div`
     padding: 12px 0;
     background: #f3f3f3;
     height: 100vh;
-    width: 70px;
+    width: 90px;
     z-index: 1;
   }
 `
@@ -212,6 +218,12 @@ const AvatarWrapper = styled.div`
     margin-bottom: 20px;
   }
 `
+const MenuListWrapper = styled.div`
+  & {
+    position: relative;
+    width: 100%;
+  }
+`
 const MenuItem = styled.div`
   & {
     position: relative;
@@ -220,7 +232,7 @@ const MenuItem = styled.div`
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 60px;
+    height: 80px;
     .unread-count {
       position: absolute;
       right: 16px;
@@ -231,9 +243,25 @@ const MenuItem = styled.div`
     }
   }
 `
+const ActiveMark = styled.div<{
+  $keyIndex: number,
+  $token: GlobalToken,
+}>`
+  & {
+    transition: all 0.3s;
+    position: absolute;
+    top: ${props => `calc(20px + ${props.$keyIndex * 80}px)`};
+    left: 0;
+    width: 4px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: ${props => props.$token.colorPrimary};
+    box-shadow: 0 0 5px 5px ${props => props.$token.colorPrimaryBgHover};
+  }
+`
 const ContentWrapper = styled.div`
   & {
-    width: calc(100vw - 70px);
+    width: calc(100vw - 90px);
     height: 100vh;
   }
 `
