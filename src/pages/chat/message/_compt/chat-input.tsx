@@ -7,10 +7,11 @@ import { debounce } from "lodash";
 import EmojiPicker from "../../../../components/emoji-picker";
 import { ApiHelper } from "../../../../helper/api-helper";
 import { useAppSelector } from "@store/hooks";
-import { isGroupSelector, userSelector } from "@store/index";
+import { userSelector } from "@store/index";
 import InputTools from "../../components/input-tools";
 import { MessageInfoType, MessageTypeEnum } from "@constant/user-types";
 import { useParams } from "react-router-dom";
+import { useClickOutside } from "@hooks/useClickOutside";
 
 const { useToken } = theme;
 interface ChatInputProps {
@@ -24,6 +25,7 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
     onSubmit
   } = props;
   let metaPress = false;
+  const toolListRef = useRef<HTMLDivElement | null>(null);
   const { token } = useToken();
   const { id: selectedChatId } = useParams();
   const userInfo = useAppSelector(userSelector);
@@ -209,6 +211,15 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
     setIsShowMore(!isShowMore)
   }
 
+  const handleClickOutside = (e: MouseEvent) => {
+    if (toolListRef.current && !toolListRef.current.contains(e.target as Node)) {
+      setIsShowMore(false);
+    }
+  }
+
+  // 点击外部区域收起工具栏
+  useClickOutside(toolListRef, true, () => setIsShowMore(false));
+
   useEffect(() => {
     cleanInputContent();
   }, [selectedChatId])
@@ -222,7 +233,11 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
   return <InputContainer $token={token}>
     <Wrapper>
       <Flex className="wrapper" gap={10} align="flexStart">
-        <div className="add-option" onClick={handleShowTools}>
+        <div
+          ref={toolListRef}
+          className="add-option"
+          onClick={handleShowTools}
+        >
           <CIcon value="icon-tianjia" size={24} color={"#666"} />
         </div>
         <Popover
