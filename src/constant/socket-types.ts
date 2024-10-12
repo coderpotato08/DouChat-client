@@ -13,6 +13,7 @@ export enum EventType {
   ICE_CANDIDATE = "ice_candidate",  // 发送ICE到其他客户端
   JOIN_SUCCESS = "join-success",
   ADD_USER = "add-user", // 用户登录
+  USER_QUIT_APP = "user-quit-app", // 用户退出登录
   SEND_MESSAGE = "send-message",  // 私人消息发送
   RECEIVE_MESSAGE = "receive-message",  // 私人消息接收
   READ_MESSAGE = "read-message",  // 消息已读

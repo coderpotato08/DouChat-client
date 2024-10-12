@@ -36,6 +36,7 @@ const userSlice = createSlice({
       const newOnlineUser = omit(state.onlineUser, [username]);
       const newNum = Object.keys(newOnlineUser).length;
       saveOnlineStorage(newOnlineUser, newNum);
+      LocalStorageHelper.removeItem(StorageKeys.USER_INFO);
       return {  
         ...state, 
         onlineUser: newOnlineUser,
