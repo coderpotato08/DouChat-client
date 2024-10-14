@@ -17,18 +17,18 @@ enum PasswordStatus {
   MODERATE = "moderate",
   WEAK = "weak",
 }
-const PasswordStatusMap: Record<PasswordStatus, {label: string, color: string}> = {
-  [PasswordStatus.STRONG]: {label: "强", color: "#52C41A"},
-  [PasswordStatus.MODERATE]: {label: "中", color: "#FADB14"},
-  [PasswordStatus.WEAK]: {label: "弱", color: "#F5222D"},
+const PasswordStatusMap: Record<PasswordStatus, { label: string, color: string }> = {
+  [PasswordStatus.STRONG]: { label: "强", color: "#52C41A" },
+  [PasswordStatus.MODERATE]: { label: "中", color: "#FADB14" },
+  [PasswordStatus.WEAK]: { label: "弱", color: "#F5222D" },
 }
 const GENDERS = [
-  {icon: 'icon-gender-man', key: GenderEnum.MAN, color: '#1296db'},
-  {icon: 'icon-gender-girl', key: GenderEnum.GIRL, color: '#fb506f'},
+  { icon: 'icon-gender-man', key: GenderEnum.MAN, color: '#1296db' },
+  { icon: 'icon-gender-girl', key: GenderEnum.GIRL, color: '#fb506f' },
 ]
 const PasswordRules = [/(?=.*[a-z])/g, /(?=.*[A-Z])/g, /(?=.*\d)/g, /(?=.*[!@#$%^&*()\-_=+{};:,<.>]])/g];
 type FormTypes = RegisterParamsType
-const Register:FC= () => {
+const Register: FC = () => {
   const navigate = useNavigate()
   const [form] = useForm();
   const [gender, setGender] = useState<GenderEnum>(GenderEnum.MAN);
@@ -43,7 +43,7 @@ const Register:FC= () => {
   }, [])
 
   const getRandomAvatar = async () => {
-    if(imgLoading) return;
+    if (imgLoading) return;
     setImgLoading(true);
     const uri = await createAvatarBase64(createUidV4());
     setAvatarImageUrl(uri);
@@ -51,12 +51,12 @@ const Register:FC= () => {
 
   const changePasswordStatus = (e: any) => {
     const str = e.target.value;
-    if(!str) {
+    if (!str) {
       setPasswordStatus(null);
       return;
     }
     let score = 0;
-    for(let i=0; i<PasswordRules.length; i++) {
+    for (let i = 0; i < PasswordRules.length; i++) {
       if (PasswordRules[i].test(str)) {
         score += 1
       } else break;
@@ -73,13 +73,13 @@ const Register:FC= () => {
           avatarImage: avatarImageUrl,
         }
         ApiHelper.register(params)
-          .then(({status}) => {
-            if(status === "success") {
+          .then(({ status }) => {
+            if (status === "success") {
               message.success("注册成功", 1.5, () => navigate('/login'));
             }
           })
       })
-      .catch(() => {})
+      .catch(() => { })
   }
 
   const goToLogin = () => {
@@ -88,83 +88,85 @@ const Register:FC= () => {
   return (
     <Wrapper>
       <SpaceBox>
-        <img className={'rotate-potato'} src={potato_image} alt='potato'/>
+        <img className={'rotate-potato'} src={potato_image} alt='potato' />
         <h1>It's a potato</h1>
       </SpaceBox>
       <RegisterBox>
-        <h1>Create an account</h1>
-        <AvatarBox>
-          {
-            imgLoading && <div className={'loading-layer'}>
-              <LoadingOutlined className='loading'/>
-            </div>
-          }
-          <img className={'avatar-img'} 
-                src={avatarImageUrl} 
-                onLoad={() => setImgLoading(false)}
-                onClick={getRandomAvatar}
-                alt=''/>
-        </AvatarBox>
-        <GenderBox>
-          {
-            GENDERS.map((item) => <div key={item.key} 
-                                       style={item.key === gender ? {background: "#eeeeee"} : {}}
-                                       onClick={() => setGender(item.key)}>
-                <CIcon size={24} value={item.icon} color={item.color}/>
+        <div className='scroll-wrapper'>
+          <h1>Create an account</h1>
+          <AvatarBox>
+            {
+              imgLoading && <div className={'loading-layer'}>
+                <LoadingOutlined className='loading' />
+              </div>
+            }
+            <img className={'avatar-img'}
+              src={avatarImageUrl}
+              onLoad={() => setImgLoading(false)}
+              onClick={getRandomAvatar}
+              alt='' />
+          </AvatarBox>
+          <GenderBox>
+            {
+              GENDERS.map((item) => <div key={item.key}
+                style={item.key === gender ? { background: "#eeeeee" } : {}}
+                onClick={() => setGender(item.key)}>
+                <CIcon size={24} value={item.icon} color={item.color} />
               </div>)
-          }
-        </GenderBox>
-        <Form className={"register-form"} 
-              form={form}
-              name={"registerForm"}>
-          <Form.Item<FormTypes>
-            name={"nickname"}
-            rules={[{required: true, message: "请填写昵称"}]}>
-            <Input placeholder='Nickname'/>
-          </Form.Item>
-
-          <Form.Item<FormTypes>
-            name={"username"}
-            rules={[{required: true, message: "请填写用户名"}]}>
-            <Input placeholder='Username'/>
-          </Form.Item>
-
-          <Form.Item style={{position: "relative", marginBottom: 0}}>
+            }
+          </GenderBox>
+          <Form className={"register-form"}
+            form={form}
+            name={"registerForm"}>
             <Form.Item<FormTypes>
-              name={"password"}
-              rules={[{required: true, message: "请填写密码"}, 
-                      {min: 9, message: "密码长度必须大于等于9位"},
-                      {max: 20, message: "密码长度必须小于等于20位"}
-              ]}>
-              <Input.Password onChange={changePasswordStatus} placeholder='Password'/>
+              name={"nickname"}
+              rules={[{ required: true, message: "请填写昵称" }]}>
+              <Input placeholder='Nickname' />
             </Form.Item>
-            {passwordStatus && <PasswordValidater $status={passwordStatus}>
-              {passwordStatus && PasswordStatusMap[passwordStatus].label}
-            </PasswordValidater>}
-          </Form.Item>
-  
-          <Form.Item<FormTypes>
-            name={"phoneNumber"}
-            rules={[{required: true, message: "请填写手机号"}]}>
-            <Input placeholder='Phone number'/>
-          </Form.Item>
 
-          <Form.Item<FormTypes>
-            name={"email"}>
-            <Input placeholder='Email'/>
-          </Form.Item>
+            <Form.Item<FormTypes>
+              name={"username"}
+              rules={[{ required: true, message: "请填写用户名" }]}>
+              <Input placeholder='Username' />
+            </Form.Item>
 
-        </Form>
-        <Button className={'submit-btn'}
-                disabled={imgLoading}
-                type={'primary'}
-                size={'large'}
-                onClick={submit}>
-          Create an account
-        </Button>
-        <div className={'tip'}>Already have an account? 
-          <div className={'login'} onClick={goToLogin}>
-            <CIcon style={{margin: "0 4px 0 12px"}} size={20} value={'icon-login'}/>Log in
+            <Form.Item style={{ position: "relative", marginBottom: 0 }}>
+              <Form.Item<FormTypes>
+                name={"password"}
+                rules={[{ required: true, message: "请填写密码" },
+                { min: 9, message: "密码长度必须大于等于9位" },
+                { max: 20, message: "密码长度必须小于等于20位" }
+                ]}>
+                <Input.Password onChange={changePasswordStatus} placeholder='Password' />
+              </Form.Item>
+              {passwordStatus && <PasswordValidater $status={passwordStatus}>
+                {passwordStatus && PasswordStatusMap[passwordStatus].label}
+              </PasswordValidater>}
+            </Form.Item>
+
+            <Form.Item<FormTypes>
+              name={"phoneNumber"}
+              rules={[{ required: true, message: "请填写手机号" }]}>
+              <Input placeholder='Phone number' />
+            </Form.Item>
+
+            <Form.Item<FormTypes>
+              name={"email"}>
+              <Input placeholder='Email' />
+            </Form.Item>
+
+          </Form>
+          <Button className={'submit-btn'}
+            disabled={imgLoading}
+            type={'primary'}
+            size={'large'}
+            onClick={submit}>
+            Create an account
+          </Button>
+          <div className={'tip'}>Already have an account?
+            <div className={'login'} onClick={goToLogin}>
+              <CIcon style={{ margin: "0 4px 0 12px" }} size={20} value={'icon-login'} />Log in
+            </div>
           </div>
         </div>
       </RegisterBox>
@@ -271,10 +273,16 @@ const RegisterBox = styled.div`
     height: 100vh;
     border-radius: 12px 0 0 12px;
     background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     padding: 6%;
+    .scroll-wrapper {
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+    }
     .tip {
       display: flex;
       align-items: center;

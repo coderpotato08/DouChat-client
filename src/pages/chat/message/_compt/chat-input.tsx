@@ -211,12 +211,6 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
     setIsShowMore(!isShowMore)
   }
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (toolListRef.current && !toolListRef.current.contains(e.target as Node)) {
-      setIsShowMore(false);
-    }
-  }
-
   // 点击外部区域收起工具栏
   useClickOutside(toolListRef, true, () => setIsShowMore(false));
 

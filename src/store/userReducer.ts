@@ -1,6 +1,7 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 import { LocalStorageHelper, StorageKeys } from '../helper/storage-helper';
+import { UserInfoType } from '@constant/user-types';
 
 const saveOnlineStorage = (onlineUser: Record<string, any>, num: number) => {
   LocalStorageHelper.setItem(StorageKeys.ONLINE_USER, onlineUser);
@@ -88,7 +89,7 @@ export const {
   subFriendNoteNum,
   subGroupNoteNum,
 } = userSlice.actions;
-export const userSelector = (state: any) => state.user.userInfo;
+export const userSelector = (state: any):UserInfoType => state.user.userInfo;
 export const friendNoteNumSelector = (state: any) => (state.user.friendNoteNum);
 export const groupNoteNumSelector = (state: any) => (state.user.groupNoteNum)
 export const onlineInfoSelector = (state: any) => ({

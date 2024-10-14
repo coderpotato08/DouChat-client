@@ -25,6 +25,7 @@ const EmojiPicker = (props: EmojiPickerProps) => {
   return <Popover content={<Picker data={data}
                                    theme={'light'}
                                    onEmojiSelect={onSelectEmoji}/>}
+                  placement="topLeft"
                   trigger="click"
                   open={open}
                   onOpenChange={() => setOpen(!open)}>

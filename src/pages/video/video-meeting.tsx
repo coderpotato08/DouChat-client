@@ -350,7 +350,7 @@ const VideoMeeting = () => {
     const trigger = type === "mount" ? "on" : "off";
     socket[trigger](EventType.JOINED_MEETING, onUserJoin);  // 用户加入
     socket[trigger](EventType.REJECT_INVITE, onUserReject); // 用户拒绝
-    socket[trigger](EventType.DEVICE_STATUS_CHANGE, onUserDeviceChange)
+    socket[trigger](EventType.DEVICE_STATUS_CHANGE, onUserDeviceChange) // 用户设备开启/关闭
     socket[trigger](EventType.LEAVE_MEETING, onUserLeave) // 有用户退出会议
     socket[trigger](EventType.END_MEETING, onGetMeetingEnd) // 主持人结束会议
     socket[trigger](EventType.SEND_OFFER, onGetSendOffer);  // p2p sdp offer
@@ -387,7 +387,9 @@ const VideoMeeting = () => {
       <video id={'user'} autoPlay/> 
       {
         (!devicePermission || !cameraEnable) && <SelfNoVideo>
-          <UserAvator nickname={userInfo.nickname} status={UserStatus.JOINED}/>
+          <UserAvator 
+            nickname={userInfo?.nickname || ""} 
+            status={UserStatus.JOINED}/>
         </SelfNoVideo>
       }
       <OptionsWrapper>

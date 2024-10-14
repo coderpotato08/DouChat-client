@@ -8,6 +8,7 @@ import ChatContainer from '@pages/chat/components/chat-container';
 import Register from '@pages/register';
 import { SocketProvider } from '@store/context/createContext';
 import { Demo1 } from '@pages/demo/demo1';
+import { Demo2 } from '@pages/demo/demo2';
 
 const router: RouteObject[] = [
   {
@@ -51,6 +52,10 @@ const router: RouteObject[] = [
   {
     path: "/demo1",
     element: <Demo1 />
+  },
+  {
+    path: "/demo2",
+    element: <Demo2 />
   }
 ]
 

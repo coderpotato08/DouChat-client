@@ -290,61 +290,61 @@ const Relationship: FC = () => {
     contentRender={
       <>
         {
-          isShowNoteList && <ContainerTitle>
-            {TabTitle[currentKey as TabKeys]}
-          </ContainerTitle>
-        }
-        {
-          isShowNoteList && <NotificationBox>
-            <TransitionGroup>
-              {
-                notificationList.length > 0 &&
-                notificationList.map((notification, index) => {
-                  const {
-                    status,
-                    createTime,
-                    inviter = {},
-                    groupInfo = {},
-                    userId = {},
-                  } = notification;
-                  return <CSSTransition key={notification._id} timeout={300} classNames='note'>
-                    <NotificationItem>
-                      <Avatar size={48} src={isFriend ? userId.avatarImage : inviter.avatarImage} />
-                      <div className={"info"}>
-                        <div className={"info-content"}>
-                          <div className={"nickname"}>{isFriend ? userId.nickname : inviter.nickname}</div>
-                          {isFriend ? "请求添加你为好友" : `邀请你加入群聊 「${groupInfo.groupName}」`}
+          isShowNoteList && <>
+            <ContainerTitle>
+              {TabTitle[currentKey as TabKeys]}
+            </ContainerTitle>
+            <NotificationBox>
+              <TransitionGroup>
+                {
+                  notificationList.length > 0 &&
+                  notificationList.map((notification, index) => {
+                    const {
+                      status,
+                      createTime,
+                      inviter = {},
+                      groupInfo = {},
+                      userId = {},
+                    } = notification;
+                    return <CSSTransition key={notification._id} timeout={300} classNames='note'>
+                      <NotificationItem>
+                        <Avatar size={48} src={isFriend ? userId.avatarImage : inviter.avatarImage} />
+                        <div className={"info"}>
+                          <div className={"info-content"}>
+                            <div className={"nickname"}>{isFriend ? userId.nickname : inviter.nickname}</div>
+                            {isFriend ? "请求添加你为好友" : `邀请你加入群聊 「${groupInfo.groupName}」`}
+                          </div>
+                          <div className={"time"}>
+                            {dayjs(createTime).format("YYYY-MM-DD HH:mm")}
+                          </div>
                         </div>
-                        <div className={"time"}>
-                          {dayjs(createTime).format("YYYY-MM-DD HH:mm")}
-                        </div>
-                      </div>
-                      {
-                        status === ApplyStatusEnum.APPLYING ? <div className={"buttons"}>
-                          <Button onClick={() => handleApply(
-                            { nid: notification._id, groupName: groupInfo.groupName },
-                            ApplyStatusEnum.ACCEPT,
-                            index
-                          )}>接受</Button>
-                          <Button onClick={() => handleApply(
-                            { nid: notification._id, groupName: groupInfo.groupName },
-                            ApplyStatusEnum.REJECTED,
-                            index
-                          )} danger type={"primary"}>拒绝</Button>
-                        </div> : <div className={"status-label"}>
-                          {status === ApplyStatusEnum.ACCEPT ? "已同意" : "已拒绝"}
-                        </div>
-                      }
-                      <CloseOutlined className={"close-btn"}
-                        onPointerEnterCapture={() => { }}
-                        onPointerLeaveCapture={() => { }}
-                        onClick={() => onDeleteNotification(index)} />
-                    </NotificationItem>
-                  </CSSTransition>
-                })
-              }
-            </TransitionGroup>
-          </NotificationBox>
+                        {
+                          status === ApplyStatusEnum.APPLYING ? <div className={"buttons"}>
+                            <Button onClick={() => handleApply(
+                              { nid: notification._id, groupName: groupInfo.groupName },
+                              ApplyStatusEnum.ACCEPT,
+                              index
+                            )}>接受</Button>
+                            <Button onClick={() => handleApply(
+                              { nid: notification._id, groupName: groupInfo.groupName },
+                              ApplyStatusEnum.REJECTED,
+                              index
+                            )} danger type={"primary"}>拒绝</Button>
+                          </div> : <div className={"status-label"}>
+                            {status === ApplyStatusEnum.ACCEPT ? "已同意" : "已拒绝"}
+                          </div>
+                        }
+                        <CloseOutlined className={"close-btn"}
+                          onPointerEnterCapture={() => { }}
+                          onPointerLeaveCapture={() => { }}
+                          onClick={() => onDeleteNotification(index)} />
+                      </NotificationItem>
+                    </CSSTransition>
+                  })
+                }
+              </TransitionGroup>
+            </NotificationBox>
+          </>
         }
         {
           currentKey === TabKeys.FRIEND_INFO &&
