@@ -9,11 +9,16 @@ import { TransitionGroup, CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 
 type MeetingChatBoxProps = {
+  offset?: {
+    left?: number,
+    bottom?: number,
+  }
   messageList: MeetingMessageData[]
   onSend: (data: MeetingMessageData) => void
 }
 export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
   const userInfo = useAppSelector(userSelector);
+  const [focus, setFocus] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const { messageList, onSend } = props;
 
@@ -30,6 +35,10 @@ export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
     }
   }
 
+  const onExpandOrShrink = () => {
+
+  }
+
   useEffect(() => {
     const len = messageList.length;
     const id = messageList[len - 1] ? messageList[len - 1]?.mid : "";
@@ -43,21 +52,23 @@ export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
     }
   }, [messageList]);
 
-  return <MeetingChatWrapper>
-    <BarrageBox>
-      <TransitionGroup>
-        {
-          messageList.map((item, index) => (
-            <CSSTransition key={item.mid as any} timeout={300} classNames='message'>
-              <BarrageWrapper key={index}>
-                <span className="name">{item.name}：</span>
-                <span className="content">{item.content}</span>
-              </BarrageWrapper>
-            </CSSTransition>
-          ))
-        }
-      </TransitionGroup>
-    </BarrageBox>
+  return <MeetingChatWrapper $offset={props.offset}>
+    {
+      focus && <BarrageBox>
+        <TransitionGroup>
+          {
+            messageList.map((item, index) => (
+              <CSSTransition key={item.mid as any} timeout={300} classNames='message'>
+                <BarrageWrapper key={index}>
+                  <span className="name">{item.name}：</span>
+                  <span className="content">{item.content}</span>
+                </BarrageWrapper>
+              </CSSTransition>
+            ))
+          }
+        </TransitionGroup>
+      </BarrageBox>
+    }  
     <InputWrapper>
       <EmojiPicker onSelect={(emoji: any) => {
         setInputValue(pre => pre + emoji.native);
@@ -74,12 +85,13 @@ export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
   </MeetingChatWrapper>
 }
 
-const MeetingChatWrapper = styled.div`
+const MeetingChatWrapper = styled.div<{
+  $offset?: { left?: number, bottom?: number }
+}>`
   & {
     position: absolute;
-    bottom: 12px;
-    left: 12px;
-    width: 500px;
+    bottom: ${props => (props.$offset?.bottom || 0) + 12 + 'px'};
+    left: ${props => (props.$offset?.left || 0) + 12 + 'px'};
   }
 `
 const BarrageWrapper = styled.div`

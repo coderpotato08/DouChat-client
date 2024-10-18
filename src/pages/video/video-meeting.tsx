@@ -1,9 +1,9 @@
-import { 
-  MutableRefObject, 
-  useCallback, 
-  useEffect, 
-  useMemo, 
-  useRef, 
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
@@ -11,15 +11,16 @@ import styled from "styled-components";
 import { EventType } from "@constant/socket-types";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
-import { 
+import {
   DeviceStatusMessage,
-  ICEMessage, 
-  JoinedData, 
-  OptionsEnum, 
-  RejectMessageType, 
-  RoleType, 
-  SDPMessage, 
-  UserData, 
+  ICEMessage,
+  JoinedData,
+  MeetingMessageData,
+  OptionsEnum,
+  RejectMessageType,
+  RoleType,
+  SDPMessage,
+  UserData,
   UsersList,
   UserStatus,
 } from "@constant/meeting-types";
@@ -29,16 +30,17 @@ import { Avatar, Button, Modal, message } from "antd";
 import { useSocket } from "@store/context/createContext";
 import CIcon from "@components/c-icon";
 import { getQuery } from "@helper/common-helper";
+import { MeetingChatBox } from "./_compt/meeting-chat-box";
 
-const UserStatusLabel =  {
+const UserStatusLabel = {
   [UserStatus.CALLING]: "呼叫中",
   [UserStatus.REJECTED]: "已拒绝",
   [UserStatus.QUIT]: "已退出",
 }
 const ExtraOptionList = [
-  {title: "邀请", key: OptionsEnum.INVITE, icon: `icon-invite`},
-  {title: "成员", key: OptionsEnum.MEMBERS, icon: `icon-members`},
-  {title: "共享屏幕", key: OptionsEnum.SCREEN_SHARE, icon: `icon-screen-share`},
+  { title: "邀请", key: OptionsEnum.INVITE, icon: `icon-invite` },
+  { title: "成员", key: OptionsEnum.MEMBERS, icon: `icon-members` },
+  { title: "共享屏幕", key: OptionsEnum.SCREEN_SHARE, icon: `icon-screen-share` },
 ]
 
 //这里使用了几个公共的stun协议服务器
@@ -59,15 +61,15 @@ const UserAvator = (props: {
   status?: UserStatus,
 }) => {
   return <UserHeader>
-    <Avatar style={{ backgroundColor: '#1677ff' }} 
-            size={72}>
+    <Avatar style={{ backgroundColor: '#1677ff' }}
+      size={72}>
       {props.nickname}
     </Avatar>
     {props.status !== UserStatus.JOINED && <StatusLayout>
       {
-        (props.status === UserStatus.QUIT || 
-         props.status === UserStatus.REJECTED) && 
-         <CIcon value="icon-guaduan" size={32} color="#fff"/>
+        (props.status === UserStatus.QUIT ||
+          props.status === UserStatus.REJECTED) &&
+        <CIcon value="icon-guaduan" size={32} color="#fff" />
       }
       {UserStatusLabel[props.status!]}
     </StatusLayout>}
@@ -82,14 +84,15 @@ const VideoMeeting = () => {
   const [modalApi, modalContextHolder] = Modal.useModal();
   const { current: peerMap }: MutableRefObject<Record<string, RTCPeerConnection>> = useRef({});
   const localStream: MutableRefObject<MediaStream | null> = useRef(null);  // 当前用户视频流
-  const [ audioEnable, setAudioEnable ] = useState<boolean>(false); // 麦克风是否开启
-  const [ cameraEnable, setCameraEnable ] = useState<boolean>(false)  // 摄像头是否开启
-  const [ devicePermission, setDevicePermission ] = useState<boolean>(false) // 设备授权
-  const [ meetingInfo, setMeetingInfo ] = useState<any>({});
-  const [ memberList, setMemberList ] = useState<UsersList>([]);  // 用户列表
+  const [audioEnable, setAudioEnable] = useState<boolean>(false); // 麦克风是否开启
+  const [cameraEnable, setCameraEnable] = useState<boolean>(false)  // 摄像头是否开启
+  const [devicePermission, setDevicePermission] = useState<boolean>(false) // 设备授权
+  const [meetingInfo, setMeetingInfo] = useState<any>({});  // 会议信息
+  const [memberList, setMemberList] = useState<UsersList>([]);  // 用户列表
+  const [msgList, setMsgList] = useState<MeetingMessageData[]>([]);  // 聊天消息列表
   const { creator = {}, meetingName, isJoinedMuted } = meetingInfo;
   const joinedMemberList = useMemo(() => {
-    if(memberList && memberList.length > 0) {
+    if (memberList && memberList.length > 0) {
       return memberList.filter((member) => member.status === UserStatus.JOINED)
     }
     return []
@@ -97,12 +100,12 @@ const VideoMeeting = () => {
   // 设置媒体流
   const playStreamTo = useCallback((eleId: string, media: MediaStream) => {
     const ele = document.getElementById(eleId);
-    if(ele) {
+    if (ele) {
       (ele as HTMLVideoElement).srcObject = media;
     }
   }, []);
 
-  const createRTCp2pConnection = (obj: {peerId: string}) => {
+  const createRTCp2pConnection = (obj: { peerId: string }) => {
     const peer = new RTCPeerConnection(config);
     peer.onicecandidate = (e) => {
       if (e.candidate) {
@@ -122,7 +125,7 @@ const VideoMeeting = () => {
       console.log('[RTC]：ICE connection state change');
     }
     const tracks = localStream.current!.getTracks();
-    if(tracks && tracks.length > 0) {
+    if (tracks && tracks.length > 0) {
       tracks.forEach((track: MediaStreamTrack) => {
         peer.addTrack(track, localStream.current!);
       })
@@ -132,7 +135,7 @@ const VideoMeeting = () => {
 
   const emitUserEnter = () => {   // 会议创建者/参与者入会，通知signal server
     let eventType;
-    if(role === RoleType.CREATOR) {
+    if (role === RoleType.CREATOR) {
       eventType = EventType.CREATE_MEETING;
     } else {
       eventType = EventType.JOIN_MEETING;
@@ -153,8 +156,8 @@ const VideoMeeting = () => {
     peer.setLocalDescription(desc)
       .then(() => {
         socket.emit(EventType.SEND_OFFER, {
-          sdp: peer.localDescription, 
-          meetingId, 
+          sdp: peer.localDescription,
+          meetingId,
           peerId
         });
       })
@@ -163,24 +166,24 @@ const VideoMeeting = () => {
 
   const onUserJoin = async (data: JoinedData) => { // 用户入会
     const { users, userInfo: successUserInfo } = data;
-    if(successUserInfo._id === userInfo._id) {
+    if (successUserInfo._id === userInfo._id) {
       await currentUserJoin(successUserInfo, users); // 当前用户已入会
     } else {
       otherUserJoin(successUserInfo, users); // 其他成员入会
     };
     const joinedUsers = users.filter((user) => user.status === UserStatus.JOINED)
-    if(joinedUsers.length > 1) {
+    if (joinedUsers.length > 1) {
       joinedUsers.forEach((user: UserData) => {
         const peerId = formatPeerId(user._id, userInfo._id)  // peerId id_id
-        if(!peerMap[peerId] && user._id !== userInfo._id) {
-          createRTCp2pConnection({peerId}); // 创建p2p连接
+        if (!peerMap[peerId] && user._id !== userInfo._id) {
+          createRTCp2pConnection({ peerId }); // 创建p2p连接
         }
       })
     }
-    if(successUserInfo._id === userInfo._id) {
+    if (successUserInfo._id === userInfo._id) {
       const keys = Object.keys(peerMap);
-      for(let peerId of keys) {
-        if(peerId === userInfo._id) continue;
+      for (let peerId of keys) {
+        if (peerId === userInfo._id) continue;
         createOffer(peerId, peerMap[peerId])
       }
     }
@@ -199,7 +202,7 @@ const VideoMeeting = () => {
 
   const onGetSendOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的offer
     const { sdp, meetingId, peerId } = data;
-    if(peerMap[peerId]) {
+    if (peerMap[peerId]) {
       const toPeer = peerMap[peerId];
       toPeer.setRemoteDescription(sdp)
         .then(async () => {
@@ -217,7 +220,7 @@ const VideoMeeting = () => {
 
   const onGetAnswerOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的answer
     const { sdp, meetingId, peerId } = data;
-    if(peerMap[peerId]) {
+    if (peerMap[peerId]) {
       peerMap[peerId].setRemoteDescription(sdp)
         .catch(err => console.log(err));
     }
@@ -225,7 +228,7 @@ const VideoMeeting = () => {
 
   const onGetIceCandidate = (data: ICEMessage) => { // 接受ice候选
     const { candidate, peerId } = data;
-    if(peerMap[peerId]) {
+    if (peerMap[peerId]) {
       peerMap[peerId].addIceCandidate(candidate)
         .catch(err => console.log(err));
     }
@@ -235,16 +238,16 @@ const VideoMeeting = () => {
     console.log("当前用户已入会");
     handleJoinedMember(users);
     try {
-      const stream: MediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user" }, 
-        audio: true 
+      const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: true
       });
       setDevicePermission(true);
       localStream.current = stream;
       handleDeviceStatus("video", false)  // 入会默认关闭摄像头
-      handleDeviceStatus("audio", false) 
+      handleDeviceStatus("audio", false)
       playStreamTo('user', stream);
-    } catch(err) {
+    } catch (err) {
       setDevicePermission(false)
       console.log(err);
     }
@@ -264,7 +267,7 @@ const VideoMeeting = () => {
     const isCreator = creator._id === userInfo._id;
     openQuitModal(isCreator, () => {
       closeLocalStream();
-      if(isCreator) {
+      if (isCreator) {
         socket.emit(EventType.END_MEETING, meetingId);
       } else {
         socket.emit(EventType.LEAVE_MEETING, { meetingId, userId: userInfo._id })
@@ -281,20 +284,28 @@ const VideoMeeting = () => {
     closeLocalStream();
   }
 
+  const onSubmitMessage = (data: MeetingMessageData) => {
+    setMsgList(preList => ([...preList, data]));
+    let timer = setTimeout(() => {
+      setMsgList(preList => preList.filter(item => item.mid !== data.mid));
+      clearTimeout(timer);
+    }, 5000)
+  };
+
   const handleDeviceStatus = useCallback((
-    device: "audio" | "video", 
-    enable: boolean, 
+    device: "audio" | "video",
+    enable: boolean,
     needEmit: boolean = false
   ) => {  // 关闭/打开 摄像头/麦克风
     const tracks = localStream.current?.getTracks() || [];
-    if(tracks.length > 0) {
+    if (tracks.length > 0) {
       tracks.forEach((track) => {
-        if(track.kind === device) {
+        if (track.kind === device) {
           track.enabled = enable;
         }
       })
     }
-    if(device === "audio") {
+    if (device === "audio") {
       setAudioEnable(enable);
     } else {
       setCameraEnable(enable);
@@ -310,8 +321,8 @@ const VideoMeeting = () => {
   const onUserDeviceChange = (data: DeviceStatusMessage) => {
     const { userId, device, enable } = data;
     const newMemberList = memberList.map((member) => {
-      if(member._id === userId) {
-        if(device === "video") {
+      if (member._id === userId) {
+        if (device === "video") {
           member.cameraEnable = enable;
         } else {
           member.audioEnable = enable;
@@ -359,7 +370,7 @@ const VideoMeeting = () => {
   }
 
   useEffect(() => {
-    if(!isEmpty(meetingInfo)) {
+    if (!isEmpty(meetingInfo)) {
       emitUserEnter();
     }
   }, [meetingInfo]);
@@ -384,26 +395,26 @@ const VideoMeeting = () => {
       <div className="member-num">{joinedMemberList.length + 1}人在会议中</div>
     </TitleWrapper>
     <VideoWrapper>
-      <video id={'user'} autoPlay/> 
+      <video id={'user'} autoPlay />
       {
         (!devicePermission || !cameraEnable) && <SelfNoVideo>
-          <UserAvator 
-            nickname={userInfo?.nickname || ""} 
-            status={UserStatus.JOINED}/>
+          <UserAvator
+            nickname={userInfo?.nickname || ""}
+            status={UserStatus.JOINED} />
         </SelfNoVideo>
       }
       <OptionsWrapper>
         <div className={"device-list"}>
           <OptionsItem onClick={() => handleDeviceStatus("video", !cameraEnable, true)}>
-            <CIcon value={`icon-camera${cameraEnable ? "" : "-static"}`} 
-                   size={28} 
-                   color="#fff"/>
+            <CIcon value={`icon-camera${cameraEnable ? "" : "-static"}`}
+              size={28}
+              color="#fff" />
             摄像头
           </OptionsItem>
           <OptionsItem onClick={() => handleDeviceStatus("audio", !audioEnable, true)}>
-            <CIcon value={`icon-audio${audioEnable ? "" : "-static"}`} 
-                   size={28} 
-                   color="#fff"/>
+            <CIcon value={`icon-audio${audioEnable ? "" : "-static"}`}
+              size={28}
+              color="#fff" />
             麦克风
           </OptionsItem>
         </div>
@@ -411,18 +422,22 @@ const VideoMeeting = () => {
           ExtraOptionList.map((opt) => {
             const extraTitle = opt.key === OptionsEnum.MEMBERS ? `(${joinedMemberList.length})` : ""
             return <OptionsItem key={opt.key}>
-              <CIcon value={opt.icon} size={28} color="#fff"/>
+              <CIcon value={opt.icon} size={28} color="#fff" />
               {opt.title}{extraTitle}
             </OptionsItem>
           })
         }
-        <Button danger 
-                type={"primary"} 
-                className={"cancel"} 
-                onClick={onQuit}>
+        <Button danger
+          type={"primary"}
+          className={"cancel"}
+          onClick={onQuit}>
           {creator?._id === userInfo._id ? "结束会议" : "退出会议"}
         </Button>
       </OptionsWrapper>
+      <MeetingChatBox 
+        offset={{ bottom: 67 }}
+        messageList={msgList}
+        onSend={onSubmitMessage}/>
     </VideoWrapper>
     <MemberWrapper>
       {
@@ -430,12 +445,12 @@ const VideoMeeting = () => {
           const isJoined = member.status === UserStatus.JOINED;
           const videoId = formatPeerId(member._id, userInfo._id);
           return <MemberItem key={member._id}>
-            <video id={videoId} autoPlay/>
+            <video id={videoId} autoPlay />
             {(!isJoined || !member.cameraEnable) && <MemberNoVideo>
-              <UserAvator nickname={member.nickname} status={member.status}/>
+              <UserAvator nickname={member.nickname} status={member.status} />
             </MemberNoVideo>}
             <div className={"name-tag"}>
-              <CIcon value={`icon-audio${member.audioEnable ? "" : "-static"}`} size={16} color="#fff"/>
+              <CIcon value={`icon-audio${member.audioEnable ? "" : "-static"}`} size={16} color="#fff" />
               <div className="nickname">{member.nickname}</div>
             </div>
           </MemberItem>
@@ -580,7 +595,7 @@ const SelfNoVideo = styled.div`
     user-select: none;
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 67px;
     left: 0;
     right: 0;
     display: flex;
@@ -593,6 +608,7 @@ const SelfNoVideo = styled.div`
 `
 const MemberNoVideo = styled(SelfNoVideo)`
   & {
+    bottom: 0;
     box-sizing: border-box;
     background: rgb(65, 65, 65);
     font-size: 28px;
