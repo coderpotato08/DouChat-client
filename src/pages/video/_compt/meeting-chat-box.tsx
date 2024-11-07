@@ -3,8 +3,8 @@ import { MeetingMessageData, MeetingMessageTypeEnum } from "@constant/meeting-ty
 import { createUidV4 } from "@helper/uuid-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Input } from "antd";
-import { FC, useEffect, useState } from "react";
+import { Input, InputRef } from "antd";
+import { FC, useEffect, useRef, useState } from "react";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import styled from "styled-components";
 
@@ -17,6 +17,7 @@ type MeetingChatBoxProps = {
   onSend: (data: MeetingMessageData) => void
 }
 export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
+  const inputRef = useRef<InputRef | null>(null)
   const userInfo = useAppSelector(userSelector);
   const [focus, setFocus] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -53,33 +54,34 @@ export const MeetingChatBox: FC<MeetingChatBoxProps> = (props) => {
   }, [messageList]);
 
   return <MeetingChatWrapper $offset={props.offset}>
-    {
-      focus && <BarrageBox>
-        <TransitionGroup>
-          {
-            messageList.map((item, index) => (
-              <CSSTransition key={item.mid as any} timeout={300} classNames='message'>
-                <BarrageWrapper key={index}>
-                  <span className="name">{item.name}：</span>
-                  <span className="content">{item.content}</span>
-                </BarrageWrapper>
-              </CSSTransition>
-            ))
-          }
-        </TransitionGroup>
-      </BarrageBox>
-    }  
-    <InputWrapper>
+    <BarrageBox>
+      <TransitionGroup>
+        {
+          messageList.map((item, index) => (
+            <CSSTransition key={item.mid as any} timeout={300} classNames='message'>
+              <BarrageWrapper key={index}>
+                <span className="name">{item.name}：</span>
+                <span className="content">{item.content}</span>
+              </BarrageWrapper>
+            </CSSTransition>
+          ))
+        }
+      </TransitionGroup>
+    </BarrageBox>
+    <InputWrapper $isExpand={focus}>
       <EmojiPicker onSelect={(emoji: any) => {
         setInputValue(pre => pre + emoji.native);
       }} />
       <Input
+        ref={inputRef}
         value={inputValue}
+        onFocus={() => setFocus(true)}
+        onBlur={() => setFocus(false)}
         onChange={(e) => setInputValue(e.target.value)}
         onPressEnter={submitMessage}
         placeholder="说点什么..." />
-      <div className="expand-btn">
-        收起
+      <div className="expand-btn" onClick={() => setFocus(pre => !pre)}>
+        {focus ? '收起' : '展开'}
       </div>
     </InputWrapper>
   </MeetingChatWrapper>
@@ -105,6 +107,7 @@ const BarrageWrapper = styled.div`
     max-width: 250px;
     margin-bottom: 12px;
     transition: all .4s;
+    word-break: break-all;
 
     .name {
       color: #dd9700;
@@ -116,7 +119,6 @@ const BarrageWrapper = styled.div`
 `
 const BarrageBox = styled.div`
   & {
-    width: 50%;
     max-height: 50vh;
     overflow-y: scroll;
     .message {
@@ -137,19 +139,22 @@ const BarrageBox = styled.div`
     }
   }
 `
-const InputWrapper = styled.div`
+const InputWrapper = styled.div<{
+  $isExpand?: boolean
+}>`
   & {
     display: flex;
+    width: fit-content;
     height: 35px;
     border-radius: 4px;
     background: #666;
     position: relative;
     padding-left: 35px;
     .ant-input {
-      flex: 1;
+      transition: all .4s;
       color: #fff;
       border: none;
-      width: 100px;
+      width: ${props => (props.$isExpand ? '300px' : '100px')};
       background-color: transparent;
       &::placeholder {
         color: #999
@@ -159,6 +164,7 @@ const InputWrapper = styled.div`
       border: none;
     }
     .expand-btn {
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;

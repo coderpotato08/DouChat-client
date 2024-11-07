@@ -32,6 +32,10 @@ import CIcon from "@components/c-icon";
 import { getQuery } from "@helper/common-helper";
 import { MeetingChatBox } from "./_compt/meeting-chat-box";
 
+type PeerConnectionObj = {
+  peer: RTCPeerConnection,
+  dataChannel: RTCDataChannel,
+}
 const UserStatusLabel = {
   [UserStatus.CALLING]: "呼叫中",
   [UserStatus.REJECTED]: "已拒绝",
@@ -82,7 +86,7 @@ const VideoMeeting = () => {
   const { id: meetingId } = useParams();
   const socket = useSocket();
   const [modalApi, modalContextHolder] = Modal.useModal();
-  const { current: peerMap }: MutableRefObject<Record<string, RTCPeerConnection>> = useRef({});
+  const { current: peerMap }: MutableRefObject<Record<string, PeerConnectionObj>> = useRef({});
   const localStream: MutableRefObject<MediaStream | null> = useRef(null);  // 当前用户视频流
   const [audioEnable, setAudioEnable] = useState<boolean>(false); // 麦克风是否开启
   const [cameraEnable, setCameraEnable] = useState<boolean>(false)  // 摄像头是否开启
@@ -91,6 +95,7 @@ const VideoMeeting = () => {
   const [memberList, setMemberList] = useState<UsersList>([]);  // 用户列表
   const [msgList, setMsgList] = useState<MeetingMessageData[]>([]);  // 聊天消息列表
   const { creator = {}, meetingName, isJoinedMuted } = meetingInfo;
+
   const joinedMemberList = useMemo(() => {
     if (memberList && memberList.length > 0) {
       return memberList.filter((member) => member.status === UserStatus.JOINED)
@@ -106,7 +111,26 @@ const VideoMeeting = () => {
   }, []);
 
   const createRTCp2pConnection = (obj: { peerId: string }) => {
+    const channelKey = `_channel_${obj.peerId}`;
     const peer = new RTCPeerConnection(config);
+    // 创建信道
+    const dataChannel = peer.createDataChannel(channelKey, {
+      id: 0,
+      negotiated: true,
+    });
+    dataChannel.onopen = () => {
+      console.log('[RTC]：Channel opened');
+    }
+    dataChannel.onclose = () => {
+      console.log('[RTC]：Channel closed');
+    }
+    dataChannel.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      setMsgList((pre) => [...pre, data]);
+    }
+    peer.ondatachannel = () => {
+      console.log('ondatachannel');
+    };
     peer.onicecandidate = (e) => {
       if (e.candidate) {
         socket.emit(EventType.ICE_CANDIDATE, {
@@ -123,14 +147,14 @@ const VideoMeeting = () => {
     };
     peer.onconnectionstatechange = (e) => {
       console.log('[RTC]：ICE connection state change');
-    }
-    const tracks = localStream.current!.getTracks();
+    };
+    const tracks = localStream.current?.getTracks();
     if (tracks && tracks.length > 0) {
       tracks.forEach((track: MediaStreamTrack) => {
         peer.addTrack(track, localStream.current!);
       })
     }
-    peerMap[obj.peerId] = peer
+    peerMap[obj.peerId] = { peer, dataChannel };
   };
 
   const emitUserEnter = () => {   // 会议创建者/参与者入会，通知signal server
@@ -184,7 +208,7 @@ const VideoMeeting = () => {
       const keys = Object.keys(peerMap);
       for (let peerId of keys) {
         if (peerId === userInfo._id) continue;
-        createOffer(peerId, peerMap[peerId])
+        createOffer(peerId, peerMap[peerId]?.peer);
       }
     }
   }
@@ -203,7 +227,7 @@ const VideoMeeting = () => {
   const onGetSendOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的offer
     const { sdp, meetingId, peerId } = data;
     if (peerMap[peerId]) {
-      const toPeer = peerMap[peerId];
+      const toPeer = peerMap[peerId].peer;
       toPeer.setRemoteDescription(sdp)
         .then(async () => {
           const desc = await toPeer.createAnswer();
@@ -221,7 +245,7 @@ const VideoMeeting = () => {
   const onGetAnswerOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的answer
     const { sdp, meetingId, peerId } = data;
     if (peerMap[peerId]) {
-      peerMap[peerId].setRemoteDescription(sdp)
+      peerMap[peerId].peer.setRemoteDescription(sdp)
         .catch(err => console.log(err));
     }
   }
@@ -229,7 +253,7 @@ const VideoMeeting = () => {
   const onGetIceCandidate = (data: ICEMessage) => { // 接受ice候选
     const { candidate, peerId } = data;
     if (peerMap[peerId]) {
-      peerMap[peerId].addIceCandidate(candidate)
+      peerMap[peerId].peer.addIceCandidate(candidate)
         .catch(err => console.log(err));
     }
   }
@@ -285,11 +309,15 @@ const VideoMeeting = () => {
   }
 
   const onSubmitMessage = (data: MeetingMessageData) => {
-    setMsgList(preList => ([...preList, data]));
-    let timer = setTimeout(() => {
-      setMsgList(preList => preList.filter(item => item.mid !== data.mid));
-      clearTimeout(timer);
-    }, 5000)
+    // setMsgList(preList => ([...preList, data]));
+    Object.keys(peerMap).forEach(peerId => {
+      const { dataChannel } = peerMap[peerId];
+      dataChannel.send(JSON.stringify(data));
+    });
+    // let timer = setTimeout(() => {
+    //   setMsgList(preList => preList.filter(item => item.mid !== data.mid));
+    //   clearTimeout(timer);
+    // }, 5000)
   };
 
   const handleDeviceStatus = useCallback((
