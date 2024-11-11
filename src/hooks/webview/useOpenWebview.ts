@@ -73,7 +73,7 @@ export const useOpenWebview = (
     // url与query前置处理
     const urlKey = `${url}${props?.id ? "/" + props.id : ""}`;
 
-    // 拆分出nova开头的params
+    // 拆分出_DouChat_开头的params
     const [innerParams, inputParams] = splitObjectByPrefix(
       props?.params || {},
       APP_NANE_PREFIX
