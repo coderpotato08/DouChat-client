@@ -126,7 +126,7 @@ const VideoMeeting = () => {
     }
     dataChannel.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      setMsgList((pre) => [...pre, data]);
+      createMessageNode(data);
     }
     peer.ondatachannel = () => {
       console.log('ondatachannel');
@@ -308,16 +308,20 @@ const VideoMeeting = () => {
     closeLocalStream();
   }
 
+  const createMessageNode = (data: MeetingMessageData) => {
+    setMsgList(preList => ([...preList, data]));
+    let timer = setTimeout(() => {
+      setMsgList(preList => preList.filter(item => item.mid !== data.mid));
+      clearTimeout(timer);
+    }, 5000)
+  }
+
   const onSubmitMessage = (data: MeetingMessageData) => {
-    // setMsgList(preList => ([...preList, data]));
     Object.keys(peerMap).forEach(peerId => {
       const { dataChannel } = peerMap[peerId];
       dataChannel.send(JSON.stringify(data));
     });
-    // let timer = setTimeout(() => {
-    //   setMsgList(preList => preList.filter(item => item.mid !== data.mid));
-    //   clearTimeout(timer);
-    // }, 5000)
+    createMessageNode(data);
   };
 
   const handleDeviceStatus = useCallback((
