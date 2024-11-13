@@ -35,7 +35,7 @@ export enum OptionsEnum {
   SCREEN_SHARE = "screen-share",
 }
 
-/** 拒绝入会报文 */
+/** 入会报文 */
 export interface JoinedData {
   users: Array<UserData>,
   userInfo: any,
@@ -57,6 +57,8 @@ export type BaseMessageType = {
 /** sdp报文 */
 export type SDPMessage = {
   sdp: RTCSessionDescription
+  from: string, 
+  to: string,
 } & BaseMessageType
 
 /** ice */

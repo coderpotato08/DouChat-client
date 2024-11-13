@@ -101,6 +101,7 @@ const Wrapper = styled.div`
     justify-content: center;
     box-sizing: border-box;
     padding: 70px 60px;
+    overflow-y: scroll;
     > h1 {
       color: #333;
     }
