@@ -1,5 +1,7 @@
 const path = require("path");
-
+/**
+ * @type {import('@craco/types').CracoConfig}
+ */
 module.exports = {
   //webpack配置
   webpack: {
