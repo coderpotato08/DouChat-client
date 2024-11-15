@@ -1,5 +1,5 @@
 import { Button, Input, message } from "antd"
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import styled from "styled-components"
 import { AxiosHelper } from "../../../helper/axios-helper";
 import { ApiEnum } from "../../../constant/api-types";
@@ -8,10 +8,14 @@ import { useDispatch } from "react-redux";
 import { LocalStorageHelper, StorageKeys } from "../../../helper/storage-helper";
 import { setUserInfo } from "../../../store";
 import { Toastify } from "../../../helper/toastify-helper";
+import { AuthLogin } from "./auth-login";
+import { getQuery } from "@helper/common-helper";
+import { ApiHelper } from "@helper/api-helper";
 
-const Login:FC = () => {
+const Login: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { code, state } = getQuery();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
@@ -43,7 +47,14 @@ const Login:FC = () => {
   const onGoToRegister = () => {
     navigate("/register");
   }
-  
+
+  useEffect(() => {
+    if (code && state) {
+      console.log(code, state)
+      ApiHelper.githubAuthAccess({ code, state })
+    }
+  }, [])
+
   return <Wrapper>
     <h1>Login</h1>
     <div className='tips'>
@@ -52,17 +63,19 @@ const Login:FC = () => {
       <span>, it takes less than a minute</span>
     </div>
     <div className='form'>
-      <Input 
+      <Input
         placeholder='Username'
         value={username}
-        onChange={(e) => setUsername(e.target.value)}/>
+        onChange={(e) => setUsername(e.target.value)} />
       <Input
         placeholder='Password'
         type='password'
         value={password}
-        onChange={(e) => setPassword(e.target.value)}/>
+        onChange={(e) => setPassword(e.target.value)} />
     </div>
     <Button className='login-btn' type='primary' onClick={onLogin}>LOGIN</Button>
+
+    <AuthLogin />
   </Wrapper>
 }
 
@@ -92,7 +105,7 @@ const Wrapper = styled.div`
       font-size: 18px;
       font-weight: bold;
       height: 40px;
-      margin-top: 60px;
+      margin-top: 30px;
     }
     .ant-input {
       border: none;

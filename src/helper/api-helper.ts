@@ -316,4 +316,8 @@ export class ApiHelper {
       }
     })
   }
+
+  public static githubAuthAccess = (params: { code: string, state: number }) => {
+    return AxiosHelper.post(ApiEnum.AUTH_GITHUB_ACCESS, params);
+  }
 }

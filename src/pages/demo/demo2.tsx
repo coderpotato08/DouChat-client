@@ -1,5 +1,5 @@
 import { MeetingMessageData } from "@constant/meeting-types";
-import { MeetingChatBox } from "@pages/video/_compt/meeting-chat-box";
+import { MeetingChatBox } from "@pages/video/components/meeting-chat-box";
 import { useState } from "react"
 
 export const Demo2 = () => {

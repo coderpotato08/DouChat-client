@@ -58,11 +58,11 @@ export const useOpenWebview = (
     }
   };
 
-  const initWebview = (options: {
+  const initWebview = (initOptions: {
     urlKey: string; // 带/:id的url，用作WebviewWindow的唯一标识
     fullUrl: string; // 带/:id和query的完整url
   }): WebviewWindow => {
-    const { urlKey, fullUrl } = options;
+    const { urlKey, fullUrl } = initOptions;
     return new WebviewWindow(`tarui-page:/${urlKey}`, {
       url: fullUrl,
       ...(options || {}),

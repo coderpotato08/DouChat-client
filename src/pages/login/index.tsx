@@ -1,23 +1,21 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import styled from 'styled-components'
 import { ToastContainer } from 'react-toastify';
 import LoginComp from './components/login'
 import 'react-toastify/dist/ReactToastify.css';
 
-const Login:FC = () => {
-  const [isLogin, setIsLogin] = useState<boolean>(true)
+const Login: FC = () => {
 
   return (
     <LoginWrapper>
-      <div className='background'>
-        <h1>Welcome</h1>
+      <div className='background' />
+      <div className='container'>
+
       </div>
       <div className='box'>
-        {
-          isLogin ? <LoginComp/> : null
-        }
+        <LoginComp />
       </div>
-      <ToastContainer/>
+      <ToastContainer />
     </LoginWrapper>
   )
 }
@@ -44,7 +42,15 @@ const LoginWrapper = styled.div`
         color: #fff;
       }
     }
+    .container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(60vw - 24px);
+      height: 100vh;
+    }
     .box {
+      background: #fff;
       position: absolute;
       top: 50%;
       transform: translateY(-50%);

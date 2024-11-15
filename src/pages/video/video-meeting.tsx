@@ -30,7 +30,7 @@ import { Avatar, Button, Modal, message } from "antd";
 import { useSocket } from "@store/context/createContext";
 import CIcon from "@components/c-icon";
 import { getQuery } from "@helper/common-helper";
-import { MeetingChatBox } from "./_compt/meeting-chat-box";
+import { MeetingChatBox } from "./components/meeting-chat-box";
 
 type PeerConnectionObj = {
   peer: RTCPeerConnection,
@@ -466,10 +466,10 @@ const VideoMeeting = () => {
           {creator?._id === userInfo._id ? "结束会议" : "退出会议"}
         </Button>
       </OptionsWrapper>
-      <MeetingChatBox 
+      <MeetingChatBox
         offset={{ bottom: 67 }}
         messageList={msgList}
-        onSend={onSubmitMessage}/>
+        onSend={onSubmitMessage} />
     </VideoWrapper>
     <MemberWrapper>
       {
