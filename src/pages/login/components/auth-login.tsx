@@ -1,5 +1,6 @@
 import CIcon from "@components/c-icon";
 import { AuthPlatform, useAuthLogin } from "@hooks/useAuthLogin";
+import { message } from "antd";
 import styled from "styled-components";
 
 type AuthButtonProps = {
@@ -16,6 +17,15 @@ const AuthButton = (props: AuthButtonProps) => {
 }
 export const AuthLogin = () => {
   const authLogin = useAuthLogin();
+
+  const onClickButton = async (type: AuthPlatform) => {
+    try {
+      await authLogin({ platform: type })
+    } catch(errMsg: any) {
+      message.error(errMsg);
+    }
+  };
+
   return <AuthLoginWrapper>
     <div className="title">第三方账号登录</div>
     <AuthButtonList>
@@ -23,7 +33,7 @@ export const AuthLogin = () => {
         AUTH_BUTTON_LIST.map((item) => <AuthButton 
           key={item.key} 
           icon={item.icon} 
-          onClick={() => authLogin({ platform: item.key as AuthPlatform })}
+          onClick={() => onClickButton(item.key as AuthPlatform)}
         />)
       }
     </AuthButtonList>

@@ -49,11 +49,10 @@ const Login: FC = () => {
   }
 
   useEffect(() => {
-    if (code && state) {
-      console.log(code, state)
+    if (code && state) { // github
       ApiHelper.githubAuthAccess({ code, state })
     }
-  }, [])
+  }, []);
 
   return <Wrapper>
     <h1>Login</h1>
