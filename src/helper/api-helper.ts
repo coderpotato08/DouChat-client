@@ -33,7 +33,7 @@ import {
   SearchMatchGroupMessageListParamsType,
   SearchMatchUserMessageListParamsType,
 } from "@constant/api-types"
-import { AxiosHelper } from "./axios-helper"
+import { AxiosHelper } from "../service/index"
 import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types"
 import { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types"
 

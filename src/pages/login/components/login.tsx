@@ -1,7 +1,6 @@
 import { Button, Input, message } from "antd"
 import { FC, useEffect, useState } from "react";
 import styled from "styled-components"
-import { AxiosHelper } from "../../../helper/axios-helper";
 import { ApiEnum } from "../../../constant/api-types";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -11,6 +10,7 @@ import { Toastify } from "../../../helper/toastify-helper";
 import { AuthLogin } from "./auth-login";
 import { getQuery } from "@helper/common-helper";
 import { ApiHelper } from "@helper/api-helper";
+import { AxiosHelper } from "@service/index";
 
 const Login: FC = () => {
   const navigate = useNavigate();
