@@ -320,4 +320,8 @@ export class ApiHelper {
   public static githubAuthAccess = (params: { code: string, state: number }) => {
     return AxiosHelper.post(ApiEnum.AUTH_GITHUB_ACCESS, params);
   }
+
+  public static googleAuthAccess = (params: { code: string, state: number }) => {
+    return AxiosHelper.post(ApiEnum.AUTH_GOOGLE_ACCESS, params);
+  }
 }

@@ -1,18 +1,19 @@
-import CIcon from "@components/c-icon";
 import { AuthPlatform, useAuthLogin } from "@hooks/useAuthLogin";
 import { message } from "antd";
 import styled from "styled-components";
 
 type AuthButtonProps = {
+  key: string;
   icon: string;
   onClick?: () => void;
 }
 const AUTH_BUTTON_LIST = [
-  { key: 'github', icon: 'icon-github' },
+  { key: AuthPlatform.github, icon: require('@assets/imgs/Github.png') },
+  { key: AuthPlatform.google, icon: require('@assets/imgs/Google.png') },
 ]
 const AuthButton = (props: AuthButtonProps) => {
   return <div className="auth-button" onClick={props.onClick}>
-    <CIcon value={props.icon} size={36} color="#ffffff" />
+    <img src={props.icon} alt={`${props.key} outh2.0 icon`} />
   </div>
 }
 export const AuthLogin = () => {
@@ -21,8 +22,8 @@ export const AuthLogin = () => {
   const onClickButton = async (type: AuthPlatform) => {
     try {
       await authLogin({ platform: type })
-    } catch(errMsg: any) {
-      message.error(errMsg);
+    } catch (err: any) {
+      message.error((err as Error).message);
     }
   };
 
@@ -30,9 +31,9 @@ export const AuthLogin = () => {
     <div className="title">第三方账号登录</div>
     <AuthButtonList>
       {
-        AUTH_BUTTON_LIST.map((item) => <AuthButton 
-          key={item.key} 
-          icon={item.icon} 
+        AUTH_BUTTON_LIST.map((item) => <AuthButton
+          key={item.key}
+          icon={item.icon}
           onClick={() => onClickButton(item.key as AuthPlatform)}
         />)
       }
@@ -80,8 +81,11 @@ const AuthButtonList = styled.div`
       align-items: center;
       width: 48px;
       height: 48px;
-      border-radius: 50%;
-      background-color: #999;
+      img {
+        width: 48px;
+        height: 48px;
+
+      }
     }
   }
 `

@@ -6,6 +6,7 @@ export enum StorageKeys {
   TOKEN = "token",
   IS_SHOW_DELETE_CONTACT_TIP = "is_show_delete_contact_tip", // 删除聊天栏 下次是否不再提醒
   MENU_LOCAL_WIDTH = "menu_local_width",
+  LOGIN_THIRD_PLATFORM = "login_third_platform" // 缓存outh2.0登陆的第三方平台
 }
 
 type WepperExpireData = {

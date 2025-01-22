@@ -11,6 +11,7 @@ import { AuthLogin } from "./auth-login";
 import { getQuery } from "@helper/common-helper";
 import { ApiHelper } from "@helper/api-helper";
 import { AxiosHelper } from "@service/index";
+import { AuthPlatform } from "@hooks/useAuthLogin";
 
 const Login: FC = () => {
   const navigate = useNavigate();
@@ -49,8 +50,20 @@ const Login: FC = () => {
   }
 
   useEffect(() => {
-    if (code && state) { // github
-      ApiHelper.githubAuthAccess({ code, state })
+    const thirdPlatorm = LocalStorageHelper.getLocalData(StorageKeys.LOGIN_THIRD_PLATFORM) as AuthPlatform;
+    switch (thirdPlatorm) {
+      case AuthPlatform.github:
+        if (code && state) {
+          ApiHelper.githubAuthAccess({ code, state });
+        }
+        break;
+      case AuthPlatform.google:
+        if (code) {
+          ApiHelper.googleAuthAccess({ code, state });
+        }
+        break;
+      default:
+        break;
     }
   }, []);
 

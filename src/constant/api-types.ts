@@ -52,8 +52,8 @@ export enum ApiEnum {
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片
 
-  AUTH_GITHUB = '/auth/github', // github授权
-  AUTH_GITHUB_ACCESS = '/auth/github/access' // github callback用户access注册
+  AUTH_GITHUB_ACCESS = '/auth/github/access', // github callback用户access注册
+  AUTH_GOOGLE_ACCESS = '/auth/google/access', // google callback用户access注册
 }
 
 export interface UserContactsParamsType {
