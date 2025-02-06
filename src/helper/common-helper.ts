@@ -132,32 +132,6 @@ export const formatBytes = (bytes: number, decimals: number = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
 
-export const textFormat = (content: string): string => {
-  // content 即粘贴过来的内容(html 或 纯文本), 将样式清除
-  if (content == "" && !content) return "";
-  let str = content;
-  return str
-    .replace(/<span[^>]*>/gi, "<span>") // 去除所有span的style
-    .replace(/<div[^>]*>/gi, "<div>") // 去除所有div的style
-    .replace(/<meta[^>]*>/g, ""); // 去除所有meta标签
-};
-
-export const textAndImageFormat = (content: string): string[] => {
-  // content 即粘贴过来的内容(html 或 纯文本), 将样式清除
-  if (content == "" && !content) return [""];
-  let str = content;
-  str = textFormat(str);
-  const strArr = str.split(/<img[^>]*>/gi); // 根据img标签分割
-  return strArr;
-};
-
-export const removeExtraHtml = (content: string): string => {
-  // 取出输入框中复制黏贴出来的html 中 样式，meta标签
-  if (content == "" && !content) return "";
-  let str = content;
-  return str.replace(/\sstyle="([^"]*)"/g, "").replace(/<meta[^>]*>/g, "");
-};
-
 export const base64ToImageFile = <T extends string>(
   base64: T
 ): { file: File; key: T } => {

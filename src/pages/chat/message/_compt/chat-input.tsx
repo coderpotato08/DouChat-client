@@ -2,7 +2,8 @@ import CIcon from "../../../../components/c-icon";
 import styled from "styled-components";
 import { Flex, Button, theme, GlobalToken, Popover, Avatar } from "antd";
 import { ClipboardEvent, FC, FormEvent, KeyboardEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { base64ToImageFile, handleRemindStr, textAndImageFormat, textFormat } from "../../../../helper/common-helper";
+import { base64ToImageFile, handleRemindStr } from "@helper/common-helper";
+import { textAndImageHtmlFormat, textHtmlFormat, completePiecesHtml } from "@helper/dom-helper";
 import { debounce } from "lodash";
 import EmojiPicker from "../../../../components/emoji-picker";
 import { ApiHelper } from "../../../../helper/api-helper";
@@ -74,6 +75,7 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
         if (metaPress) return;
         // onClickSubmit();
         break;
+      case "Backspace": // 处理删除
       default:
         break;
     }
@@ -98,6 +100,9 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
   }
 
   const onInputPaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    const clipboardData = e.clipboardData || (window as any).clipboardData;
+    const pastedData = clipboardData.getData('text/html') || clipboardData.getData('text');
+    console.log(textHtmlFormat(pastedData));
     setMessage(messageInputRef.current!.innerHTML);
   }
 
@@ -122,17 +127,17 @@ const ChatInput: FC<ChatInputProps> = (props: ChatInputProps) => {
               value: `<img src=${src} style="${imgFixStyle}"/>`,
               type: MessageTypeEnum.IMAGE,
             }))
-          const messageList = textAndImageFormat(message)
+          const messageList = textAndImageHtmlFormat(message)
             .filter(Boolean)
             .map((text) => ({
-              value: text,
+              value: completePiecesHtml(text),
               type: MessageTypeEnum.TEXT,
             }))
           console.log(messageList, imgMessageList)
           submitMessage([...messageList, ...imgMessageList])
         })
     } else {
-      submitMessage({ value: textFormat(message), type: MessageTypeEnum.TEXT });
+      submitMessage({ value: textHtmlFormat(message), type: MessageTypeEnum.TEXT });
     }
   }
 
