@@ -1,3 +1,4 @@
+/** @format 视频会议组件备份 */
 import {
   MutableRefObject,
   useCallback,
@@ -13,30 +14,51 @@ import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
 import {
   DeviceStatusMessage,
+  ICEMessage,
   JoinedData,
   MeetingMessageData,
+  OptionsEnum,
   RejectMessageType,
   RoleType,
+  SDPMessage,
   UserData,
   UsersList,
   UserStatus,
 } from "@constant/meeting-types";
 import { ApiHelper } from "@helper/api-helper";
 import { isEmpty } from "lodash"
-import { Avatar, Modal, message } from "antd";
+import { Avatar, Button, Modal, message } from "antd";
 import { useSocket } from "@store/context/createContext";
 import CIcon from "@components/c-icon";
 import { getQuery } from "@helper/common-helper";
 import { MeetingChatBox } from "./components/meeting-chat-box";
-import { useRTCMeeting } from "@hooks/useRTCMeeting";
-import { formatPeerId } from "@helper/user-helper";
-import { MeetingToolList, OptionItem } from "./components/tool-list";
-import { MeetingToolsEnum } from "./types/tools";
 
+type PeerConnectionObj = {
+  peer: RTCPeerConnection,
+  dataChannel: RTCDataChannel,
+}
 const UserStatusLabel = {
   [UserStatus.CALLING]: "呼叫中",
   [UserStatus.REJECTED]: "已拒绝",
   [UserStatus.QUIT]: "已退出",
+}
+const ExtraOptionList = [
+  { title: "邀请", key: OptionsEnum.INVITE, icon: `icon-invite` },
+  { title: "成员", key: OptionsEnum.MEMBERS, icon: `icon-members` },
+  { title: "共享屏幕", key: OptionsEnum.SCREEN_SHARE, icon: `icon-screen-share` },
+]
+
+//这里使用了几个公共的stun协议服务器
+const config: RTCConfiguration = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+  ]
+};
+
+// 处理peerId
+const formatPeerId = (id_a: string, id_b: string) => {
+  let arr = [id_a, id_b];
+  return arr.sort().join("_")
 }
 
 const UserAvator = (props: {
@@ -59,43 +81,20 @@ const UserAvator = (props: {
   </UserHeader>
 }
 
-// 设置媒体流
-const playStreamTo = (eleId: string, media: MediaStream) => {
-  const ele = document.getElementById(eleId);
-  if (ele) {
-    (ele as HTMLVideoElement).srcObject = media;
-  }
-};
-
 const VideoMeeting = () => {
   const userInfo = useAppSelector(userSelector);
   const { role } = getQuery();
   const { id: meetingId } = useParams();
   const socket = useSocket();
-  const [quitModalApi, quitModalContext] = Modal.useModal();
-  const localStream: MutableRefObject<MediaStream | undefined> = useRef();  // 当前用户视频流
-  const [memberList, setMemberList] = useState<UsersList>([]);  // 用户列表
+  const [modalApi, modalContextHolder] = Modal.useModal();
+  const { current: peerMap }: MutableRefObject<Record<string, PeerConnectionObj>> = useRef({});
+  const localStream: MutableRefObject<MediaStream | null> = useRef(null);  // 当前用户视频流
   const [audioEnable, setAudioEnable] = useState<boolean>(false); // 麦克风是否开启
   const [cameraEnable, setCameraEnable] = useState<boolean>(false)  // 摄像头是否开启
   const [devicePermission, setDevicePermission] = useState<boolean>(false) // 设备授权
   const [meetingInfo, setMeetingInfo] = useState<any>({});  // 会议信息
+  const [memberList, setMemberList] = useState<UsersList>([]);  // 用户列表
   const [msgList, setMsgList] = useState<MeetingMessageData[]>([]);  // 聊天消息列表
-  const {
-    peerMap,
-    createPeerConnection,
-    destoryPeerConnection,
-    startNegotiate,
-  } = useRTCMeeting(
-    meetingId || '',
-    {
-      peer: { onAddStream: playStreamTo },
-      dataChannel: {
-        onMessage: (msgData: any) => {
-          setMsgList((pre) => [...pre, msgData]);
-        }
-      }
-    }
-  );
   const { creator = {}, meetingName, isJoinedMuted } = meetingInfo;
 
   const joinedMemberList = useMemo(() => {
@@ -104,26 +103,91 @@ const VideoMeeting = () => {
     }
     return []
   }, [memberList])
+  // 设置媒体流
+  const playStreamTo = useCallback((eleId: string, media: MediaStream) => {
+    const ele = document.getElementById(eleId);
+    if (ele) {
+      (ele as HTMLVideoElement).srcObject = media;
+    }
+  }, []);
 
-  const ExtraOptionList: OptionItem[] = useMemo(() => {
-    return [
-      {
-        title: "邀请",
-        key: MeetingToolsEnum.INVITE,
-        icon: `icon-invite`
-      },
-      {
-        title: `成员(${joinedMemberList.length})`,
-        key: MeetingToolsEnum.MEMBERS,
-        icon: `icon-members`
-      },
-      {
-        title: "共享屏幕",
-        key: MeetingToolsEnum.SCREEN_SHARE,
-        icon: `icon-screen-share`
-      },
-    ]
-  }, [joinedMemberList])
+  const createRTCp2pConnection = (obj: { peerId: string }) => {
+    const channelKey = `_channel_${obj.peerId}`;
+    const peer = new RTCPeerConnection(config);
+    // 创建信道
+    const dataChannel = peer.createDataChannel(channelKey, {
+      id: 0,
+      negotiated: true,
+    });
+    dataChannel.onopen = () => {
+      console.log('[RTC]：Channel opened');
+    }
+    dataChannel.onclose = () => {
+      console.log('[RTC]：Channel closed');
+    }
+    dataChannel.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      createMessageNode(data);
+    }
+    peer.ondatachannel = () => {
+      console.log('ondatachannel');
+    };
+    peer.onicecandidate = (e) => {
+      if (e.candidate) {
+        socket.emit(EventType.ICE_CANDIDATE, {
+          candidate: e.candidate,
+          peerId: obj.peerId,
+          meetingId,
+        })
+      }
+    }
+    peer.ontrack = (e) => {
+      console.log(`[RTC]：有其他客户端的媒体流加入，ID：${obj.peerId}`);
+      const stream = e.streams[0];
+      playStreamTo(obj.peerId, stream);
+    };
+    peer.onconnectionstatechange = (e) => {
+      console.log('[RTC]：ICE connection state change');
+    };
+    const tracks = localStream.current?.getTracks();
+    if (tracks && tracks.length > 0) {
+      tracks.forEach((track: MediaStreamTrack) => {
+        peer.addTrack(track, localStream.current!);
+      })
+    }
+    peerMap[obj.peerId] = { peer, dataChannel };
+  };
+
+  const emitUserEnter = () => {   // 会议创建者/参与者入会，通知signal server
+    let eventType;
+    if (role === RoleType.CREATOR) {
+      eventType = EventType.CREATE_MEETING;
+    } else {
+      eventType = EventType.JOIN_MEETING;
+    }
+    socket.emit(eventType, {
+      meetingId,
+      meetingInfo,
+      userInfo,
+    })
+  }
+
+  const createOffer = async (peerId: string, peer: RTCPeerConnection) => {
+    //发送offer，发送本地session描述
+    const desc = await peer.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
+    peer.setLocalDescription(desc)
+      .then(() => {
+        socket.emit(EventType.SEND_OFFER, {
+          sdp: peer.localDescription,
+          meetingId,
+          peerId
+        });
+      })
+      .catch((err) => console.log(err))
+  }
 
   const onUserJoin = async (data: JoinedData) => { // 用户入会
     const { users, userInfo: successUserInfo } = data;
@@ -139,8 +203,8 @@ const VideoMeeting = () => {
         if (user._id !== successUserInfo._id) {
           const peerId = formatPeerId(user._id, successUserInfo._id)  // peerId id_id
           if (!peerMap[peerId]) {
-            createPeerConnection(peerId, localStream.current!); // 创建p2p连接
-            startNegotiate(peerId, successUserInfo._id);
+            createRTCp2pConnection({ peerId }); // 创建p2p连接
+            createOffer(peerId, (peerMap[peerId] as PeerConnectionObj).peer);
           }
         }
       })
@@ -158,6 +222,40 @@ const VideoMeeting = () => {
     setMemberList(newMemberList);
   }
 
+  const onGetSendOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的offer
+    const { sdp, meetingId, peerId } = data;
+    if (peerMap[peerId]) {
+      const toPeer = peerMap[peerId].peer;
+      toPeer.setRemoteDescription(sdp)
+        .then(async () => {
+          const desc = await toPeer.createAnswer();
+          await toPeer.setLocalDescription(desc);
+          socket.emit(EventType.ANSWER_OFFER, {
+            sdp: toPeer.localDescription,
+            meetingId,
+            peerId
+          })
+        })
+        .catch((err) => console.log(err))
+    }
+  }
+
+  const onGetAnswerOffer = (data: SDPMessage) => {  // 接收到其他客户端传来的answer
+    const { sdp, meetingId, peerId } = data;
+    if (peerMap[peerId]) {
+      peerMap[peerId].peer.setRemoteDescription(sdp)
+        .catch(err => console.log(err));
+    }
+  }
+
+  const onGetIceCandidate = (data: ICEMessage) => { // 接受ice候选
+    const { candidate, peerId } = data;
+    if (peerMap[peerId]) {
+      peerMap[peerId].peer.addIceCandidate(candidate)
+        .catch(err => console.log(err));
+    }
+  }
+
   const currentUserJoin = async (userInfo: any, users: UsersList) => {
     console.log("当前用户已入会");
     handleJoinedMember(users);
@@ -171,11 +269,9 @@ const VideoMeeting = () => {
       handleDeviceStatus("video", false)  // 入会默认关闭摄像头
       handleDeviceStatus("audio", false)
       playStreamTo('user', stream);
-      return Promise.resolve();
     } catch (err) {
       setDevicePermission(false)
       console.log(err);
-      return Promise.reject();
     }
   }
 
@@ -210,16 +306,20 @@ const VideoMeeting = () => {
     closeLocalStream();
   }
 
+  const createMessageNode = (data: MeetingMessageData) => {
+    setMsgList(preList => ([...preList, data]));
+    let timer = setTimeout(() => {
+      setMsgList(preList => preList.filter(item => item.mid !== data.mid));
+      clearTimeout(timer);
+    }, 5000)
+  }
+
   const onSubmitMessage = (data: MeetingMessageData) => {
-    // setMsgList(preList => ([...preList, data]));
     Object.keys(peerMap).forEach(peerId => {
       const { dataChannel } = peerMap[peerId];
       dataChannel.send(JSON.stringify(data));
     });
-    // let timer = setTimeout(() => {
-    //   setMsgList(preList => preList.filter(item => item.mid !== data.mid));
-    //   clearTimeout(timer);
-    // }, 5000)
+    createMessageNode(data);
   };
 
   const handleDeviceStatus = useCallback((
@@ -268,7 +368,7 @@ const VideoMeeting = () => {
   }, [localStream.current])
 
   const openQuitModal = useCallback((isEnd: boolean, onOk: () => void) => {
-    quitModalApi.confirm({
+    modalApi.confirm({
       title: isEnd ? "会议结束" : "退出会议",
       content: <div>{isEnd ? "会议结束后，所有人将被移出会议" : "确定要退出当前会议？"}</div>,
       icon: null,
@@ -294,18 +394,14 @@ const VideoMeeting = () => {
     socket[trigger](EventType.DEVICE_STATUS_CHANGE, onUserDeviceChange) // 用户设备开启/关闭
     socket[trigger](EventType.LEAVE_MEETING, onUserLeave) // 有用户退出会议
     socket[trigger](EventType.END_MEETING, onGetMeetingEnd) // 主持人结束会议
+    socket[trigger](EventType.SEND_OFFER, onGetSendOffer);  // p2p sdp offer
+    socket[trigger](EventType.ANSWER_OFFER, onGetAnswerOffer);    // p2p sdp answer
+    socket[trigger](EventType.ICE_CANDIDATE, onGetIceCandidate);  // p2p ice
   }
 
   useEffect(() => {
     if (!isEmpty(meetingInfo)) {
-      socket.emit(
-        role === RoleType.CREATOR ? EventType.CREATE_MEETING : EventType.JOIN_MEETING,
-        {
-          meetingId,
-          meetingInfo,
-          userInfo,
-        }
-      );
+      emitUserEnter();
     }
   }, [meetingInfo]);
 
@@ -319,12 +415,8 @@ const VideoMeeting = () => {
   useEffect(() => {
     loadMeetingInfo();
     return () => {
-      // 销毁peer 断开媒体流
-      Object.keys(peerMap).forEach((peerId) => {
-        destoryPeerConnection(peerId);
-      });
-      localStream.current?.getTracks().forEach(track => track.stop());
-    };
+      // onQuit()
+    }
   }, [])
 
   return <Wrapper>
@@ -341,13 +433,37 @@ const VideoMeeting = () => {
             status={UserStatus.JOINED} />
         </SelfNoVideo>
       }
-      <MeetingToolList
-        meetingCreator={creator}
-        cameraEnable={cameraEnable}
-        audioEnable={audioEnable}
-        extraOptions={ExtraOptionList}
-        onClickQuick={onQuit}
-        onChangeDeviceStatus={handleDeviceStatus} />
+      <OptionsWrapper>
+        <div className={"device-list"}>
+          <OptionsItem onClick={() => handleDeviceStatus("video", !cameraEnable, true)}>
+            <CIcon value={`icon-camera${cameraEnable ? "" : "-static"}`}
+              size={28}
+              color="#fff" />
+            摄像头
+          </OptionsItem>
+          <OptionsItem onClick={() => handleDeviceStatus("audio", !audioEnable, true)}>
+            <CIcon value={`icon-audio${audioEnable ? "" : "-static"}`}
+              size={28}
+              color="#fff" />
+            麦克风
+          </OptionsItem>
+        </div>
+        {
+          ExtraOptionList.map((opt) => {
+            const extraTitle = opt.key === OptionsEnum.MEMBERS ? `(${joinedMemberList.length})` : ""
+            return <OptionsItem key={opt.key}>
+              <CIcon value={opt.icon} size={28} color="#fff" />
+              {opt.title}{extraTitle}
+            </OptionsItem>
+          })
+        }
+        <Button danger
+          type={"primary"}
+          className={"cancel"}
+          onClick={onQuit}>
+          {creator?._id === userInfo._id ? "结束会议" : "退出会议"}
+        </Button>
+      </OptionsWrapper>
       <MeetingChatBox
         offset={{ bottom: 67 }}
         messageList={msgList}
@@ -371,7 +487,7 @@ const VideoMeeting = () => {
         })
       }
     </MemberWrapper>
-    {quitModalContext}
+    {modalContextHolder}
   </Wrapper>
 }
 
@@ -415,6 +531,47 @@ const VideoWrapper = styled.div`
       margin: 0 auto;
       width: 80%;
       height: calc(100vh - 40px - 65px);
+    }
+  }
+`
+const OptionsWrapper = styled.div`
+  & {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    border-top: 2px solid #000;
+    background: #333;
+    .device-list {
+      display: flex;
+      gap: 20px;
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .cancel {
+      position: absolute;
+      right: 8px;
+      bottom: 12px;
+    }
+  }
+`
+const OptionsItem = styled.div`
+  & {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    .device-icon {
+      position: relative;
     }
   }
 `
