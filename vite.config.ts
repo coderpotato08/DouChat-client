@@ -3,11 +3,13 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
-  plugins: [react({
-    babel: {
-      plugins: ["babel-plugin-styled-components"],
-    },
-  })],
+  plugins: [
+    react({
+      babel: {
+        plugins: ["babel-plugin-styled-components"],
+      },
+    }),
+  ],
   root: path.resolve(__dirname),
   base: "/",
   resolve: {
@@ -26,5 +28,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3030",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
 });

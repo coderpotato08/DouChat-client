@@ -6,10 +6,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { Result } from "@service/type";
-import { handleAxiosErrorCode } from "./common";
+import { getBaseUrl, handleAxiosErrorCode } from "./common";
 
 export const baseRequest: AxiosInstance = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: `${getBaseUrl()}/api`,
   timeout: 30000,
   withCredentials: true,
   headers: {
