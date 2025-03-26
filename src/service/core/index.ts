@@ -5,7 +5,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { Result } from "service/type";
+import { Result } from "@service/type";
 import { handleAxiosErrorCode } from "./common";
 
 export const baseRequest: AxiosInstance = axios.create({

@@ -1,6 +1,8 @@
 import { AuthPlatform, useAuthLogin } from "@hooks/useAuthLogin";
 import { message } from "antd";
 import styled from "styled-components";
+import githubIcon from '@assets/imgs/Github.png';
+import googleIcon from '@assets/imgs/Google.png';
 
 type AuthButtonProps = {
   key: string;
@@ -8,8 +10,8 @@ type AuthButtonProps = {
   onClick?: () => void;
 }
 const AUTH_BUTTON_LIST = [
-  { key: AuthPlatform.github, icon: require('@assets/imgs/Github.png') },
-  { key: AuthPlatform.google, icon: require('@assets/imgs/Google.png') },
+  { key: AuthPlatform.github, icon: githubIcon },
+  { key: AuthPlatform.google, icon: googleIcon },
 ]
 const AuthButton = (props: AuthButtonProps) => {
   return <div className="auth-button" onClick={props.onClick}>

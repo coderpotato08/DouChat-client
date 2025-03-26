@@ -36,9 +36,9 @@
   },
   "include": [
     "src", 
-    "electron"
   ],
   "exclude": [
+    "node_modules",
     "./src/setupProxy.js",
     "./config/*",
   ]

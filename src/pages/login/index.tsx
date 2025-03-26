@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { ToastContainer } from 'react-toastify';
 import LoginComp from './components/login'
 import 'react-toastify/dist/ReactToastify.css';
+import login_bg from '@assets/imgs/login-bg.jpeg'
 
 const Login: FC = () => {
 
@@ -36,7 +37,7 @@ const LoginWrapper = styled.div`
       flex: 1;
       height: 100vh;
       background-size: 100% 100%;
-      background-image: url(${require('../../assets/imgs/login-bg.jpeg')});
+      background-image: url(${login_bg});
       > h1 {
         font-size: 60px;
         color: #fff;

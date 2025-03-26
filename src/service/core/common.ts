@@ -1,6 +1,6 @@
 import { message } from "antd";
 import { AxiosError } from "axios";
-import { AxiosErrorCode, AxiosErrorCodeMap } from "service/type";
+import { AxiosErrorCode, AxiosErrorCodeMap } from "@service/type";
 
 export const handleAxiosErrorCode = (error: AxiosError) => {
   const { code } = error;

@@ -10,7 +10,6 @@ import { useForm } from 'antd/es/form/Form'
 import { FC, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-const potato_image = require('@assets/imgs/potato.png');
 
 enum PasswordStatus {
   STRONG = "strong",
@@ -88,7 +87,7 @@ const Register: FC = () => {
   return (
     <Wrapper>
       <SpaceBox>
-        <img className={'rotate-potato'} src={potato_image} alt='potato' />
+        <img className={'rotate-potato'} src={'../../assets/imgs/potato.png'} alt='potato' />
         <h1>It's a potato</h1>
       </SpaceBox>
       <RegisterBox>

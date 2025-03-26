@@ -1,7 +1,7 @@
 import { FC } from "react";
 import styled from 'styled-components';
 import ToolList, { ToolListProps } from "./tool-list";
-const potato_image = require('@assets/imgs/potato.png');
+import potato_image from '@assets/imgs/potato.png';
 
 interface ChatTitleProps extends ToolListProps {
 
