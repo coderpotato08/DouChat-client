@@ -9,6 +9,7 @@ import Register from '@pages/register';
 import { SocketProvider } from '@store/context/createContext';
 import { Demo1 } from '@pages/demo/demo1';
 import { Demo2 } from '@pages/demo/demo2';
+import { AiChat } from '@pages/ai-chat';
 
 const router: RouteObject[] = [
   {
@@ -38,7 +39,11 @@ const router: RouteObject[] = [
         element: <SocketProvider>
           <Relationship />
         </SocketProvider>
-      }
+      },
+      {
+        path: "ai-chat",
+        element: <AiChat />
+      },
     ]
   },
   {
