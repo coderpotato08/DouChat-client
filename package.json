@@ -29,11 +29,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
-    "start:vite": "vite",
-    "build:vite": "vite build",
+    "start": "vite",
+    "build": "vite build",
     "preview": "vite preview",
     "prepare": "husky install",
     "tauri:dev": "tauri dev"
