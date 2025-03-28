@@ -12,7 +12,7 @@ import {
   subTotalUnreadNum,
   userSelector
 } from "@store/index";
-import { SocketProvider, useSocket } from "@store/context/createContext";
+import { useSocket } from "@store/context/createContext";
 import ChatTitle from "../components/chat-title";
 import ChatGroup from "./_compt/chat-group";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
@@ -141,18 +141,16 @@ const Message = () => {
     }
   }, [recentSubmitMessage])
 
-  return <SocketProvider>
-    <DraggableLayout
-      menuRender={<>
-        <ChatTitle />
-        <ChatGroup
-          list={chatList}
-          onChangeChat={onClickChat}
-          onDeleteChat={onDeleteChat}
-          onAddChat={onAddChat} />
-      </>}
-      contentRender={<Outlet />} />
-  </SocketProvider>
+  return <DraggableLayout
+    menuRender={<>
+      <ChatTitle />
+      <ChatGroup
+        list={chatList}
+        onChangeChat={onClickChat}
+        onDeleteChat={onDeleteChat}
+        onAddChat={onAddChat} />
+    </>}
+    contentRender={<Outlet />} />
 }
 
 export default Message;
