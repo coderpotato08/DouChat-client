@@ -3,19 +3,19 @@ import { FC, useState } from "react";
 import styled from "styled-components";
 
 type AiChatInputProps = {
-
+  onSubmit: (message: string) => Promise<void>;
 }
-export const AiChatInput: FC<AiChatInputProps> = () => {
+export const AiChatInput: FC<AiChatInputProps> = (props) => {
 
   const [fileList, setFileList] = useState<File[]>([])
 
   const onSubmit= (message: string) => {
     console.log(message)
+    props.onSubmit(message);
   } 
   
   return <AiChatInputWrapper>
     <Sender
-      allowSpeech
       submitType="shiftEnter"
       placeholder="请输入shift+enter发送消息"
       style={{ backgroundColor: '#fff' }} 
