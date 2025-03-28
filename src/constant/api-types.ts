@@ -49,6 +49,9 @@ export enum ApiEnum {
   SEARCH_MATCH_GROUP_MESSAGE_LIST = '/message/searchMatchGroupMessageList', // 模糊查询某群详细聊天记录
   SEARCH_MATCH_USER_MESSAGE_LIST = '/message/searchMatchUserMessageList', // 模糊查询某好友详细聊天记录
 
+  /** ai chat */
+  AI_COMPLETION = '/ai/completions', // ai 对话补全
+
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片
 

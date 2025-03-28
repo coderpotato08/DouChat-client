@@ -1,7 +1,6 @@
 import { Welcome } from "@ant-design/x";
 import { FC } from "react";
 import styled from "styled-components";
-const potato_image = require('@assets/imgs/potato.png');
 
 type AiChatContentProps = {
 
