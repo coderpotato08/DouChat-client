@@ -6,10 +6,10 @@ import { RouteObject, Navigate } from 'react-router-dom';
 import Relationship from '@pages/chat/relationship';
 import ChatContainer from '@pages/chat/components/chat-container';
 import Register from '@pages/register';
-import { SocketProvider } from '@store/context/createContext';
 import { Demo1 } from '@pages/demo/demo1';
 import { Demo2 } from '@pages/demo/demo2';
 import { AiChat } from '@pages/ai-chat';
+import AppContextProviders from '@store/context';
 
 const router: RouteObject[] = [
   {
@@ -26,7 +26,9 @@ const router: RouteObject[] = [
     children: [
       {
         path: "message",
-        element: <Message />,
+        element: <AppContextProviders>
+          <Message />
+        </AppContextProviders>,
         children: [
           {
             path: ":id",
@@ -36,9 +38,9 @@ const router: RouteObject[] = [
       },
       {
         path: "relationship",
-        element: <SocketProvider>
+        element: <AppContextProviders>
           <Relationship />
-        </SocketProvider>
+        </AppContextProviders>
       },
       {
         path: "ai-chat",
