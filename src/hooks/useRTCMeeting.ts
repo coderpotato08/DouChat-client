@@ -31,7 +31,14 @@ export type RTCMeetingResult = {
 };
 
 const defaultStunConfig: RTCConfiguration = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  iceServers: [
+    // { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: "stun:118.31.173.162:3478",
+      username: "testpotato1",
+      credential: "testpotato1",
+    }
+  ],
 };
 
 export const useRTCMeeting = (
