@@ -33,6 +33,7 @@ import { formatPeerId } from "@helper/user-helper";
 import { MeetingToolList, OptionItem } from "./components/tool-list";
 import { MeetingToolsEnum } from "./types/tools";
 import { useCallbackRef } from "@hooks/useCallbackRef";
+import { getUserMediaStream } from "@utils/navigator";
 
 const UserStatusLabel = {
   [UserStatus.CALLING]: "呼叫中",
@@ -109,7 +110,7 @@ const VideoMeeting = () => {
   /** 屏幕共享 */
   const onShareScreen = useCallbackRef(async () => {
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const screenStream = await getUserMediaStream('screen');
       const { videoTrack } = changeStreamTrack(screenStream);
       videoTrack.onended = () => onEndShareScreen();
     } catch (error) {
@@ -118,9 +119,9 @@ const VideoMeeting = () => {
   });
 
   const onEndShareScreen = useCallbackRef(async () => {
-    const newLocalStream = await navigator.mediaDevices.getUserMedia({
+    const newLocalStream = await getUserMediaStream('camera', {
       video: { facingMode: "user" },
-      audio: true
+      audio: true,
     });
     changeStreamTrack(newLocalStream);
   })
@@ -196,7 +197,7 @@ const VideoMeeting = () => {
     console.log("当前用户已入会");
     handleJoinedMember(users);
     try {
-      const stream: MediaStream = await navigator.mediaDevices.getUserMedia({
+      const stream: MediaStream = await getUserMediaStream('camera', {
         video: { facingMode: "user" },
         audio: true
       });
