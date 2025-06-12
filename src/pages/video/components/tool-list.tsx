@@ -11,8 +11,7 @@ export type OptionItem = {
   key: MeetingToolsEnum;
   icon: string;
   title: string;
-  params?: Record<string, any>;
-  onClick?: (params: any) => void | Promise<any>;
+  onClick?: () => void | Promise<any>;
 }
 
 export type ToolListProps = {
@@ -57,7 +56,7 @@ export const MeetingToolList: FC<ToolListProps> = (props) => {
     </div>
     {
       extraOptions.map((opt) => {
-        return <OptionsItem key={opt.key}>
+        return <OptionsItem key={opt.key} onClick={() => opt.onClick?.()}>
           <CIcon value={opt.icon} size={28} color="#fff" />
           {opt.title}
         </OptionsItem>

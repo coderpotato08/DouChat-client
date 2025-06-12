@@ -24,20 +24,20 @@ export type PeerConfig = {
 };
 
 export type RTCMeetingResult = {
-  peerMap: Record<string, PeerConnectionData>,
-  createPeerConnection: (peerId: string, localStream: MediaStream) => void,
-  destoryPeerConnection: (peerId: string) => void,
-  startNegotiate: (peerId: string, joinUserId: string) => void
+  peerMap: Record<string, PeerConnectionData>;
+  createPeerConnection: (peerId: string, localStream: MediaStream) => void;
+  destoryPeerConnection: (peerId: string) => void;
+  startNegotiate: (peerId: string, joinUserId: string) => void;
 };
 
 const defaultStunConfig: RTCConfiguration = {
   iceServers: [
-    // { urls: "stun:stun.l.google.com:19302" },
-    {
-      urls: "stun:118.31.173.162:3478",
-      username: "testpotato1",
-      credential: "testpotato1",
-    }
+    { urls: "stun:stun.l.google.com:19302" },
+    // {
+    //   urls: "stun:118.31.173.162:3478",
+    //   username: "testpotato1",
+    //   credential: "testpotato1",
+    // }
   ],
 };
 
@@ -59,56 +59,62 @@ export const useRTCMeeting = (
     dataChannel: { onMessage },
   } = config;
 
-  const createPeerConnection = useCallbackRef((peerId: string, currStream: MediaStream) => {
-    setLocalStream(currStream);
-    if (!isEmpty(peerMap[peerId])) {
-      return;
-    }
-    const channelKey = `_channel_${peerId}`;
-    const peer = new RTCPeerConnection(stunConfig || defaultStunConfig);
-    // 创建信道
-    const dataChannel = peer.createDataChannel(channelKey, {
-      id: 0,
-      negotiated: true,
-    });
-    dataChannel.onopen = () => {
-      console.log("[RTC]：Channel opened");
-    };
-    dataChannel.onclose = () => {
-      console.log("[RTC]：Channel closed");
-    };
-    dataChannel.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      onMessage(data);
-    };
-    peer.ondatachannel = () => {
-      console.log("ondatachannel");
-    };
-    peer.onicecandidate = (e) => {
-      if (e.candidate) {
-        socket.emit(EventType.ICE_CANDIDATE, {
-          peerId,
-          candidate: e.candidate,
-          meetingId,
+  const createPeerConnection = useCallbackRef(
+    (peerId: string, currStream: MediaStream) => {
+      setLocalStream(currStream);
+      if (!isEmpty(peerMap[peerId])) {
+        return;
+      }
+      const channelKey = `_channel_${peerId}`;
+      const peer = new RTCPeerConnection(stunConfig || defaultStunConfig);
+      // 创建信道
+      const dataChannel = peer.createDataChannel(channelKey, {
+        id: 0,
+        negotiated: true,
+      });
+      dataChannel.onopen = () => {
+        console.log("[RTC]：Channel opened");
+      };
+      dataChannel.onclose = () => {
+        console.log("[RTC]：Channel closed");
+      };
+      dataChannel.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        onMessage(data);
+      };
+      peer.ondatachannel = () => {
+        console.log("ondatachannel");
+      };
+      peer.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.emit(EventType.ICE_CANDIDATE, {
+            peerId,
+            candidate: e.candidate,
+            meetingId,
+          });
+        }
+      };
+      peer.ontrack = (e) => {
+        const remoteTrack = e.track;
+        remoteTrack.onended = () => {
+          console.log("远端用户停止了屏幕共享");
+        };
+        console.log(`[RTC]：有其他客户端的媒体流加入，ID：${peerId}`);
+        const stream = e.streams[0];
+        onAddStream(peerId, stream);
+      };
+      peer.onconnectionstatechange = (e) => {
+        console.log("[RTC]：ICE connection state change");
+      };
+      const tracks = currStream?.getTracks();
+      if (tracks && tracks.length > 0) {
+        tracks.forEach((track: MediaStreamTrack) => {
+          peer.addTrack(track, currStream!);
         });
       }
-    };
-    peer.ontrack = (e) => {
-      console.log(`[RTC]：有其他客户端的媒体流加入，ID：${peerId}`);
-      const stream = e.streams[0];
-      onAddStream(peerId, stream);
-    };
-    peer.onconnectionstatechange = (e) => {
-      console.log("[RTC]：ICE connection state change");
-    };
-    const tracks = currStream?.getTracks();
-    if (tracks && tracks.length > 0) {
-      tracks.forEach((track: MediaStreamTrack) => {
-        peer.addTrack(track, currStream!);
-      });
+      peerMap[peerId] = { peer, dataChannel };
     }
-    peerMap[peerId] = { peer, dataChannel };
-  });
+  );
 
   const destoryPeerConnection = useCallbackRef((peerId: string) => {
     const peer = peerMap[peerId]?.peer;
@@ -128,11 +134,15 @@ export const useRTCMeeting = (
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
       });
-      console.log(`[RTC] [peerId: ${peerId}]：准备发送offer status: ${peer.signalingState}`);
+      console.log(
+        `[RTC] [peerId: ${peerId}]：准备发送offer status: ${peer.signalingState}`
+      );
       peer
         .setLocalDescription(desc)
         .then(() => {
-          console.log(`[RTC] [peerId: ${peerId}]：发送offer完成 status: ${peer.signalingState}`);
+          console.log(
+            `[RTC] [peerId: ${peerId}]：发送offer完成 status: ${peer.signalingState}`
+          );
           socket.emit(EventType.SEND_OFFER, {
             sdp: peer.localDescription,
             meetingId,
@@ -149,13 +159,17 @@ export const useRTCMeeting = (
     const { sdp, meetingId, peerId, from, to } = data;
     if (peerMap[peerId]) {
       const toPeer = peerMap[peerId].peer;
-      console.log(`[RTC] [peerId: ${peerId}]：准备发送answer status: ${toPeer.signalingState}`);
+      console.log(
+        `[RTC] [peerId: ${peerId}]：准备发送answer status: ${toPeer.signalingState}`
+      );
       toPeer
         .setRemoteDescription(sdp)
         .then(async () => {
           const desc = await toPeer.createAnswer();
           await toPeer.setLocalDescription(desc);
-          console.log(`[RTC] [peerId: ${peerId}]：发送answer完成 status: ${toPeer.signalingState}`);
+          console.log(
+            `[RTC] [peerId: ${peerId}]：发送answer完成 status: ${toPeer.signalingState}`
+          );
           socket.emit(EventType.ANSWER_OFFER, {
             sdp: toPeer.localDescription,
             meetingId,
@@ -173,11 +187,15 @@ export const useRTCMeeting = (
     const { sdp, meetingId, peerId } = data;
     if (peerMap[peerId]) {
       const toPeer = peerMap[peerId].peer;
-      console.log(`[RTC] [peerId: ${peerId}]：准备接收answer status: ${toPeer.signalingState}`);
+      console.log(
+        `[RTC] [peerId: ${peerId}]：准备接收answer status: ${toPeer.signalingState}`
+      );
       toPeer
         .setRemoteDescription(sdp)
         .then(() => {
-          console.log(`[RTC] [peerId: ${peerId}]：接收answer完成 status: ${toPeer.signalingState}`);
+          console.log(
+            `[RTC] [peerId: ${peerId}]：接收answer完成 status: ${toPeer.signalingState}`
+          );
         })
         .catch((err) => console.log(err));
     }
@@ -208,8 +226,8 @@ export const useRTCMeeting = (
   }, [localStream]);
 
   return {
-    peerMap, 
-    createPeerConnection, 
+    peerMap,
+    createPeerConnection,
     startNegotiate: createOffer,
     destoryPeerConnection,
   };

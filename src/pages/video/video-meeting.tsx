@@ -32,6 +32,7 @@ import { useRTCMeeting } from "@hooks/useRTCMeeting";
 import { formatPeerId } from "@helper/user-helper";
 import { MeetingToolList, OptionItem } from "./components/tool-list";
 import { MeetingToolsEnum } from "./types/tools";
+import { useCallbackRef } from "@hooks/useCallbackRef";
 
 const UserStatusLabel = {
   [UserStatus.CALLING]: "呼叫中",
@@ -105,6 +106,38 @@ const VideoMeeting = () => {
     return []
   }, [memberList])
 
+  /** 屏幕共享 */
+  const onShareScreen = useCallbackRef(async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const { videoTrack } = changeStreamTrack(screenStream);
+      videoTrack.onended = () => onEndShareScreen();
+    } catch (error) {
+      console.log('error', error);
+    }
+  });
+
+  const onEndShareScreen = useCallbackRef(async () => {
+    const newLocalStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: true
+    });
+    changeStreamTrack(newLocalStream);
+  })
+
+  // 更换本地视频通道
+  const changeStreamTrack = (stream: MediaStream): { stream: MediaStream, videoTrack: MediaStreamTrack } => {
+    localStream.current = stream;
+    playStreamTo('user', stream);
+    const [videoTrack] = stream.getVideoTracks();
+    Object.keys(peerMap).forEach((peerId) => {
+      const pc = peerMap[peerId]?.peer;
+      const sender = pc.getSenders().find((sender) => sender.track?.kind === 'video');
+      sender?.replaceTrack(videoTrack);
+    });
+    return { stream, videoTrack }
+  }
+
   const ExtraOptionList: OptionItem[] = useMemo(() => {
     return [
       {
@@ -120,7 +153,8 @@ const VideoMeeting = () => {
       {
         title: "共享屏幕",
         key: MeetingToolsEnum.SCREEN_SHARE,
-        icon: `icon-screen-share`
+        icon: `icon-screen-share`,
+        onClick: onShareScreen,
       },
     ]
   }, [joinedMemberList])
