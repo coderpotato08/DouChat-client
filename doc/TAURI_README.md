@@ -1,4 +1,4 @@
-#tauri接入时遇到的问题与解决
+# tauri接入时遇到的问题与解决
 
 1. tauri环境下无法获取媒体流
 在mac环境下 tauri无法获取到浏览器navigator下的mediaDevices对象，在mac环境下需要在src-tauri的根目录下加个配置文件`info.plist`,内容如下

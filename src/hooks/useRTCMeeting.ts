@@ -204,6 +204,7 @@ export const useRTCMeeting = (
   /** 接收ice候选 */
   const onGetIceCandidate = useCallbackRef((data: ICEMessage) => {
     const { candidate, peerId } = data;
+    console.log(`[RTC] [peerId: ${peerId}]：接收到ice候选`, candidate);
     if (peerMap[peerId]) {
       peerMap[peerId].peer
         .addIceCandidate(candidate)
