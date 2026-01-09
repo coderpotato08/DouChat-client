@@ -1,18 +1,16 @@
-import { appWindow } from '@tauri-apps/api/window';
-import { CallbackKeys, CallbackParams } from './types';
-import { emit } from '@tauri-apps/api/event';
-import { getFullCallbackKey } from './useOpenWebview';
+import { emit } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import type { CallbackKeys, CallbackParams } from "./types";
+import { getFullCallbackKey } from "./useOpenWebview";
 
-type CloseWebviewFunc = (
-  callbackKey?: CallbackKeys,
-  params?: CallbackParams[CallbackKeys]
-) => void;
-export const useCloseWebview = ():CloseWebviewFunc => {
+const appWindow = getCurrentWebviewWindow();
 
+type CloseWebviewFunc = (callbackKey?: CallbackKeys, params?: CallbackParams[CallbackKeys]) => void;
+export const useCloseWebview = (): CloseWebviewFunc => {
   return (callbackKey, params) => {
-    if(callbackKey) {
+    if (callbackKey) {
       emit(getFullCallbackKey(callbackKey), params || {});
     }
     appWindow.close();
-  }
-}
+  };
+};

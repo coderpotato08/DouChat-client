@@ -1,32 +1,28 @@
 {
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "compounds": [
-    {
-      "name": "Main + renderer",
-      "configurations": ["Main", "Renderer"],
-      "stopAll": true
-    }
-  ],
   "configurations": [
     {
-      "name": "Renderer",
-      "port": 9222,
-      "request": "attach",
-      "type": "chrome",
-      "webRoot": "${workspaceFolder}"
+      "type": "lldb",
+      "request": "launch",
+      "name": "Tauri Development Debug",
+      "cargo": {
+        "args": ["build", "--manifest-path=./src-tauri/Cargo.toml", "--no-default-features"]
+      },
+      // task for the `beforeDevCommand` if used, must be configured in `.vscode/tasks.json`
+      "preLaunchTask": "ui:dev"
     },
     {
-      "name": "Main",
-      "type": "node",
+      "type": "lldb",
       "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+      "name": "Tauri Production Debug",
+      "cargo": {
+        "args": ["build", "--release", "--manifest-path=./src-tauri/Cargo.toml"]
       },
-      "args": [".", "--remote-debugging-port=9222"],
-      "outputCapture": "std",
-      "console": "integratedTerminal"
+      // task for the `beforeBuildCommand` if used, must be configured in `.vscode/tasks.json`
+      "preLaunchTask": "ui:build"
     }
   ]
 }

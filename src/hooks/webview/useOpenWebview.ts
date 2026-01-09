@@ -1,20 +1,15 @@
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
-import { WebviewWindow, WindowOptions } from "@tauri-apps/api/window";
-import { MutableRefObject, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
-import { isTauri } from "@utils/env";
-import {
-  CallbackKeys,
-  CallbacksConfig,
-  OpenWebviewFuncProps,
-  RouterMapType,
-} from "./types";
-import { RouterPath } from "@constant/router-types";
-import { hasObjectParam, splitObjectByPrefix } from "@utils/object";
 import { APP_NANE_PREFIX, dataKeyName } from "@constant/common-types";
-import { getUuid } from "@helper/uuid-helper";
+import type { RouterPath } from "@constant/router-types";
 import { LocalStorageHelper } from "@helper/storage-helper";
+import { getUuid } from "@helper/uuid-helper";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { isTauri } from "@utils/env";
+import { hasObjectParam, splitObjectByPrefix } from "@utils/object";
 import { getFullUrl } from "@utils/url";
+import { type MutableRefObject, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
+import type { CallbackKeys, CallbacksConfig, OpenWebviewFuncProps, RouterMapType } from "./types";
 
 type OpenWebviewFunc = <T extends RouterPath, R extends RouterMapType>(
   props?: OpenWebviewFuncProps<T, R>
@@ -24,10 +19,7 @@ export const getFullCallbackKey = (key: CallbackKeys) => {
   return `tauri-event://${key}`;
 };
 
-export const useOpenWebview = (
-  url: RouterPath,
-  options?: WindowOptions
-): OpenWebviewFunc => {
+export const useOpenWebview = (url: RouterPath, options?: any): OpenWebviewFunc => {
   const navigate = useNavigate();
   // 注销监听事件列表
   const unlisteners = useRef<Record<string, UnlistenFn>>({});
@@ -71,13 +63,10 @@ export const useOpenWebview = (
 
   return async (props?) => {
     // url与query前置处理
-    const urlKey = `${url}${props?.id ? "/" + props.id : ""}`;
+    const urlKey = `${url}${props?.id ? `/${props.id}` : ""}`;
 
     // 拆分出_DouChat_开头的params
-    const [innerParams, inputParams] = splitObjectByPrefix(
-      props?.params || {},
-      APP_NANE_PREFIX
-    );
+    const [innerParams, inputParams] = splitObjectByPrefix(props?.params || {}, APP_NANE_PREFIX);
 
     let params: Record<string, any> = {};
     const dataJson = JSON.stringify(inputParams || {});
