@@ -1,16 +1,16 @@
-import { FriendInfoType } from "@constant/relationship-types";
+import type { FriendInfoType } from "@constant/relationship-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Checkbox, GetProp, Space } from "antd";
-import { FC, useEffect, useState } from "react";
+import { Avatar, Checkbox, type GetProp, Space } from "antd";
+import { type FC, useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface UserSelectorProps {
   value: Array<any>,
   onSelect: (value: Array<any>, options: Array<FriendInfoType>) => void
 }
-const UserSelector:FC<UserSelectorProps> = ({
+const UserSelector: FC<UserSelectorProps> = ({
   value,
   onSelect,
 }: UserSelectorProps) => {
@@ -18,7 +18,7 @@ const UserSelector:FC<UserSelectorProps> = ({
   const [friendList, setFriendList] = useState<any[]>([]);
 
   const loadFriendList = () => {
-    ApiHelper.loadFriendList({userId: userInfo._id})
+    ApiHelper.loadFriendList({ userId: userInfo._id })
       .then(({ friendList }) => {
         const userList = friendList.map((item) => ({
           ...item.friendInfo,
@@ -42,11 +42,11 @@ const UserSelector:FC<UserSelectorProps> = ({
         {
           friendList.map((friend) => {
             return <Checkbox key={friend._id}
-                             value={friend._id}>
+              value={friend._id}>
               <FriendInfo>
-                <Avatar size={48} src={friend.avatarImage}/>
+                <Avatar size={48} src={friend.avatarImage} />
                 <div className="name">{friend.nickname}</div>
-              </FriendInfo>                                  
+              </FriendInfo>
             </Checkbox>
           })
         }

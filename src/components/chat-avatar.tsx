@@ -1,5 +1,6 @@
 import { Avatar, Flex } from "antd";
 import styled from "styled-components";
+import { v4 as uuidv4 } from "uuid";
 
 interface ChatAvatarProps {
   isGroup: boolean,
@@ -10,18 +11,19 @@ interface ChatAvatarProps {
 
 const ChatAvatar = (props: ChatAvatarProps) => {
   const { isGroup, imgUrl, groupImgList, size = "small" } = props;
+
   return isGroup ? <GroupAvatar size={size}>
     <Flex wrap="wrap" gap={size === "small" ? 2 : 4}>
       {
         groupImgList && groupImgList.length > 0 &&
-        groupImgList.map((url: string, index) => <Avatar 
-          key={index} 
-          src={url} 
-          shape="square" 
-          size={size === "small" ? 18 : 45}/>)
+        groupImgList.map((url: string) => <Avatar
+          key={uuidv4()}
+          src={url}
+          shape="square"
+          size={size === "small" ? 18 : 45} />)
       }
     </Flex>
-  </GroupAvatar> : <UserAvatar size={size} src={imgUrl}/>
+  </GroupAvatar> : <UserAvatar size={size} src={imgUrl} />
 }
 
 export default ChatAvatar;

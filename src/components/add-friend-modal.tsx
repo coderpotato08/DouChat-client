@@ -1,16 +1,17 @@
-import { AddFriendParamsType, SearchUserParamsType } from "@constant/api-types";
-import { BaseModalProps } from "@constant/common-types";
+import type { AddFriendParamsType, SearchUserParamsType } from "@constant/api-types";
+import type { BaseModalProps } from "@constant/common-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Avatar, Button, GlobalToken, Input, Modal, message, theme } from "antd"
+import type { GlobalToken } from "antd";
+import { Avatar, Button, Input, Modal, message, theme } from "antd";
 import { debounce, isEmpty } from "lodash";
-import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FC, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
 const { useToken } = theme;
 
-const AddFriendModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+const AddFriendModal: FC<BaseModalProps> = (props: BaseModalProps) => {
   const {
     visible,
     onCancel,
@@ -53,7 +54,7 @@ const AddFriendModal:FC<BaseModalProps> = (props: BaseModalProps) => {
         const { status, message: msg } = res;
         const isSuccess = status === "success"
         msg && message[isSuccess ? "success" : "warning"](msg);
-        if(isSuccess) {
+        if (isSuccess) {
           setUserList((preUserList) => preUserList.map((user) => ({
             ...user,
             hasApplied: userId === user._id ? true : user.hasApplied,
@@ -63,25 +64,25 @@ const AddFriendModal:FC<BaseModalProps> = (props: BaseModalProps) => {
   }
 
   useEffect(() => {
-    if(!keyWord) {
+    if (!keyWord) {
       setUserList([]);
       return;
     }
-    onSearch({ 
-      keyWord: keyWord, 
-      currUserId: userInfo._id 
+    onSearch({
+      keyWord: keyWord,
+      currUserId: userInfo._id
     })
   }, [keyWord])
 
   return <Modal title={"添加好友"}
-                open={visible} 
-                onCancel={onHandleCancel}
-                footer={null}>
+    open={visible}
+    onCancel={onHandleCancel}
+    footer={null}>
     <Wrapper $token={token}>
       <SearchWrapper>
         <Input placeholder={"请输入昵称或账号"}
-               value={keyWord}
-               onChange={onChangeValue}/>
+          value={keyWord}
+          onChange={onChangeValue} />
       </SearchWrapper>
       {!isEmpty(userList) && <div className="tips">
         共查询到<span>{userList.length}</span>个用户
@@ -91,13 +92,13 @@ const AddFriendModal:FC<BaseModalProps> = (props: BaseModalProps) => {
           {
             !isEmpty(userList) ? userList.map((user) => {
               return user._id !== userInfo._id ? <UserItem key={user._id} $token={token}>
-                <Avatar className={"avatar"} src={user.avatarImage} size={42}/>
+                <Avatar className={"avatar"} src={user.avatarImage} size={42} />
                 <div>{user.nickname}</div>
                 <div className={"tags"}>
                   {
                     !user.isFriend ? <Button type={"primary"}
-                                             disabled={user.hasApplied}
-                                             onClick={() => onAddFriend(user._id)}>
+                      disabled={user.hasApplied}
+                      onClick={() => onAddFriend(user._id)}>
                       {user.hasApplied ? "待添加" : "添加好友"}
                     </Button> : <div className="is-friend">
                       已是好友

@@ -1,9 +1,9 @@
-import { Popover } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
-import styled, { CSSProperties } from "styled-components";
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import { Popover } from "antd";
 import React, { useCallback, useState } from "react";
+import styled, { type CSSProperties } from "styled-components";
 
 const iconStyle: CSSProperties = {
   cursor: "pointer",
@@ -23,14 +23,14 @@ const EmojiPicker = (props: EmojiPickerProps) => {
 
   const { onSelect } = props;
   return <Popover content={<Picker data={data}
-                                   theme={'light'}
-                                   onEmojiSelect={onSelectEmoji}/>}
-                  placement="topLeft"
-                  trigger="click"
-                  open={open}
-                  onOpenChange={() => setOpen(!open)}>
+    theme={'light'}
+    onEmojiSelect={onSelectEmoji} />}
+    placement="topLeft"
+    trigger="click"
+    open={open}
+    onOpenChange={() => setOpen(!open)}>
     <Wrapper>
-      <SmileOutlined style={iconStyle}/>
+      <SmileOutlined style={iconStyle} />
     </Wrapper>
   </Popover>
 }

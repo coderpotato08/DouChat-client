@@ -1,16 +1,16 @@
 import { BaseModalProps } from '@constant/common-types';
-import { Avatar, Checkbox, GetProp, Modal, Space } from 'antd';
-import { FC, useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { ApiHelper } from '@helper/api-helper';
 import { useAppSelector } from '@store/hooks';
 import { userSelector } from '@store/index';
+import { Avatar, Checkbox, GetProp, Modal, Space } from 'antd';
+import { FC, useEffect, useState } from 'react';
+import styled from 'styled-components';
 
 interface AddGroupUserModalProps extends BaseModalProps {
   selected: string[],
   onConfirm: (values: string[]) => void;
 }
-const AddGroupUserModal:FC<AddGroupUserModalProps> = ({
+const AddGroupUserModal: FC<AddGroupUserModalProps> = ({
   visible,
   selected,
   onCancel,
@@ -25,13 +25,13 @@ const AddGroupUserModal:FC<AddGroupUserModalProps> = ({
   }
 
   const onHandleConfirm = () => {
-    const list = value.filter((userId) => selected.findIndex((id) => id === userId) === -1);
+    const list = value.filter((userId) => selected.indexOf(userId) === -1);
     onConfirm(list);
     onCancel();
   }
 
   const loadFriendList = () => {
-    ApiHelper.loadFriendList({userId: userInfo._id})
+    ApiHelper.loadFriendList({ userId: userInfo._id })
       .then(({ friendList }) => {
         const userList = friendList.map((item) => ({
           ...item.friendInfo,
@@ -55,24 +55,24 @@ const AddGroupUserModal:FC<AddGroupUserModalProps> = ({
 
   return (
     <Modal title={"添加群成员"}
-           open={visible}
-           okText={"确定"}
-           cancelText={"取消"}
-           onOk={onHandleConfirm}
-           onCancel={onHandleCancel}>
+      open={visible}
+      okText={"确定"}
+      cancelText={"取消"}
+      onOk={onHandleConfirm}
+      onCancel={onHandleCancel}>
       <Wrapper>
         <Checkbox.Group value={value} onChange={onHandleChange}>
           <Space direction="vertical">
             {
               friendList.map((friend) => {
-                const disabled = selected.findIndex((id) => friend._id === id) > -1;
+                const disabled = selected.indexOf(friend._id ) > -1;
                 return <Checkbox key={friend._id}
-                                 disabled={disabled}
-                                 value={friend._id}>
+                  disabled={disabled}
+                  value={friend._id}>
                   <FriendInfo>
-                    <Avatar size={48} src={friend.avatarImage}/>
+                    <Avatar size={48} src={friend.avatarImage} />
                     <div className="name">{friend.nickname}</div>
-                  </FriendInfo>                                  
+                  </FriendInfo>
                 </Checkbox>
               })
             }

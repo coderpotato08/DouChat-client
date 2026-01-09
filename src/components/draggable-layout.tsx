@@ -1,11 +1,11 @@
-import styled, { CSSProperties } from "styled-components";
-import invariant from "tiny-invariant";
+import type { DragLocationHistory } from "@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { disableNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview';
 import { preventUnhandled } from '@atlaskit/pragmatic-drag-and-drop/prevent-unhandled';
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
-import { DragLocationHistory } from "@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
+import { type FC, type ReactNode, useEffect, useRef, useState } from "react";
+import styled, { type CSSProperties } from "styled-components";
+import invariant from "tiny-invariant";
 
 const widthBoundary = {
   start: 350,

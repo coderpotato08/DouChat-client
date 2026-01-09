@@ -1,23 +1,23 @@
-import { Form, Input, Modal, Select, Space, Switch } from "antd";
-import { CreateMeetingParamsType } from "@constant/api-types";
-import { FC, useCallback, useEffect, useState } from "react";
+import type { CreateMeetingParamsType } from "@constant/api-types";
+import type { BaseModalProps } from "@constant/common-types";
+import { RoleType } from "@constant/meeting-types";
+import { RouterPath } from "@constant/router-types";
+import { EventType } from "@constant/socket-types";
+import { ApiHelper } from "@helper/api-helper";
+import { formLayout } from "@helper/common-helper";
+import { useOpenWebview } from "@hooks/webview/useOpenWebview";
+import { useSocket } from "@store/context/createContext";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/index";
+import { Form, Input, Modal, Select, Space, Switch } from "antd";
+import { type FC, useCallback, useEffect, useState } from "react";
 import { styled } from "styled-components";
-import { ApiHelper } from "@helper/api-helper";
-import { RoleType } from "@constant/meeting-types";
-import { useSocket } from "@store/context/createContext";
-import { EventType } from "@constant/socket-types";
-import { formLayout } from "@helper/common-helper";
-import { BaseModalProps } from "@constant/common-types";
-import { useOpenWebview } from "@hooks/webview/useOpenWebview";
-import { RouterPath } from "@constant/router-types";
 
 const FormItemLayout = formLayout(6, 16);
 
 type FormTypes = Partial<Omit<CreateMeetingParamsType, "creator" | "createTime">>
 
-const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+const CreateMeetingModal: FC<BaseModalProps> = (props: BaseModalProps) => {
   const {
     visible,
     onCancel,
@@ -28,19 +28,19 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
   });
   const socket = useSocket();
   const { nickname, _id } = useAppSelector(userSelector);
-  const [ form ] = Form.useForm();
+  const [form] = Form.useForm();
   const selectedUserList = Form.useWatch('userList', form);
-  const [ friendList, setFriendList ] = useState<any[]>([]);
+  const [friendList, setFriendList] = useState<{ nickname: string; _id: string; avatarImage?: string }[]>([]);
 
   const onHandleCancel = useCallback(() => {
-    onCancel();
+    onCancel?.();
     form.resetFields();
   }, [visible])
 
   const loadFriendList = () => {
-    ApiHelper.loadFriendList({userId: _id})
+    ApiHelper.loadFriendList({ userId: _id })
       .then(({ friendList }) => {
-        const userList = friendList.map((item) => ({
+        const userList = friendList.map((item: { friendInfo: { nickname: string; _id: string; avatarImage?: string } }) => ({
           ...item.friendInfo,
         }))
         setFriendList(userList);
@@ -61,7 +61,7 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
           meetingId: res.meetingId,
           ...params,
         })
-        confirmCallback && confirmCallback();
+        confirmCallback?.();
         onCancel();
         openWebview({
           id: res.meetingId,
@@ -77,40 +77,40 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
   }, [selectedUserList])
 
   useEffect(() => {
-    if(visible) {
+    if (visible) {
       loadFriendList()
     }
   }, [visible])
 
   return <Modal destroyOnClose
-                closeIcon={null}
-                cancelText={"取消"}
-                title={"新建会议"}
-                okText={"创建会议"}
-                onOk={onCreateMeeting}
-                onCancel={onHandleCancel}
-                open={visible}
-                maskClosable={false}>
+    closeIcon={null}
+    cancelText={"取消"}
+    title={"新建会议"}
+    okText={"创建会议"}
+    onOk={onCreateMeeting}
+    onCancel={onHandleCancel}
+    open={visible}
+    maskClosable={false}>
     <ModalWrapper>
       <Form {...FormItemLayout}
-            form={form}>
-        <Form.Item<FormTypes> 
-          name="meetingName" 
+        form={form}>
+        <Form.Item<FormTypes>
+          name="meetingName"
           label={"会议名称"}
           rules={[{ required: true }]}
           initialValue={`${nickname}创建的会议`}
         >
-          <Input placeholder={'请填写会议名称'}/>
+          <Input placeholder={'请填写会议名称'} />
         </Form.Item>
-        <Form.Item<FormTypes> 
-          name="userList" 
-          label={"邀请成员"}  
+        <Form.Item<FormTypes>
+          name="userList"
+          label={"邀请成员"}
           rules={[{ required: true }]}
         >
-          <Select style={{width: '100%'}}
-                  mode={"multiple"}
-                  options={friendList}
-                  fieldNames={{label: 'nickname', value: '_id'}}/>
+          <Select style={{ width: '100%' }}
+            mode={"multiple"}
+            options={friendList}
+            fieldNames={{ label: 'nickname', value: '_id' }} />
         </Form.Item>
         <Form.Item label={"成员入会时静音"}>
           <Space>
@@ -119,9 +119,9 @@ const CreateMeetingModal:FC<BaseModalProps> = (props: BaseModalProps) => {
               valuePropName={"checked"}
               initialValue={false}
             >
-              <Switch style={{marginRight: "10px"}}/>
+              <Switch style={{ marginRight: "10px" }} />
             </Form.Item>
-            <div style={{marginBottom: "24px"}}>超过6人后自动开启</div>
+            <div style={{ marginBottom: "24px" }}>超过6人后自动开启</div>
           </Space>
         </Form.Item>
       </Form>

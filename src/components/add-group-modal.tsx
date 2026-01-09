@@ -1,17 +1,17 @@
+import type { CreateGroupParamsType } from "@constant/api-types";
+import type { BaseModalProps } from "@constant/common-types";
+import type { FriendInfoType } from "@constant/relationship-types";
 import { ApiHelper } from "@helper/api-helper";
+import { formLayout } from "@helper/common-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Button, Flex, Form, Input, Modal, ModalProps, message } from "antd";
-import { FC, useEffect, useState } from "react";
-import styled from "styled-components";
-import UserSelector from "./user-selector";
-import { FriendInfoType } from "@constant/relationship-types";
-import { formLayout } from "@helper/common-helper";
-import { CreateGroupParamsType } from "@constant/api-types";
+import { Button, Flex, Form, Input, Modal, type ModalProps, message } from "antd";
 import Avatar from "antd/es/avatar/avatar";
-import CIcon from "./c-icon";
 import { cloneDeep } from "lodash";
-import { BaseModalProps } from "@constant/common-types";
+import { type FC, useState } from "react";
+import styled from "styled-components";
+import CIcon from "./c-icon";
+import UserSelector from "./user-selector";
 
 
 const ModelBaseConfig: ModalProps = {
@@ -20,14 +20,14 @@ const ModelBaseConfig: ModalProps = {
 const FormItemLayout = formLayout(6, 16);
 type FormTypes = Partial<Omit<CreateGroupParamsType, 'users' | 'creator'>>
 
-const AddGroupModal:FC<BaseModalProps> = (props: BaseModalProps) => {
+const AddGroupModal: FC<BaseModalProps> = (props: BaseModalProps) => {
   const {
     visible,
     onCancel,
     confirmCallback
   } = props;
   const userInfo = useAppSelector(userSelector);
-  const [ form ] = Form.useForm();
+  const [form] = Form.useForm();
   const [selectedUsers, setSelectedUsers] = useState<FriendInfoType[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<(string | number)[]>([]);
 
@@ -61,51 +61,51 @@ const AddGroupModal:FC<BaseModalProps> = (props: BaseModalProps) => {
           users: selectedUserId,
         }
         const { groupId, status } = await ApiHelper.createGroup(params)
-        if(status === "success") {
+        if (status === "success") {
           message.success(`${values.groupName} 群聊创建成功`);
           confirmCallback && confirmCallback();
           onHandleCancel();
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   }
-  
+
   return <Modal title={"创建群聊"}
-                destroyOnClose
-                width={850}
-                centered
-                onCancel={onHandleCancel}
-                open={visible} 
-                {...ModelBaseConfig}>
+    destroyOnClose
+    width={850}
+    centered
+    onCancel={onHandleCancel}
+    open={visible}
+    {...ModelBaseConfig}>
     <Flex gap={10}>
       <LeftWrapper>
         <UserSelector value={selectedUserId}
-                      onSelect={onSelectUser}/>
+          onSelect={onSelectUser} />
       </LeftWrapper>
       <RightWrapper>
         <div className={"container"}>
           <Form {...FormItemLayout}
-                form={form}>
+            form={form}>
             <Form.Item<FormTypes>
               name="groupName"
               label="群名称"
               rules={[{ required: true, message: "请输入群聊名称" }]}
               initialValue={`${userInfo.nickname}创建的群聊`}>
-                <Input placeholder={'请填写群聊名称'}/>
+              <Input placeholder={'请填写群聊名称'} />
             </Form.Item>
             <Form.Item<FormTypes>
-              name="groupNumber" 
+              name="groupNumber"
               label={"群号"}
               rules={[{ required: true, message: "请输入正确的群号" },
-                      { len: 12, message: "请输入12位的群号" }]}>
-                <Input type={"number"} placeholder={'请填写群号，长度为12的数字'}/>
+              { len: 12, message: "请输入12位的群号" }]}>
+              <Input type={"number"} placeholder={'请填写群号，长度为12的数字'} />
             </Form.Item>
             <Form.Item<FormTypes>
-              name="sign" 
+              name="sign"
               label={"群简介"}>
-                <Input.TextArea style={{resize: "none"}} 
-                                rows={4}
-                                placeholder={'请填写群简介，字数不超过100字～'}/>
+              <Input.TextArea style={{ resize: "none" }}
+                rows={4}
+                placeholder={'请填写群简介，字数不超过100字～'} />
             </Form.Item>
           </Form>
           <UsersBox>
@@ -116,23 +116,23 @@ const AddGroupModal:FC<BaseModalProps> = (props: BaseModalProps) => {
             {
               selectedUsers.map((user, index) => <UserItem key={user._id}>
                 <div className={"close"}>
-                  <CIcon size={16} value="icon-guanbi" color="#666" onClick={() => onDeleteUser(index)}/>
+                  <CIcon size={16} value="icon-guanbi" color="#666" onClick={() => onDeleteUser(index)} />
                 </div>
-                <Avatar size={48} src={user.avatarImage}/>
+                <Avatar size={48} src={user.avatarImage} />
                 <div className={"name"}>{user.nickname}</div>
               </UserItem>)
             }
           </UsersBox>
         </div>
         <Footer>
-          <Button danger 
-                  type="primary" 
-                  className={"footer-btn"}
-                  onClick={onHandleCancel}>取消</Button>
-          <Button type="primary" 
-                  className={"footer-btn"} 
-                  disabled={selectedUserId.length <= 0}
-                  onClick={onSubmit}>创建</Button>
+          <Button danger
+            type="primary"
+            className={"footer-btn"}
+            onClick={onHandleCancel}>取消</Button>
+          <Button type="primary"
+            className={"footer-btn"}
+            disabled={selectedUserId.length <= 0}
+            onClick={onSubmit}>创建</Button>
         </Footer>
       </RightWrapper>
     </Flex>

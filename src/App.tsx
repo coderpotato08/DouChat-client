@@ -1,5 +1,6 @@
 import router from "./router/index";
 import { useRoutes } from "react-router-dom";
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import { ConfigProvider } from "antd";
 

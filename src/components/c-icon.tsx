@@ -8,7 +8,7 @@ interface CIconProps {
   style?: CSSProperties,
   onClick?: (event: any) => void,
 };
-const CIcon:FC<CIconProps> = (props: CIconProps) => {
+const CIcon: FC<CIconProps> = (props: CIconProps) => {
   const { value, size, color } = props;
   const iconStyle: CSSProperties = {
     fontSize: `${size}px`,
@@ -16,12 +16,12 @@ const CIcon:FC<CIconProps> = (props: CIconProps) => {
     ...props.style,
   }
   const onHandleClick = (event: any) => {
-    if(props.onClick) {
+    if (props.onClick) {
       props.onClick(event);
     }
   }
   return <CIconWrapper onClick={onHandleClick}>
-    <i className={`iconfont ${value}`} style={iconStyle}/>
+    <i className={`iconfont ${value}`} style={iconStyle} />
   </CIconWrapper>
 }
 

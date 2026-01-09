@@ -1,6 +1,6 @@
-import { GlobalToken, theme } from 'antd';
-import React, { FC, PropsWithChildren, ReactNode } from 'react'
-import styled from 'styled-components'
+import { type GlobalToken, theme } from 'antd';
+import type { FC, PropsWithChildren, ReactNode } from 'react';
+import styled from 'styled-components';
 
 const { useToken } = theme;
 
@@ -8,10 +8,10 @@ interface InfoBoxProps {
   title: string,
   optionsNode: ReactNode
 }
-const InfoBox:FC<PropsWithChildren<InfoBoxProps>> = (props: PropsWithChildren<InfoBoxProps>) => {
-  const { 
-    title, 
-    optionsNode 
+const InfoBox: FC<PropsWithChildren<InfoBoxProps>> = (props: PropsWithChildren<InfoBoxProps>) => {
+  const {
+    title,
+    optionsNode
   } = props;
   const { token } = useToken();
   return (
@@ -20,7 +20,7 @@ const InfoBox:FC<PropsWithChildren<InfoBoxProps>> = (props: PropsWithChildren<In
         <div className={"title"}>{title}</div>
       </div>
       <div className={"scroll-box"}>
-        {props.children}  
+        {props.children}
       </div>
       {optionsNode}
     </Wrapper>
