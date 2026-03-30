@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, CSSProperties, useCallback } from 'react';
+import { FC, useState, useEffect, CSSProperties, useCallback, createElement, cloneElement } from 'react';
 import styled from 'styled-components';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CIcon from '../../components/c-icon';
@@ -17,6 +17,8 @@ import { CreateMeetingParamsType, LoadGroupContactListParamsType, UserContactsPa
 import { RoleType } from '@constant/meeting-types';
 import { ApiHelper } from '@helper/api-helper';
 import dayjs from 'dayjs';
+import { OpenAIFilled, OpenAIOutlined } from '@ant-design/icons';
+import { clone } from 'lodash';
 
 const { useToken } = theme;
 const menuList = [
@@ -30,6 +32,12 @@ const menuList = [
     route: 'relationship',
     icon: 'icon-friend',
   },
+  {
+    key: 'ai-chat',
+    route: 'ai-chat',
+    icon: <OpenAIOutlined />,
+    iconActive: <OpenAIFilled />,
+  }
 ]
 const btnStyle: CSSProperties = {
   position: "absolute",
@@ -180,10 +188,21 @@ const Chat: FC = () => {
           {
             menuList.map((item) => {
               const isActive = selectedKey === item.key;
+              const isCIcon = typeof item.icon === 'string';
+              const IconNode = (isActive ? item.iconActive : item.icon) as React.ReactNode;
               return <MenuItem key={item.key} onClick={() => onClickMenu(item)}>
-                <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`}
-                  size={28}
-                  color={isActive ? token.colorPrimary : '#666'} />
+                {
+                  isCIcon ?
+                    <CIcon value={`${item.icon}${isActive ? '-fill' : ''}`}
+                      size={28}
+                      color={isActive ? token.colorPrimary : '#666'} /> :
+                    cloneElement(IconNode as JSX.Element, {
+                      style: {
+                        fontSize: '28px',
+                        color: isActive? token.colorPrimary : '#666',
+                      }
+                    })
+                }
                 {item.key === 'message' && <Badge className={'unread-count'} count={totalUnreadNum} size={'small'} />}
               </MenuItem>
             })

@@ -72,7 +72,7 @@ const Register: FC = () => {
           avatarImage: avatarImageUrl,
         }
         ApiHelper.register(params)
-          .then(({ status }) => {
+          .then(({ status }: { status: string }) => {
             if (status === "success") {
               message.success("注册成功", 1.5, () => navigate('/login'));
             }

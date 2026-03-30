@@ -14,6 +14,9 @@
       },
       "security": {
         "noDangerouslySetInnerHtml": "warn"
+      },
+      "complexity": {
+        "noStaticOnlyClass": "off"
       }
     }
   },

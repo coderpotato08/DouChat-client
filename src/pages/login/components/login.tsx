@@ -10,7 +10,7 @@ import { Toastify } from "../../../helper/toastify-helper";
 import { AuthLogin } from "./auth-login";
 import { getQuery } from "@helper/common-helper";
 import { ApiHelper } from "@helper/api-helper";
-import { AxiosHelper } from "@service/index";
+import { serviceRequest } from "@service/index";
 import { AuthPlatform } from "@hooks/useAuthLogin";
 
 const Login: FC = () => {
@@ -33,7 +33,7 @@ const Login: FC = () => {
       username,
       password,
     }
-    AxiosHelper.post(ApiEnum.LOGIN, params)
+    serviceRequest.post(ApiEnum.LOGIN, params)
       .then((res: any) => {
         if (res.code && res.code !== 10000) return;
         const { userInfo } = res;
