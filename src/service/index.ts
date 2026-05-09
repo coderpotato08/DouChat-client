@@ -24,6 +24,7 @@ export const serviceRequest = {
       await fetchEventSource(
         `/api${url.indexOf("/") === 0 ? url : "/" + url}`,
         {
+          signal,
           method: "POST",
           body: JSON.stringify(params),
           headers: {

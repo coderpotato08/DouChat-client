@@ -13,7 +13,11 @@ const widthBoundary = {
   max: 450
 }
 interface DraggableLayout {
+  className?: string,
   dragWidthKey?: string,
+  menuClassName?: string,
+  contentClassName?: string,
+  dividerClassName?: string,
   menuRender: ReactNode,
   contentRender?: ReactNode,
 }
@@ -23,7 +27,7 @@ export const DraggableLayout: FC<DraggableLayout> = (props) => {
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const [initialWidth, setInitialWidth] = useState<number>(
     LocalStorageHelper.getItem(
-      props.dragWidthKey || 
+      props.dragWidthKey ||
       StorageKeys.MENU_LOCAL_WIDTH
     ) || widthBoundary.start
   );
@@ -66,14 +70,15 @@ export const DraggableLayout: FC<DraggableLayout> = (props) => {
   }, [initialWidth]);
 
   return (
-    <Wrapper>
+    <Wrapper className={props.className}>
       <GroupWrapper
+        className={props.menuClassName}
         ref={contentRef}
         style={{ '--local-initial-width': `${initialWidth}px` } as CSSProperties}>
         {props.menuRender}
-        <DraggableDivider ref={dividerRef} />
+        <DraggableDivider className={props.dividerClassName} ref={dividerRef} />
       </GroupWrapper>
-      <ContainerWrapper>
+      <ContainerWrapper className={props.contentClassName}>
         {props.contentRender}
       </ContainerWrapper>
     </Wrapper>

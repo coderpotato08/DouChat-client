@@ -1,11 +1,11 @@
-/** deepseek 对话补全 */
-export interface DsCompletionsParams {
-  /** 会话id */
-  chatSessionId: string,
-  /** 提问 */
-  prompt: string,
-  /** 附属文件 */
-  refFileIds?: string[],
-  /** 是否深度思考 */
-  thinkingEnable: boolean,
+export interface AgentCompletionParams {
+  userId: string;
+  prompt: string;
 }
+
+export type AgentStreamEvent = {
+  type: string;
+  delta?: string;
+  error?: string;
+  toolName?: string;
+};

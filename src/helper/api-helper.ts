@@ -1,4 +1,4 @@
-import { DsCompletionsParams } from "@constant/api/ai-chat-types";
+import { AgentCompletionParams } from "@constant/api/ai-chat-types";
 import {
   AddFriendParamsType,
   ApiEnum,
@@ -340,8 +340,12 @@ export class ApiHelper {
     return serviceRequest.post(ApiEnum.AUTH_GOOGLE_ACCESS, params);
   };
 
+  public static aiAgentInit = () => {
+    return serviceRequest.post<{ success: boolean }>(ApiEnum.AI_AGENT_INIT);
+  };
+
   // ai 对话补全
-  public static aiCompletion = (params: DsCompletionsParams, config: SSEConfig) => {
+  public static aiCompletion = (params: AgentCompletionParams, config: SSEConfig) => {
     return serviceRequest.sse(ApiEnum.AI_COMPLETION, params, config);
   };
 }

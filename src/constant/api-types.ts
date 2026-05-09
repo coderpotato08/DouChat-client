@@ -50,7 +50,8 @@ export enum ApiEnum {
   SEARCH_MATCH_USER_MESSAGE_LIST = '/message/searchMatchUserMessageList', // 模糊查询某好友详细聊天记录
 
   /** ai chat */
-  AI_COMPLETION = '/ai/completions', // ai 对话补全
+  AI_AGENT_INIT = '/ai/agent/init', // ai agent 初始化
+  AI_COMPLETION = '/ai/agent/completion', // ai 对话补全
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片
