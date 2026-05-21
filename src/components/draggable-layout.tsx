@@ -1,46 +1,43 @@
 import type { DragLocationHistory } from "@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { disableNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview';
-import { preventUnhandled } from '@atlaskit/pragmatic-drag-and-drop/prevent-unhandled';
+import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
+import { preventUnhandled } from "@atlaskit/pragmatic-drag-and-drop/prevent-unhandled";
 import { LocalStorageHelper, StorageKeys } from "@helper/storage-helper";
-import { type FC, type ReactNode, useEffect, useRef, useState } from "react";
+import { type FC, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import styled, { type CSSProperties } from "styled-components";
 import invariant from "tiny-invariant";
 
 const widthBoundary = {
   start: 350,
   min: 250,
-  max: 450
-}
+  max: 450,
+};
 interface DraggableLayout {
-  className?: string,
-  dragWidthKey?: string,
-  menuClassName?: string,
-  contentClassName?: string,
-  dividerClassName?: string,
-  menuRender: ReactNode,
-  contentRender?: ReactNode,
+  className?: string;
+  style?: CSSProperties;
+  dragWidthKey?: string;
+  menuClassName?: string;
+  menuStyle?: CSSProperties;
+  contentClassName?: string;
+  contentStyle?: CSSProperties;
+  dividerClassName?: string;
+  dividerStyle?: CSSProperties;
+  menuRender: ReactNode;
+  contentRender?: ReactNode;
 }
 
 export const DraggableLayout: FC<DraggableLayout> = (props) => {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const [initialWidth, setInitialWidth] = useState<number>(
-    LocalStorageHelper.getItem(
-      props.dragWidthKey ||
-      StorageKeys.MENU_LOCAL_WIDTH
-    ) || widthBoundary.start
+    LocalStorageHelper.getItem(props.dragWidthKey || StorageKeys.MENU_LOCAL_WIDTH) ||
+      widthBoundary.start,
   );
-  const [draggingStatus, setDraggingStatus] = useState<'idle' | 'dragging'>('idle');
-
-  const getProposedWidth = (
-    initialWidth: number,
-    location: DragLocationHistory
-  ) => {
+  const getProposedWidth = useCallback((initialWidth: number, location: DragLocationHistory) => {
     const diffX = location.current.input.clientX - location.initial.input.clientX;
     const proposedWidth = initialWidth + diffX;
     return Math.max(widthBoundary.min, Math.min(widthBoundary.max, proposedWidth));
-  }
+  }, []);
 
   useEffect(() => {
     invariant(dividerRef.current);
@@ -50,40 +47,46 @@ export const DraggableLayout: FC<DraggableLayout> = (props) => {
         disableNativeDragPreview({ nativeSetDragImage });
         preventUnhandled.start();
       },
-      onDragStart() {
-        setDraggingStatus('dragging');
-      },
       onDrag({ location }) {
         contentRef.current?.style.setProperty(
-          '--local-resizing-width',
-          `${getProposedWidth(initialWidth, location)}px`
+          "--local-resizing-width",
+          `${getProposedWidth(initialWidth, location)}px`,
         );
       },
       onDrop({ location }) {
         const localWidth = getProposedWidth(initialWidth, location);
-        setDraggingStatus('idle');
         setInitialWidth(localWidth);
         LocalStorageHelper.setItem(StorageKeys.MENU_LOCAL_WIDTH, localWidth);
         preventUnhandled.stop();
-      }
-    })
-  }, [initialWidth]);
+      },
+    });
+  }, [getProposedWidth, initialWidth]);
 
   return (
-    <Wrapper className={props.className}>
+    <Wrapper className={props.className} style={props.style}>
       <GroupWrapper
         className={props.menuClassName}
         ref={contentRef}
-        style={{ '--local-initial-width': `${initialWidth}px` } as CSSProperties}>
+        style={
+          {
+            "--local-initial-width": `${initialWidth}px`,
+            ...props.menuStyle,
+          } as CSSProperties
+        }
+      >
         {props.menuRender}
-        <DraggableDivider className={props.dividerClassName} ref={dividerRef} />
+        <DraggableDivider
+          className={props.dividerClassName}
+          ref={dividerRef}
+          style={props.dividerStyle}
+        />
       </GroupWrapper>
-      <ContainerWrapper className={props.contentClassName}>
+      <ContainerWrapper className={props.contentClassName} style={props.contentStyle}>
         {props.contentRender}
       </ContainerWrapper>
     </Wrapper>
-  )
-}
+  );
+};
 
 const Wrapper = styled.div`
   & {
@@ -91,7 +94,7 @@ const Wrapper = styled.div`
     width: 100%;
     height: 100%;
   }
-`
+`;
 const DraggableDivider = styled.div`
   & {
     position: absolute;
@@ -102,7 +105,7 @@ const DraggableDivider = styled.div`
     background: transparent;
     cursor: col-resize;
   }
-`
+`;
 
 export const GroupWrapper = styled.div`
   & {
@@ -114,7 +117,7 @@ export const GroupWrapper = styled.div`
     border: 2px solid #f3f3f3;
     box-shadow: 0px 0 15px 5px rgba(0,0,0,.2);
   }
-`
+`;
 
 export const ContainerWrapper = styled.div`
   & {
@@ -125,4 +128,4 @@ export const ContainerWrapper = styled.div`
     height: 100vh;
     background: #F3F3F3;
   }
-`
+`;
