@@ -1,5 +1,5 @@
-import { ApplyStatusEnum } from '@constant/relationship-types';
-import { GenderEnum } from './user-types';
+import type { ApplyStatusEnum } from '@constant/relationship-types';
+import type { GenderEnum } from './user-types';
 export const socketHost = "http://localhost:3040" // 聊天室socket
 export const meetingSocketHost = "http://localhost:3050"  // 视频会议socket
 export const avatarUrl = "https://api.multiavatar.com"   // multiavatar 获取随机头像
@@ -52,6 +52,8 @@ export enum ApiEnum {
   /** ai chat */
   AI_AGENT_INIT = '/ai/agent/init', // ai agent 初始化
   AI_COMPLETION = '/ai/agent/completion', // ai 对话补全
+  AI_APPROVAL_START_TASK = '/ai/agent/approval/startTask', // 审批任务启动
+  AI_APPROVAL_APPROVE_TASK = '/ai/agent/approval/approveTask', // 审批任务确认
 
   UPLOAD_IMAGE = '/upload/image', // 上传图片
   UPLOAD_FILE = '/upload/file', // 上传图片

@@ -1,42 +1,48 @@
-import { AgentCompletionParams } from "@constant/api/ai-chat-types";
+import type {
+  AgentApprovalApproveTaskParams,
+  AgentApprovalApproveTaskResult,
+  AgentApprovalStartTaskParams,
+  AgentApprovalStartTaskResult,
+  AgentCompletionParams,
+} from "@constant/api/ai-chat-types";
 import {
-  AddFriendParamsType,
+  type AddFriendParamsType,
   ApiEnum,
-  ChangeFriendStatusParamsType,
-  ChatSearchParamsType,
-  CreateGroupContactParamsType,
-  CreateGroupParamsType,
-  CreateMeetingParamsType,
-  CreateUserContactParamsType,
-  DeleteFriendNotificationParamsType,
-  DeleteFriendParamsType,
-  DeleteGroupNotificationParamsType,
-  DisbandGroupParamsType,
-  InviteGroupUsersParamsType,
-  LoadAllUnreadMesageNumParamsType,
-  LoadFriendListParamsType,
-  LoadFriendNotificationsParamsType,
-  LoadGroupContactListParamsType,
-  LoadGroupContactParamsType,
-  LoadGroupInfoParamsType,
-  LoadGroupListParamsType,
-  LoadGroupMsgListParamsType,
-  LoadGroupNotificationsParamsType,
-  LoadGroupUsersParamsType,
-  LoadMeetingInfoParamsType,
-  LoadUserContactParamsType,
-  LoadUserInfoParamsType,
-  QuitGroupParamsType,
-  RegisterParamsType,
-  SearchMatchGroupMessageListParamsType,
-  SearchMatchUserMessageListParamsType,
-  SearchUserParamsType,
-  UpdateGroupInfoParamsType,
-  UserContactsParamsType,
+  type ChangeFriendStatusParamsType,
+  type ChatSearchParamsType,
+  type CreateGroupContactParamsType,
+  type CreateGroupParamsType,
+  type CreateMeetingParamsType,
+  type CreateUserContactParamsType,
+  type DeleteFriendNotificationParamsType,
+  type DeleteFriendParamsType,
+  type DeleteGroupNotificationParamsType,
+  type DisbandGroupParamsType,
+  type InviteGroupUsersParamsType,
+  type LoadAllUnreadMesageNumParamsType,
+  type LoadFriendListParamsType,
+  type LoadFriendNotificationsParamsType,
+  type LoadGroupContactListParamsType,
+  type LoadGroupContactParamsType,
+  type LoadGroupInfoParamsType,
+  type LoadGroupListParamsType,
+  type LoadGroupMsgListParamsType,
+  type LoadGroupNotificationsParamsType,
+  type LoadGroupUsersParamsType,
+  type LoadMeetingInfoParamsType,
+  type LoadUserContactParamsType,
+  type LoadUserInfoParamsType,
+  type QuitGroupParamsType,
+  type RegisterParamsType,
+  type SearchMatchGroupMessageListParamsType,
+  type SearchMatchUserMessageListParamsType,
+  type SearchUserParamsType,
+  type UpdateGroupInfoParamsType,
+  type UserContactsParamsType,
 } from "@constant/api-types";
-import { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types";
-import { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types";
-import { SSEConfig, serviceRequest } from "../service/index";
+import type { ApplyStatusEnum, FriendInfoType, GroupInfoType } from "@constant/relationship-types";
+import type { ContactInfoType, MessageTypeEnum, UserInfoType } from "@constant/user-types";
+import { type SSEConfig, serviceRequest } from "../service/index";
 
 export class ApiHelper {
   // 所有未读消息数加载
@@ -347,5 +353,21 @@ export class ApiHelper {
   // ai 对话补全
   public static aiCompletion = (params: AgentCompletionParams, config: SSEConfig) => {
     return serviceRequest.sse(ApiEnum.AI_COMPLETION, params, config);
+  };
+
+  // 审批流程 - 启动任务
+  public static aiApprovalStartTask = (params: AgentApprovalStartTaskParams) => {
+    return serviceRequest.post<AgentApprovalStartTaskResult>(
+      ApiEnum.AI_APPROVAL_START_TASK,
+      params,
+    );
+  };
+
+  // 审批流程 - 审批任务
+  public static aiApprovalApproveTask = (params: AgentApprovalApproveTaskParams) => {
+    return serviceRequest.post<AgentApprovalApproveTaskResult>(
+      ApiEnum.AI_APPROVAL_APPROVE_TASK,
+      params,
+    );
   };
 }

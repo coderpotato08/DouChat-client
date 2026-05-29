@@ -26,7 +26,7 @@ export const AiChatInput = (props: AiChatInputProps) => {
       placeholder={
         props.loading ? "AI 正在生成回复..." : "Ask anything, or paste Markdown-friendly content"
       }
-      prefix={<Button icon={<PaperClipOutlined />}>Attach</Button>}
+      prefix={<Button type="primary">发起任务</Button>}
       footer={<Typography.Text type="secondary">Enter 发送，Shift + Enter 换行</Typography.Text>}
       onChange={props.onChange}
       onSubmit={onSubmit}

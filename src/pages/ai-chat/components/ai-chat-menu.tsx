@@ -34,7 +34,7 @@ export const AiChatMenu: FC<AiChatMenuProps> = () => {
   );
 
   return (
-    <Flex vertical gap="middle">
+    <Flex vertical gap="middle" style={{ padding: "12px" }}>
       <Flex vertical gap={18}>
         <Flex align="center" gap={14}>
           <Avatar shape="square" size="large">
@@ -48,6 +48,7 @@ export const AiChatMenu: FC<AiChatMenuProps> = () => {
       </Flex>
 
       <Conversations
+        style={{ padding: 0 }}
         activeKey={activeKey}
         items={conversationItems}
         onActiveChange={setActiveKey}
