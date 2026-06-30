@@ -96,7 +96,7 @@ export const AiChatContent: FC<AiChatContentProps> = ({
 
   if (!messages.length) {
     return (
-      <Card>
+      <Card style={{ width: "fit-content", margin: "0 auto auto" }} styles={{ body: { padding: "16px" } }}>
         <Flex vertical gap="middle">
           <Typography.Text type="secondary">
             <FireOutlined /> AI assistant workspace

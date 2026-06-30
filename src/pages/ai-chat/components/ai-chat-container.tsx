@@ -2,7 +2,7 @@ import type { AgentStreamEvent } from "@constant/api/ai-chat-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Divider, Flex, Typography } from "antd";
+import { Flex } from "antd";
 import { type FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { AiChatContent, type AiChatMessage } from "./ai-chat-content";
@@ -264,15 +264,18 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
   }, []);
 
   return (
-    <Flex vertical gap="middle">
-      <AiChatContent
-        messages={messages}
-        statusText={statusText}
-        isStreaming={isStreaming}
-        onPromptSelect={handlePromptSelect}
-      />
-      <Divider />
-      <AiChatInput value={draft} onChange={setDraft} onSubmit={onSubmit} loading={isStreaming} />
+    <Flex vertical gap="middle" style={{ padding: "16px", height: "100%", overflow: "hidden" }}>
+      <Flex flex={1} style={{ overflow: "hidden", minHeight: 0 }}>
+        <AiChatContent
+          messages={messages}
+          statusText={statusText}
+          isStreaming={isStreaming}
+          onPromptSelect={handlePromptSelect}
+        />
+      </Flex>
+      <Flex flex="none">
+        <AiChatInput value={draft} onChange={setDraft} onSubmit={onSubmit} loading={isStreaming} />
+      </Flex>
     </Flex>
   );
 };
