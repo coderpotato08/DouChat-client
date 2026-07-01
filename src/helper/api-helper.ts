@@ -4,6 +4,10 @@ import type {
   AgentApprovalStartTaskParams,
   AgentApprovalStartTaskResult,
   AgentCompletionParams,
+  GetSessionParams,
+  GetSessionResult,
+  InitSessionParams,
+  InitSessionResult,
 } from "@constant/api/ai-chat-types";
 import {
   type AddFriendParamsType,
@@ -369,5 +373,15 @@ export class ApiHelper {
       ApiEnum.AI_APPROVAL_APPROVE_TASK,
       params,
     );
+  };
+
+  // 获取会话消息
+  public static aiGetSession = (params: GetSessionParams) => {
+    return serviceRequest.post<GetSessionResult>(ApiEnum.AI_SESSION_GET, params);
+  };
+
+  // 新建会话
+  public static aiInitSession = (params: InitSessionParams) => {
+    return serviceRequest.post<InitSessionResult>(ApiEnum.AI_SESSION_INIT, params);
   };
 }

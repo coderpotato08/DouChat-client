@@ -119,7 +119,7 @@ export const AiChatContent: FC<AiChatContentProps> = ({
   }
 
   return (
-    <Flex vertical gap="middle">
+    <Flex vertical gap="middle" style={{ width: "100%" }}>
       <Bubble.List items={bubbleItems} roles={roleConfig} autoScroll />
       {statusText ? (
         <Typography.Text type="secondary">

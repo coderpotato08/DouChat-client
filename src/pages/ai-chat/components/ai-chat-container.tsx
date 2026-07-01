@@ -35,6 +35,7 @@ const parseStreamEvent = (rawMessage: string): AgentStreamEvent | null => {
 export const AiChatContainer: FC<AiChatContainerProps> = () => {
   const userInfo = useAppSelector(userSelector);
   const fallbackUserIdRef = useRef(uuidv4());
+  const mockSessionIdRef = useRef("mock-session-id");
   const requestAbortRef = useRef<AbortController | null>(null);
   const activeAssistantIdRef = useRef<string | null>(null);
   const initFinishedRef = useRef(false);
@@ -212,11 +213,18 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
       try {
         await ApiHelper.aiCompletion(
           {
+            sessionId: mockSessionIdRef.current,
             userId: currentUserId,
             prompt,
           },
           {
             signal: controller.signal,
+            retry: {
+              initialDelayMs: 1000,
+              maxDelayMs: 8000,
+              multiplier: 2,
+              maxRetries: 4,
+            },
             onMessage: handleStreamMessage,
             onEnd: () => {
               finalizeCurrentRequest("回答完成");
@@ -264,7 +272,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
   }, []);
 
   return (
-    <Flex vertical gap="middle" style={{ padding: "16px", height: "100%", overflow: "hidden" }}>
+    <Flex vertical gap="middle" style={{ padding: "16px", height: "100%", overflow: "hidden", boxSizing: "border-box" }}>
       <Flex flex={1} style={{ overflow: "hidden", minHeight: 0 }}>
         <AiChatContent
           messages={messages}
