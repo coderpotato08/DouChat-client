@@ -30,9 +30,15 @@ export type AgentStreamEvent = {
   delta?: string;
   error?: string;
   toolName?: string;
+  toolUseId?: string;
+  data?: unknown;
+  success?: boolean;
 };
 
 // ==================== 会话管理 ====================
+
+/** 会话状态 */
+export type AiSessionStatus = "active" | "archived" | "deleted";
 
 /** 获取会话消息 — 请求参数 */
 export interface GetSessionParams {
@@ -44,7 +50,7 @@ export interface GetSessionParams {
 export interface SessionSummary {
   sessionId: string;
   title: string;
-  status: "active" | "archived";
+  status: AiSessionStatus;
   modelProvider: string;
   messageCount: number;
   lastMessagePreview: string;
@@ -71,6 +77,29 @@ export interface SessionMessageItem {
   tokenUsage?: { inputToken?: number; outputToken?: number; totalToken?: number };
   createdAt: string;
   isCompressed?: boolean;
+}
+
+export interface GetSessionListParams {
+  userId: string;
+  /** 按状态过滤，支持单值或数组；不传则默认排除软删除会话 */
+  status?: AiSessionStatus | AiSessionStatus[];
+}
+
+export interface GetSessionListItem {
+  sessionId: string;
+  userId: string;
+  title: string;
+  status: AiSessionStatus;
+  modelProvider?: string;
+  messageCount: number;
+  lastMessagePreview: string;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetSessionListResult {
+  sessions: GetSessionListItem[];
 }
 
 /** 获取会话消息 — 响应 */

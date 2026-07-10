@@ -54,6 +54,7 @@ export enum ApiEnum {
   AI_COMPLETION = '/ai/agent/completion', // ai 对话补全
   AI_APPROVAL_START_TASK = '/ai/agent/approval/startTask', // 审批任务启动
   AI_APPROVAL_APPROVE_TASK = '/ai/agent/approval/approveTask', // 审批任务确认
+  AI_SESSION_LIST = '/ai/session/list', // 获取会话列表
   AI_SESSION_GET = '/ai/session/get', // 获取会话消息
   AI_SESSION_INIT = '/ai/session/init', // 新建会话
 

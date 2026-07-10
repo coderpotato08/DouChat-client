@@ -15,7 +15,7 @@ type SSERequestError = Error & {
 };
 
 const DEFAULT_SSE_RETRY_CONFIG: Required<SSERetryConfig> = {
-  initialDelayMs: 1000,
+  initialDelayMs: 300,
   maxDelayMs: 8000,
   multiplier: 2,
   maxRetries: 4,
@@ -134,7 +134,7 @@ export const serviceRequest = {
               return;
             }
 
-            throw buildSSERequestError("SSE connection closed unexpectedly", true);
+            throw buildSSERequestError("SSE connection closed unexpectedly", false);
           },
           onerror: (error) => {
             if (controller.signal.aborted) {

@@ -1,8 +1,10 @@
 import { FireOutlined, MessageOutlined } from "@ant-design/icons";
-import { Bubble, Prompts, Welcome } from "@ant-design/x";
+import { Bubble, BubbleProps, Prompts, Welcome } from "@ant-design/x";
 import { XMarkdown } from "@ant-design/x-markdown";
+import { RolesType } from "@ant-design/x/es/bubble/BubbleList";
 import { Avatar, Card, Flex, Typography } from "antd";
 import { type FC, useMemo } from "react";
+import { TodoList } from "./todo-list";
 
 export type AiChatMessage = {
   id: string;
@@ -20,18 +22,13 @@ type AiChatContentProps = {
 const promptItems = [
   {
     key: "prompt-1",
-    label: "Plan a four-day city break with local food stops",
-    description: "Travel planning",
+    label: "生成一篇以我想下班为主题的200字小短文写入data/temp.txt中",
+    description: "生成小作文",
   },
   {
     key: "prompt-2",
-    label: "Rewrite this product intro with a warmer tone and clearer CTA",
-    description: "Marketing copy",
-  },
-  {
-    key: "prompt-3",
-    label: "Summarise meeting notes into decisions, owners, and deadlines",
-    description: "Operations",
+    label: "阅读data/temp.txt中的内容，从不同角度分析这篇小短文的优缺点，并给出改进建议",
+    description: "分析文本",
   },
 ];
 
@@ -44,6 +41,11 @@ const mapMessageStatus = (status?: AiChatMessage["status"]) => {
   }
   return "success" as const;
 };
+const bubbleStyles: BubbleProps['styles'] = {
+  content: {
+    maxWidth: "85%",
+  }
+}
 
 export const AiChatContent: FC<AiChatContentProps> = ({
   messages,
@@ -62,11 +64,12 @@ export const AiChatContent: FC<AiChatContentProps> = ({
     }));
   }, [messages]);
 
-  const roleConfig = useMemo(
+  const roleConfig = useMemo<RolesType>(
     () => ({
       assistant: {
+        styles: bubbleStyles,
         placement: "start" as const,
-        variant: "borderless" as const,
+        variant: "filled" as const,
         avatar: <Avatar>AI</Avatar>,
         messageRender: (content: unknown) => (
           <XMarkdown
@@ -81,11 +84,13 @@ export const AiChatContent: FC<AiChatContentProps> = ({
         ),
       },
       user: {
+        styles: bubbleStyles,
         placement: "end" as const,
         variant: "filled" as const,
         avatar: <Avatar>ME</Avatar>,
       },
       system: {
+        styles: bubbleStyles,
         placement: "start" as const,
         variant: "outlined" as const,
         avatar: <Avatar>!</Avatar>,
@@ -119,13 +124,13 @@ export const AiChatContent: FC<AiChatContentProps> = ({
   }
 
   return (
-    <Flex vertical gap="middle" style={{ width: "100%" }}>
-      <Bubble.List items={bubbleItems} roles={roleConfig} autoScroll />
-      {statusText ? (
-        <Typography.Text type="secondary">
-          <MessageOutlined /> {statusText}
-        </Typography.Text>
-      ) : null}
+    <Flex vertical gap="none" style={{ width: "100%" }}>
+      <TodoList />
+      <Bubble.List
+        items={bubbleItems} 
+        roles={roleConfig} 
+        autoScroll 
+      />
     </Flex>
   );
 };

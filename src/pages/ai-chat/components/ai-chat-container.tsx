@@ -1,14 +1,17 @@
-import type { AgentStreamEvent } from "@constant/api/ai-chat-types";
+import type { AgentStreamEvent, SessionMessageItem } from "@constant/api/ai-chat-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
-import { Flex } from "antd";
-import { type FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Flex, message } from "antd";
+import { type FC, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { AiChatContent, type AiChatMessage } from "./ai-chat-content";
 import { AiChatInput } from "./ai-chat-input";
 
-type AiChatContainerProps = Record<string, never>;
+type AiChatContainerProps = {
+  sessionId: string;
+  onCreateSession: () => Promise<void>;
+};
 
 const createMessage = (
   role: AiChatMessage["role"],
@@ -32,10 +35,21 @@ const parseStreamEvent = (rawMessage: string): AgentStreamEvent | null => {
   }
 };
 
-export const AiChatContainer: FC<AiChatContainerProps> = () => {
+/** 将后端历史消息转换为界面消息；tool 角色消息不直接展示 */
+const fromSessionMessage = (item: SessionMessageItem): AiChatMessage | null => {
+  if (item.role === "tool") {
+    return null;
+  }
+  return {
+    id: item.messageId,
+    role: item.role,
+    content: item.content ?? "",
+    status: item.messageStatus === "failed" ? "error" : "done",
+  };
+};
+
+export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateSession }) => {
   const userInfo = useAppSelector(userSelector);
-  const fallbackUserIdRef = useRef(uuidv4());
-  const mockSessionIdRef = useRef("mock-session-id");
   const requestAbortRef = useRef<AbortController | null>(null);
   const activeAssistantIdRef = useRef<string | null>(null);
   const initFinishedRef = useRef(false);
@@ -46,11 +60,9 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
   const [statusText, setStatusText] = useState("");
   const [draft, setDraft] = useState("");
 
-  const currentUserId = useMemo(() => {
-    return userInfo?._id || fallbackUserIdRef.current;
-  }, [userInfo]);
+  const currentUserId = userInfo?._id;
 
-  const markAssistantMessage = useCallback((status: AiChatMessage["status"]) => {
+  const markAssistantMessage = (status: AiChatMessage["status"]) => {
     const assistantMessageId = activeAssistantIdRef.current;
     if (!assistantMessageId) {
       return;
@@ -68,9 +80,9 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
         };
       }),
     );
-  }, []);
+  };
 
-  const appendAssistantDelta = useCallback((delta: string) => {
+  const appendAssistantDelta = (delta: string) => {
     const assistantMessageId = activeAssistantIdRef.current;
     if (!assistantMessageId || !delta) {
       return;
@@ -88,26 +100,26 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
         };
       }),
     );
-  }, []);
+  };
 
-  const appendSystemMessage = useCallback((content: string) => {
+  const appendSystemMessage = (content: string) => {
     if (!content) {
       return;
     }
 
     setMessages((prev) => [...prev, createMessage("system", content, "error")]);
-  }, []);
+  };
 
-  const finalizeCurrentRequest = useCallback((nextStatus = "") => {
+  const onCompletionEnd = (nextStatus = "") => {
     finishRequestRef.current?.();
     finishRequestRef.current = null;
     requestAbortRef.current = null;
     activeAssistantIdRef.current = null;
     setIsStreaming(false);
     setStatusText(nextStatus);
-  }, []);
+  };
 
-  const ensureAgentReady = useCallback(async () => {
+  const ensureAgentReady = async () => {
     if (initFinishedRef.current) {
       return true;
     }
@@ -125,145 +137,175 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
     appendSystemMessage("AI 初始化失败，请稍后重试。");
     setStatusText("AI 初始化失败");
     return false;
-  }, [appendSystemMessage]);
+  };
 
-  const handleStreamMessage = useCallback(
-    (rawMessage: string) => {
-      const event = parseStreamEvent(rawMessage);
-      if (!event) {
+  const ensureSessionReady = async () => {
+    if (sessionId) {
+      return sessionId;
+    }
+
+    await onCreateSession();
+    return null;
+  };
+
+  const handleStreamMessage = (rawMessage: string) => {
+    const event = parseStreamEvent(rawMessage);
+    if (!event) {
+      return;
+    }
+
+    switch (event.type) {
+      case "thinking_start":
+        setStatusText("AI 正在思考...");
         return;
-      }
-
-      switch (event.type) {
-        case "thinking_start":
-          setStatusText("AI 正在思考...");
-          return;
-        case "tool_use_start":
-          setStatusText(event.toolName ? `调用工具 ${event.toolName} 中...` : "AI 正在调用工具...");
-          return;
-        case "tool_use_done":
-          setStatusText(event.toolName ? `工具 ${event.toolName} 已完成` : "工具调用完成");
-          return;
-        case "content_start":
-          setStatusText("AI 正在回答...");
-          return;
-        case "content_delta":
-          appendAssistantDelta(event.delta || "");
-          return;
-        case "content_done":
-          markAssistantMessage("done");
-          setStatusText("回答完成");
-          return;
-        case "error":
-          markAssistantMessage("error");
-          appendSystemMessage(event.error || "请求失败，请稍后重试。");
-          setStatusText("响应出错");
-          return;
-        default:
-          return;
-      }
-    },
-    [appendAssistantDelta, appendSystemMessage, markAssistantMessage],
-  );
-
-  const onSubmit = useCallback(
-    async (message: string) => {
-      if (isStreaming) {
+      case "tool_use_start":
+        setStatusText(event.toolName ? `调用工具 ${event.toolName} 中...` : "AI 正在调用工具...");
         return;
-      }
-
-      const prompt = message.trim();
-      if (!prompt) {
+      case "tool_use_done":
+        setStatusText(event.toolName ? `工具 ${event.toolName} 已完成` : "工具调用完成");
         return;
-      }
-
-      const isReady = await ensureAgentReady();
-      if (!isReady) {
+      case "content_start":
+        setStatusText("AI 正在回答...");
         return;
-      }
-
-      const assistantMessageId = uuidv4();
-      const controller = new AbortController();
-      requestAbortRef.current = controller;
-      activeAssistantIdRef.current = assistantMessageId;
-      setIsStreaming(true);
-      setStatusText("已连接，等待 AI 响应...");
-      setMessages((prev) => [
-        ...prev,
-        createMessage("user", prompt),
-        {
-          id: assistantMessageId,
-          role: "assistant",
-          content: "",
-          status: "streaming",
-        },
-      ]);
-      setDraft("");
-
-      let finished = false;
-      finishRequestRef.current = () => {
-        if (finished) {
-          return;
-        }
-
-        finished = true;
+      case "content_delta":
+        appendAssistantDelta(event.delta || "");
+        return;
+      case "content_done":
         markAssistantMessage("done");
-      };
-
-      try {
-        await ApiHelper.aiCompletion(
-          {
-            sessionId: mockSessionIdRef.current,
-            userId: currentUserId,
-            prompt,
-          },
-          {
-            signal: controller.signal,
-            retry: {
-              initialDelayMs: 1000,
-              maxDelayMs: 8000,
-              multiplier: 2,
-              maxRetries: 4,
-            },
-            onMessage: handleStreamMessage,
-            onEnd: () => {
-              finalizeCurrentRequest("回答完成");
-            },
-            onError: () => {
-              markAssistantMessage("error");
-              appendSystemMessage("网络异常，请稍后重试。");
-              finalizeCurrentRequest("请求失败");
-            },
-            onClose: () => {
-              finalizeCurrentRequest(statusText || "回答完成");
-            },
-          },
-        );
-      } catch (_error) {
+        setStatusText("回答完成");
+        return;
+      case "error":
         markAssistantMessage("error");
-        appendSystemMessage("请求发送失败，请稍后重试。");
-        finalizeCurrentRequest("请求失败");
-      }
-    },
-    [
-      appendSystemMessage,
-      currentUserId,
-      ensureAgentReady,
-      finalizeCurrentRequest,
-      handleStreamMessage,
-      isStreaming,
-      markAssistantMessage,
-      statusText,
-    ],
-  );
+        appendSystemMessage(event.error || "请求失败，请稍后重试。");
+        setStatusText("响应出错");
+        return;
+      default:
+        return;
+    }
+  };
 
-  const handlePromptSelect = useCallback((prompt: string) => {
+  const onSubmit = async (message: string) => {
+    if (isStreaming) {
+      return;
+    }
+
+    const prompt = message.trim();
+    if (!prompt) {
+      return;
+    }
+
+    const isReady = await ensureAgentReady();
+    if (!isReady) {
+      return;
+    }
+
+    const activeSessionId = await ensureSessionReady();
+    if (!activeSessionId) {
+      appendSystemMessage("会话初始化失败，请稍后重试。");
+      return;
+    }
+
+    const assistantMessageId = uuidv4();
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    activeAssistantIdRef.current = assistantMessageId;
+    setIsStreaming(true);
+    setStatusText("已连接，等待 AI 响应...");
+    setMessages((prev) => [
+      ...prev,
+      createMessage("user", prompt),
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        status: "streaming",
+      },
+    ]);
+    setDraft("");
+
+    let finished = false;
+    finishRequestRef.current = () => {
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+      markAssistantMessage("done");
+    };
+
+    try {
+      await ApiHelper.aiCompletion(
+        {
+          sessionId: activeSessionId,
+          userId: currentUserId,
+          prompt,
+        },
+        {
+          signal: controller.signal,
+          retry: {
+            initialDelayMs: 1000,
+            maxDelayMs: 8000,
+            multiplier: 2,
+            maxRetries: 4,
+          },
+          onMessage: handleStreamMessage,
+          onEnd: () => {
+            onCompletionEnd("回答完成");
+          },
+          onError: () => {
+            markAssistantMessage("error");
+            appendSystemMessage("网络异常，请稍后重试。");
+            onCompletionEnd("请求失败");
+          },
+          onClose: () => {
+            onCompletionEnd(statusText || "回答完成");
+          },
+        },
+      );
+    } catch (_error) {
+      markAssistantMessage("error");
+      appendSystemMessage("请求发送失败，请稍后重试。");
+      onCompletionEnd("请求失败");
+    }
+  };
+
+  const handlePromptSelect = (prompt: string) => {
     setDraft(prompt);
-  }, []);
+  };
+
+  const loadSessionHistory = async (targetSessionId: string) => {
+    if (!targetSessionId) {
+      setMessages([]);
+      return;
+    }
+    try {
+      const result = await ApiHelper.aiGetSession({
+        sessionId: targetSessionId,
+        userId: currentUserId,
+      });
+      const history = (result?.messages || [])
+        .map(fromSessionMessage)
+        .filter((message): message is AiChatMessage => message !== null);
+      setMessages(history);
+    } catch (_error) {
+      message.error("加载历史消息失败，请稍后重试");
+    }
+  };
+
+  useEffect(() => {
+    // 切换会话时中断进行中的流式请求，避免旧会话输出污染新会话历史
+    if (isStreaming) {
+      requestAbortRef.current?.abort();
+      onCompletionEnd("切换会话中");
+    }
+    void loadSessionHistory(sessionId);
+    // 仅在 sessionId 变化时执行；isStreaming/currentUserId/onCompletionEnd 仅作读取，不应触发重执行
+  }, [sessionId]);
 
   useEffect(() => {
     void ensureAgentReady();
-  }, [ensureAgentReady]);
+    // 仅在挂载时初始化一次 AI Agent；ensureAgentReady 内部用 initFinishedRef 防重复
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -272,7 +314,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = () => {
   }, []);
 
   return (
-    <Flex vertical gap="middle" style={{ padding: "16px", height: "100%", overflow: "hidden", boxSizing: "border-box" }}>
+    <Flex vertical gap="none" style={{ padding: "16px", height: "100%", overflow: "hidden", boxSizing: "border-box" }}>
       <Flex flex={1} style={{ overflow: "hidden", minHeight: 0 }}>
         <AiChatContent
           messages={messages}

@@ -4,6 +4,8 @@ import type {
   AgentApprovalStartTaskParams,
   AgentApprovalStartTaskResult,
   AgentCompletionParams,
+  GetSessionListParams,
+  GetSessionListResult,
   GetSessionParams,
   GetSessionResult,
   InitSessionParams,
@@ -375,7 +377,12 @@ export class ApiHelper {
     );
   };
 
-  // 获取会话消息
+  // 获取会话列表
+  public static aiGetSessionList = (params: GetSessionListParams) => {
+    return serviceRequest.post<GetSessionListResult>(ApiEnum.AI_SESSION_LIST, params);
+  };
+
+  // 获取会话消息及会话列表
   public static aiGetSession = (params: GetSessionParams) => {
     return serviceRequest.post<GetSessionResult>(ApiEnum.AI_SESSION_GET, params);
   };

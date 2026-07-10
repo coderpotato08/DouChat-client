@@ -1,40 +1,34 @@
+import type { GetSessionListItem } from "@constant/api/ai-chat-types";
 import { PlusOutlined } from "@ant-design/icons";
 import { Conversations } from "@ant-design/x";
-import { Avatar, Button, Flex, Typography } from "antd";
-import { type FC, useState } from "react";
+import { Avatar, Button, Flex, Spin, Typography } from "antd";
+import { type FC, useMemo } from "react";
 
-const conversationItems = [
-  {
-    key: "travel-plan",
-    label: "Spring festival travel plan",
-    active: true,
-  },
-  {
-    key: "react-performance",
-    label: "React performance checklist",
-  },
-  {
-    key: "markdown-audit",
-    label: "Markdown rendering audit",
-  },
-  {
-    key: "landing-page",
-    label: "Landing page rewrite",
-  },
-  {
-    key: "meeting-summary",
-    label: "Meeting summary generator",
-  },
-];
-
-type AiChatMenuProps = Record<string, never>;
-export const AiChatMenu: FC<AiChatMenuProps> = () => {
-  const [activeKey, setActiveKey] = useState(
-    conversationItems.find((item) => item.active)?.key || conversationItems[0]?.key || "",
-  );
+type AiChatMenuProps = {
+  sessionList: GetSessionListItem[];
+  sessionId: string;
+  loading?: boolean;
+  onSessionChange: (sessionId: string) => void;
+  onCreateSession: () => Promise<void>;
+  creatingSession?: boolean;
+};
+export const AiChatMenu: FC<AiChatMenuProps> = ({
+  sessionList,
+  sessionId,
+  loading = false,
+  onSessionChange,
+  onCreateSession,
+  creatingSession = false,
+}) => {
+  const conversationItems = useMemo(() => {
+    return sessionList.map((item) => ({
+      key: item.sessionId,
+      label: item.title,
+    }));
+  }, [sessionList]);
 
   return (
-    <Flex vertical gap="middle" style={{ padding: "12px" }}>
+    <Flex vertical gap="middle" style={{ padding: "12px", minWidth: "240px" }}>
       <Flex vertical gap={18}>
         <Flex align="center" gap={14}>
           <Avatar shape="square" size="large">
@@ -42,17 +36,19 @@ export const AiChatMenu: FC<AiChatMenuProps> = () => {
           </Avatar>
           <Typography.Title level={4}>Wednesday</Typography.Title>
         </Flex>
-        <Button type="primary" icon={<PlusOutlined />}>
-          New chat
+        <Button type="primary" icon={<PlusOutlined />} loading={creatingSession} onClick={() => void onCreateSession()}>
+          新建会话
         </Button>
       </Flex>
 
-      <Conversations
-        style={{ padding: 0 }}
-        activeKey={activeKey}
-        items={conversationItems}
-        onActiveChange={setActiveKey}
-      />
+      <Spin spinning={loading}>
+        <Conversations
+          style={{ padding: 0 }}
+          activeKey={sessionId}
+          items={conversationItems}
+          onActiveChange={(key) => onSessionChange(String(key || ""))}
+        />
+      </Spin>
     </Flex>
   );
 };
