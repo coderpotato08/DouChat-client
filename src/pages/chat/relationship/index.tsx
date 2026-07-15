@@ -335,8 +335,6 @@ const Relationship: FC = () => {
                           </div>
                         }
                         <CloseOutlined className={"close-btn"}
-                          onPointerEnterCapture={() => { }}
-                          onPointerLeaveCapture={() => { }}
                           onClick={() => onDeleteNotification(index)} />
                       </NotificationItem>
                     </CSSTransition>

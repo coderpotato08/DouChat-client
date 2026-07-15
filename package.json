@@ -33,6 +33,7 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky install",
     "tauri:dev": "tauri dev"
   },

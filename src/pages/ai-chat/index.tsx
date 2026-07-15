@@ -1,15 +1,14 @@
+import { XProvider } from "@ant-design/x";
+import { DraggableLayout } from "@components/draggable-layout";
 import type { GetSessionListItem } from "@constant/api/ai-chat-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
 import { message } from "antd";
-import { XProvider } from "@ant-design/x";
-import { DraggableLayout } from "@components/draggable-layout";
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { AiChatContainer } from "./components/ai-chat-container";
 import { AiChatMenu } from "./components/ai-chat-menu";
-
 
 export const AiChat = () => {
   const userInfo = useAppSelector(userSelector);
@@ -88,7 +87,9 @@ export const AiChat = () => {
             creatingSession={creatingSession}
           />
         }
-        contentRender={<AiChatContainer sessionId={sessionId} onCreateSession={handleCreateSession} />}
+        contentRender={
+          <AiChatContainer sessionId={sessionId} />
+        }
       />
     </XProvider>
   );

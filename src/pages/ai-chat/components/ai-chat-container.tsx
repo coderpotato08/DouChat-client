@@ -1,68 +1,85 @@
-import type { AgentStreamEvent, SessionMessageItem } from "@constant/api/ai-chat-types";
+import {
+  type AgentStreamEvent,
+  type SessionMessageItem,
+  StreamEventType,
+} from "@constant/api/ai-chat-types";
 import { ApiHelper } from "@helper/api-helper";
 import { useAppSelector } from "@store/hooks";
 import { userSelector } from "@store/userReducer";
 import { Flex, message } from "antd";
-import { type FC, useEffect, useRef, useState } from "react";
+import { type FC, useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { AiChatContent, type AiChatMessage } from "./ai-chat-content";
+import type { AIChatMessage } from "../types";
+import type { TodoItem } from "../types/todo-list";
+import { AiChatContent } from "./ai-chat-content";
 import { AiChatInput } from "./ai-chat-input";
 
 type AiChatContainerProps = {
   sessionId: string;
-  onCreateSession: () => Promise<void>;
 };
-
-const createMessage = (
-  role: AiChatMessage["role"],
-  content: string,
-  status: AiChatMessage["status"] = "done",
-): AiChatMessage => ({
-  id: uuidv4(),
-  role,
-  content,
-  status,
-});
-
-const parseStreamEvent = (rawMessage: string): AgentStreamEvent | null => {
-  try {
-    return JSON.parse(rawMessage) as AgentStreamEvent;
-  } catch (_error) {
-    return {
-      type: "content_delta",
-      delta: rawMessage,
-    };
-  }
-};
+export type SessionTodoMap = Record<string, TodoItem[]>;
 
 /** 将后端历史消息转换为界面消息；tool 角色消息不直接展示 */
-const fromSessionMessage = (item: SessionMessageItem): AiChatMessage | null => {
+const fromSessionMessage = (item: SessionMessageItem): AIChatMessage | null => {
   if (item.role === "tool") {
     return null;
   }
   return {
-    id: item.messageId,
+    requestId: item.requestId,
+    sessionId: item.sessionId,
+    messageId: item.messageId,
     role: item.role,
     content: item.content ?? "",
     status: item.messageStatus === "failed" ? "error" : "done",
   };
 };
 
-export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateSession }) => {
+export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
   const userInfo = useAppSelector(userSelector);
   const requestAbortRef = useRef<AbortController | null>(null);
   const activeAssistantIdRef = useRef<string | null>(null);
   const initFinishedRef = useRef(false);
   const finishRequestRef = useRef<(() => void) | null>(null);
-
-  const [messages, setMessages] = useState<AiChatMessage[]>([]);
+  const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [draft, setDraft] = useState("");
+  const [todoMap, setTodoMap] = useState<SessionTodoMap>({});
 
+  const currentTodoList = todoMap[sessionId] || [];
   const currentUserId = userInfo?._id;
 
-  const markAssistantMessage = (status: AiChatMessage["status"]) => {
+  const createMessage = useCallback(
+    (
+      role: AIChatMessage["role"],
+      content: string,
+      status: AIChatMessage["status"] = "done",
+      params?: {
+        messageId?: string;
+      },
+    ): AIChatMessage => {
+      const blocks: AIChatMessage["blocks"] = role === "assistant" ? [] : undefined;
+      return {
+        requestId: activeAssistantIdRef.current || "",
+        sessionId,
+        messageId: params?.messageId || uuidv4(),
+        role,
+        content,
+        blocks,
+        status,
+        statusText: "",
+        createdAt: Date.now().toString(),
+      };
+    },
+    [activeAssistantIdRef.current, sessionId],
+  );
+
+  /** 是否是当前轮次对话的AI消息 */
+  const isCurAssistantMessage = (message: AIChatMessage) => {
+    return message.role === "assistant" && message.requestId === activeAssistantIdRef.current;
+  }
+
+  const markAssistantMessage = (status: AIChatMessage["status"]) => {
     const assistantMessageId = activeAssistantIdRef.current;
     if (!assistantMessageId) {
       return;
@@ -70,7 +87,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
 
     setMessages((prev) =>
       prev.map((message) => {
-        if (message.id !== assistantMessageId) {
+        if (!isCurAssistantMessage(message)) {
           return message;
         }
 
@@ -90,7 +107,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
 
     setMessages((prev) =>
       prev.map((message) => {
-        if (message.id !== assistantMessageId) {
+        if (!isCurAssistantMessage(message)) {
           return message;
         }
 
@@ -106,7 +123,6 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
     if (!content) {
       return;
     }
-
     setMessages((prev) => [...prev, createMessage("system", content, "error")]);
   };
 
@@ -124,59 +140,60 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
       return true;
     }
 
-    setStatusText("正在初始化 AI Agent...");
     const result = await ApiHelper.aiAgentInit();
     const success = result?.success === true;
 
     if (success) {
       initFinishedRef.current = true;
-      setStatusText("初始化完成，开始对话吧");
       return true;
     }
 
     appendSystemMessage("AI 初始化失败，请稍后重试。");
-    setStatusText("AI 初始化失败");
     return false;
   };
 
-  const ensureSessionReady = async () => {
-    if (sessionId) {
-      return sessionId;
-    }
-
-    await onCreateSession();
-    return null;
-  };
-
   const handleStreamMessage = (rawMessage: string) => {
-    const event = parseStreamEvent(rawMessage);
-    if (!event) {
+    const eventData = JSON.parse(rawMessage) as AgentStreamEvent;
+    if (!eventData) {
       return;
     }
-
-    switch (event.type) {
-      case "thinking_start":
+    switch (eventData.type) {
+      case StreamEventType.THINKING_START:
         setStatusText("AI 正在思考...");
         return;
-      case "tool_use_start":
-        setStatusText(event.toolName ? `调用工具 ${event.toolName} 中...` : "AI 正在调用工具...");
+      case StreamEventType.TOOL_USE_START:
+        if (eventData.toolName === "todo") {
+          setTodoMap((prev) => ({
+            ...prev,
+            [sessionId]: (eventData.data as { items: TodoItem[] | null }).items as TodoItem[],
+          }));
+        }
+        setStatusText(
+          eventData.toolName ? `调用工具 ${eventData.toolName} 中...` : "AI 正在调用工具...",
+        );
         return;
-      case "tool_use_done":
-        setStatusText(event.toolName ? `工具 ${event.toolName} 已完成` : "工具调用完成");
+      case StreamEventType.TOOL_USE_DONE:
+        if (eventData.toolName === "todo") {
+          setTodoMap((prev) => ({
+            ...prev,
+            [sessionId]: (eventData.data as { items: TodoItem[] | null }).items as TodoItem[],
+          }));
+        }
+        setStatusText(eventData.toolName ? `工具 ${eventData.toolName} 已完成` : "工具调用完成");
         return;
-      case "content_start":
+      case StreamEventType.CONTENT_START:
         setStatusText("AI 正在回答...");
         return;
-      case "content_delta":
-        appendAssistantDelta(event.delta || "");
+      case StreamEventType.CONTENT_DELTA:
+        appendAssistantDelta(eventData.delta || "");
         return;
-      case "content_done":
+      case StreamEventType.CONTENT_DONE:
         markAssistantMessage("done");
         setStatusText("回答完成");
         return;
-      case "error":
+      case StreamEventType.ERROR:
         markAssistantMessage("error");
-        appendSystemMessage(event.error || "请求失败，请稍后重试。");
+        appendSystemMessage(eventData.error || "请求失败，请稍后重试。");
         setStatusText("响应出错");
         return;
       default:
@@ -184,12 +201,10 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
     }
   };
 
-  const onSubmit = async (message: string) => {
-    if (isStreaming) {
-      return;
-    }
+  const onSubmit = async (value: string) => {
+    if (isStreaming) return;
 
-    const prompt = message.trim();
+    const prompt = value.trim();
     if (!prompt) {
       return;
     }
@@ -199,27 +214,15 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
       return;
     }
 
-    const activeSessionId = await ensureSessionReady();
-    if (!activeSessionId) {
-      appendSystemMessage("会话初始化失败，请稍后重试。");
-      return;
-    }
-
     const assistantMessageId = uuidv4();
-    const controller = new AbortController();
-    requestAbortRef.current = controller;
+    requestAbortRef.current = new AbortController();
     activeAssistantIdRef.current = assistantMessageId;
     setIsStreaming(true);
-    setStatusText("已连接，等待 AI 响应...");
+    setStatusText("Ai正在努力思考中...");
     setMessages((prev) => [
       ...prev,
       createMessage("user", prompt),
-      {
-        id: assistantMessageId,
-        role: "assistant",
-        content: "",
-        status: "streaming",
-      },
+      createMessage("assistant", "", "streaming", { messageId: assistantMessageId }),
     ]);
     setDraft("");
 
@@ -236,18 +239,15 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
     try {
       await ApiHelper.aiCompletion(
         {
-          sessionId: activeSessionId,
+          requestId: uuidv4(),
+          sessionId,
           userId: currentUserId,
+          debug: true,
           prompt,
         },
         {
-          signal: controller.signal,
-          retry: {
-            initialDelayMs: 1000,
-            maxDelayMs: 8000,
-            multiplier: 2,
-            maxRetries: 4,
-          },
+          signal: requestAbortRef.current?.signal,
+          retry: false,
           onMessage: handleStreamMessage,
           onEnd: () => {
             onCompletionEnd("回答完成");
@@ -285,7 +285,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
       });
       const history = (result?.messages || [])
         .map(fromSessionMessage)
-        .filter((message): message is AiChatMessage => message !== null);
+        .filter((message): message is AIChatMessage => message !== null);
       setMessages(history);
     } catch (_error) {
       message.error("加载历史消息失败，请稍后重试");
@@ -314,7 +314,11 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId, onCreateS
   }, []);
 
   return (
-    <Flex vertical gap="none" style={{ padding: "16px", height: "100%", overflow: "hidden", boxSizing: "border-box" }}>
+    <Flex
+      vertical
+      gap="none"
+      style={{ padding: "16px", height: "100%", overflow: "hidden", boxSizing: "border-box" }}
+    >
       <Flex flex={1} style={{ overflow: "hidden", minHeight: 0 }}>
         <AiChatContent
           messages={messages}

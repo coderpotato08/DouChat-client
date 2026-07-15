@@ -1,7 +1,9 @@
 export interface AgentCompletionParams {
+  requestId: string;
   sessionId: string;
   userId: string;
   prompt: string;
+  debug?: boolean;
 }
 
 export interface AgentApprovalStartTaskParams {
@@ -25,8 +27,19 @@ export interface AgentApprovalApproveTaskResult {
   result: unknown;
 }
 
+export enum StreamEventType {
+  THINKING_START = "thinking_start",
+  THINKING_DONE = "thinking_done",
+  TOOL_USE_START = "tool_use_start",
+  TOOL_USE_DONE = "tool_use_done",
+  CONTENT_START = "content_start",
+  CONTENT_DELTA = "content_delta",
+  CONTENT_DONE = "content_done",
+  ERROR = "error"
+}
+
 export type AgentStreamEvent = {
-  type: string;
+  type: StreamEventType;
   delta?: string;
   error?: string;
   toolName?: string;
@@ -62,7 +75,7 @@ export interface SessionSummary {
 export interface SessionMessageItem {
   messageId: string;
   sessionId: string;
-  requestId?: string | null;
+  requestId: string;
   role: "system" | "user" | "assistant" | "tool";
   content: string | null;
   contentType?: "text" | "json" | "tool_call" | "tool_result";

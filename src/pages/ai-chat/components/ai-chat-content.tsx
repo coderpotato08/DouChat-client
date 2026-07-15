@@ -1,20 +1,14 @@
 import { FireOutlined, MessageOutlined } from "@ant-design/icons";
-import { Bubble, BubbleProps, Prompts, Welcome } from "@ant-design/x";
+import { Bubble, type BubbleProps, Prompts, Welcome } from "@ant-design/x";
+import type { RolesType } from "@ant-design/x/es/bubble/BubbleList";
 import { XMarkdown } from "@ant-design/x-markdown";
-import { RolesType } from "@ant-design/x/es/bubble/BubbleList";
 import { Avatar, Card, Flex, Typography } from "antd";
 import { type FC, useMemo } from "react";
+import type { AIChatMessage } from "../types";
 import { TodoList } from "./todo-list";
 
-export type AiChatMessage = {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  status?: "streaming" | "done" | "error";
-};
-
 type AiChatContentProps = {
-  messages: AiChatMessage[];
+  messages: AIChatMessage[];
   statusText?: string;
   isStreaming: boolean;
   onPromptSelect: (prompt: string) => void;
@@ -30,9 +24,15 @@ const promptItems = [
     label: "阅读data/temp.txt中的内容，从不同角度分析这篇小短文的优缺点，并给出改进建议",
     description: "分析文本",
   },
+  {
+    key: "prompt-3",
+    label:
+      "请按照以下顺序执行任务：1. 在data目录创建test.py 2. 在test.py中写入一段python代码 3. 在data目录创建__init__.py",
+    description: "todo展示测试",
+  },
 ];
 
-const mapMessageStatus = (status?: AiChatMessage["status"]) => {
+const mapMessageStatus = (status?: AIChatMessage["status"]) => {
   if (status === "streaming") {
     return "loading" as const;
   }
@@ -41,11 +41,11 @@ const mapMessageStatus = (status?: AiChatMessage["status"]) => {
   }
   return "success" as const;
 };
-const bubbleStyles: BubbleProps['styles'] = {
+const bubbleStyles: BubbleProps["styles"] = {
   content: {
     maxWidth: "85%",
-  }
-}
+  },
+};
 
 export const AiChatContent: FC<AiChatContentProps> = ({
   messages,
@@ -53,9 +53,10 @@ export const AiChatContent: FC<AiChatContentProps> = ({
   isStreaming,
   onPromptSelect,
 }) => {
-  const bubbleItems = useMemo(() => {
+  console.log(messages);
+  const bubbleItems = useMemo<BubbleProps[]>(() => {
     return messages.map((message) => ({
-      key: message.id,
+      key: `${message.role}_${message.requestId}`,
       role: message.role,
       content: message.content,
       status: mapMessageStatus(message.status),
@@ -71,17 +72,19 @@ export const AiChatContent: FC<AiChatContentProps> = ({
         placement: "start" as const,
         variant: "filled" as const,
         avatar: <Avatar>AI</Avatar>,
-        messageRender: (content: unknown) => (
-          <XMarkdown
-            content={typeof content === "string" ? content : ""}
-            openLinksInNewTab
-            streaming={{
-              hasNextChunk: isStreaming,
-              enableAnimation: true,
-              tail: isStreaming,
-            }}
-          />
-        ),
+        messageRender: (content: unknown) => {
+          return (
+            <XMarkdown
+              content={typeof content === "string" ? content : ""}
+              openLinksInNewTab
+              streaming={{
+                hasNextChunk: isStreaming,
+                enableAnimation: true,
+                tail: isStreaming,
+              }}
+            />
+          );
+        },
       },
       user: {
         styles: bubbleStyles,
@@ -89,19 +92,18 @@ export const AiChatContent: FC<AiChatContentProps> = ({
         variant: "filled" as const,
         avatar: <Avatar>ME</Avatar>,
       },
-      system: {
-        styles: bubbleStyles,
-        placement: "start" as const,
-        variant: "outlined" as const,
-        avatar: <Avatar>!</Avatar>,
-      },
     }),
     [isStreaming],
   );
 
+  const messageRender = (message: AIChatMessage) => {};
+
   if (!messages.length) {
     return (
-      <Card style={{ width: "fit-content", margin: "0 auto auto" }} styles={{ body: { padding: "16px" } }}>
+      <Card
+        style={{ width: "fit-content", margin: "0 auto auto" }}
+        styles={{ body: { padding: "16px" } }}
+      >
         <Flex vertical gap="middle">
           <Typography.Text type="secondary">
             <FireOutlined /> AI assistant workspace
@@ -124,13 +126,23 @@ export const AiChatContent: FC<AiChatContentProps> = ({
   }
 
   return (
-    <Flex vertical gap="none" style={{ width: "100%" }}>
+    <Flex vertical gap="16" style={{ width: "100%", overflow: "auto" }}>
       <TodoList />
-      <Bubble.List
-        items={bubbleItems} 
-        roles={roleConfig} 
-        autoScroll 
-      />
+      <Bubble.List items={bubbleItems} roles={roleConfig} autoScroll />
+      {/* {messages.map((message) => {
+        return (
+          <Bubble
+            key={message.id}
+            role={message.role}
+            content={message.content}
+            typing={{
+              step: 4,
+              interval: 50,
+            }}
+            loading={message.status === "streaming"}
+          />
+        );
+      })} */}
     </Flex>
   );
 };

@@ -1,6 +1,6 @@
-import { AxiosRequestConfig } from "axios";
-import { baseRequest } from "./core";
 import { EventStreamContentType, fetchEventSource } from "@fortaine/fetch-event-source";
+import type { AxiosRequestConfig } from "axios";
+import { baseRequest } from "./core";
 
 type SSERetryConfig = {
   initialDelayMs?: number;
@@ -97,65 +97,62 @@ export const serviceRequest = {
     }
 
     try {
-      await fetchEventSource(
-        `/api${url.indexOf("/") === 0 ? url : "/" + url}`,
-        {
-          signal: controller.signal,
-          method: "POST",
-          body: JSON.stringify(params),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          async onopen(response) {
-            const contentType = response.headers.get("content-type") || "";
-            if (response.ok && contentType.includes(EventStreamContentType)) {
-              retryCount = 0;
-              return;
-            }
-
-            if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-              throw buildSSERequestError("SSE request failed", false, response.status);
-            }
-
-            throw buildSSERequestError("SSE request failed", true, response.status);
-          },
-          onmessage: (event) => {
-            if (event.data === "[DONE]") {
-              completed = true;
-              onEnd();
-              controller.abort();
-              return;
-            }
-            onMessage(event.data);
-          },
-          onclose: () => {
-            if (completed || controller.signal.aborted) {
-              onClose();
-              return;
-            }
-
-            throw buildSSERequestError("SSE connection closed unexpectedly", false);
-          },
-          onerror: (error) => {
-            if (controller.signal.aborted) {
-              return;
-            }
-
-            const delay = resolveRetryDelay(error, retryCount, retry);
-            if (delay === null) {
-              terminalErrorHandled = true;
-              onError();
-              throw error;
-            }
-
-            retryCount += 1;
-            return delay;
-          },
+      await fetchEventSource(`/api${url.indexOf("/") === 0 ? url : "/" + url}`, {
+        signal: controller.signal,
+        method: "POST",
+        body: JSON.stringify(params),
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        async onopen(response) {
+          const contentType = response.headers.get("content-type") || "";
+          if (response.ok && contentType.includes(EventStreamContentType)) {
+            retryCount = 0;
+            return;
+          }
+
+          if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+            throw buildSSERequestError("SSE request failed", false, response.status);
+          }
+
+          throw buildSSERequestError("SSE request failed", true, response.status);
+        },
+        onmessage: (event) => {
+          if (event.data === "[DONE]") {
+            completed = true;
+            onEnd();
+            controller.abort();
+            return;
+          }
+          onMessage(event.data);
+        },
+        onclose: () => {
+          if (completed || controller.signal.aborted) {
+            onClose();
+            return;
+          }
+
+          throw buildSSERequestError("SSE connection closed unexpectedly", false);
+        },
+        onerror: (error) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          const delay = resolveRetryDelay(error, retryCount, retry);
+          if (delay === null) {
+            terminalErrorHandled = true;
+            onError();
+            throw error;
+          }
+
+          retryCount += 1;
+          return delay;
+        },
+      });
     } catch (error) {
       if (!controller.signal.aborted && !terminalErrorHandled) {
-            onError();
+        onError();
         console.error({ message: "SSE 请求失败", error });
       }
     } finally {

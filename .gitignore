@@ -25,6 +25,7 @@ yarn-error.log*
 package-lock.json
 
 # ai
+doc/plan/
 .github
 .claude
 .temp
