@@ -97,7 +97,8 @@ export const serviceRequest = {
     }
 
     try {
-      await fetchEventSource(`/api${url.indexOf("/") === 0 ? url : "/" + url}`, {
+      await fetchEventSource(`/api${url.indexOf("/") === 0 ? url : `/${url}`}`, {
+        // openWhenHidden: true,
         signal: controller.signal,
         method: "POST",
         body: JSON.stringify(params),

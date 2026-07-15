@@ -12,8 +12,7 @@ export type AIChatMessage = {
 };
 
 export enum MessageBlockType {
-  TOOL_USE_START = "tool_use_start",
-  TOOL_USE_DONE = "tool_use_done",
+  TOOL_USE = "tool_use",
   PERMISSION_REQUEST = "permission_request",
   ERROR = "error",
 }
@@ -21,19 +20,13 @@ type ChatMessageBlockBase = {
   messageId: string;
 };
 
-export type ToolUseStartBlock = ChatMessageBlockBase & {
-  blockType: MessageBlockType.TOOL_USE_START;
+export type ToolUseBlock = ChatMessageBlockBase & {
+  blockType: MessageBlockType.TOOL_USE;
   toolName: string;
   toolUseId: string;
-  data: unknown;
-};
-
-export type ToolUseDoneBlock = ChatMessageBlockBase & {
-  blockType: MessageBlockType.TOOL_USE_DONE;
-  toolName: string;
-  toolUseId: string;
-  success: boolean;
-  data: unknown;
+  status: "running" | "succeeded" | "failed";
+  input?: unknown;
+  output?: unknown;
 };
 
 export type PermissionRequestBlock = ChatMessageBlockBase & {
@@ -48,7 +41,6 @@ export type ErrorBlock = ChatMessageBlockBase & {
 };
 
 export type AIChatMessageBlock =
-  | ToolUseStartBlock
-  | ToolUseDoneBlock
+  | ToolUseBlock
   | PermissionRequestBlock
   | ErrorBlock;

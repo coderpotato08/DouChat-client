@@ -1,11 +1,10 @@
-import { FireOutlined, MessageOutlined } from "@ant-design/icons";
+import { FireOutlined } from "@ant-design/icons";
 import { Bubble, type BubbleProps, Prompts, Welcome } from "@ant-design/x";
 import type { RolesType } from "@ant-design/x/es/bubble/BubbleList";
 import { XMarkdown } from "@ant-design/x-markdown";
 import { Avatar, Card, Flex, Typography } from "antd";
 import { type FC, useMemo } from "react";
 import type { AIChatMessage } from "../types";
-import { TodoList } from "./todo-list";
 
 type AiChatContentProps = {
   messages: AIChatMessage[];
@@ -49,7 +48,6 @@ const bubbleStyles: BubbleProps["styles"] = {
 
 export const AiChatContent: FC<AiChatContentProps> = ({
   messages,
-  statusText,
   isStreaming,
   onPromptSelect,
 }) => {
@@ -127,22 +125,7 @@ export const AiChatContent: FC<AiChatContentProps> = ({
 
   return (
     <Flex vertical gap="16" style={{ width: "100%", overflow: "auto" }}>
-      <TodoList />
       <Bubble.List items={bubbleItems} roles={roleConfig} autoScroll />
-      {/* {messages.map((message) => {
-        return (
-          <Bubble
-            key={message.id}
-            role={message.role}
-            content={message.content}
-            typing={{
-              step: 4,
-              interval: 50,
-            }}
-            loading={message.status === "streaming"}
-          />
-        );
-      })} */}
     </Flex>
   );
 };

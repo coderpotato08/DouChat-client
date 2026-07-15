@@ -9,7 +9,12 @@ import { userSelector } from "@store/userReducer";
 import { Flex, message } from "antd";
 import { type FC, useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import type { AIChatMessage } from "../types";
+import {
+  type AIChatMessage,
+  type AIChatMessageBlock,
+  MessageBlockType,
+  type ToolUseBlock,
+} from "../types";
 import type { TodoItem } from "../types/todo-list";
 import { AiChatContent } from "./ai-chat-content";
 import { AiChatInput } from "./ai-chat-input";
@@ -19,19 +24,125 @@ type AiChatContainerProps = {
 };
 export type SessionTodoMap = Record<string, TodoItem[]>;
 
-/** 将后端历史消息转换为界面消息；tool 角色消息不直接展示 */
-const fromSessionMessage = (item: SessionMessageItem): AIChatMessage | null => {
-  if (item.role === "tool") {
+/** 从 todo 工具入参/输出中解析计划列表 */
+const parseTodoItems = (data: unknown): TodoItem[] | null => {
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !Array.isArray((data as { items?: unknown }).items)
+  ) {
     return null;
   }
-  return {
-    requestId: item.requestId,
-    sessionId: item.sessionId,
-    messageId: item.messageId,
-    role: item.role,
-    content: item.content ?? "",
-    status: item.messageStatus === "failed" ? "error" : "done",
-  };
+  return (data as { items: TodoItem[] }).items;
+};
+
+const parseToolInput = (raw: string): unknown => {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+};
+
+type HistoryBuildResult = {
+  messages: AIChatMessage[];
+  latestTodo: TodoItem[] | null;
+};
+
+/**
+ * 将后端历史消息按 requestId 聚合为一轮一条 assistant：
+ * - 非 todo 的工具调用维护到该轮 assistant 的 blocks（历史无工具结果，仅恢复入参）
+ * - todo 工具的 items 作为最近一轮的 todoList
+ * - tool 角色消息不展示
+ */
+const buildHistoryMessages = (
+  history: SessionMessageItem[],
+  sessionId: string,
+): HistoryBuildResult => {
+  const roundOrder: string[] = [];
+  const rounds = new Map<string, SessionMessageItem[]>();
+
+  for (const item of history) {
+    if (!item.requestId) {
+      continue;
+    }
+    if (!rounds.has(item.requestId)) {
+      rounds.set(item.requestId, []);
+      roundOrder.push(item.requestId);
+    }
+    rounds.get(item.requestId)!.push(item);
+  }
+
+  const messages: AIChatMessage[] = [];
+  let latestTodo: TodoItem[] | null = null;
+
+  for (const requestId of roundOrder) {
+    const group = rounds.get(requestId)!;
+    let userMessage: AIChatMessage | null = null;
+    let assistantContent = "";
+    let assistantMessageId = "";
+    const blocks: AIChatMessageBlock[] = [];
+
+    for (const item of group) {
+      if (item.role === "user") {
+        userMessage = {
+          requestId,
+          sessionId,
+          messageId: item.messageId,
+          role: "user",
+          content: item.content ?? "",
+          status: "done",
+          createdAt: item.createdAt,
+        };
+      } else if (item.role === "assistant") {
+        if (!assistantMessageId) {
+          assistantMessageId = item.messageId;
+        }
+        if (item.content) {
+          assistantContent = item.content;
+        }
+        if (item.tool_calls?.length) {
+          for (const toolCall of item.tool_calls) {
+            const toolName = toolCall.function.name;
+            const input = parseToolInput(toolCall.function.arguments);
+            if (toolName === "todo") {
+              const items = parseTodoItems(input);
+              if (items) {
+                latestTodo = items;
+              }
+            } else {
+              blocks.push({
+                messageId: item.messageId,
+                blockType: MessageBlockType.TOOL_USE,
+                toolName,
+                toolUseId: toolCall.id,
+                status: "succeeded",
+                input,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if (userMessage) {
+      messages.push(userMessage);
+    }
+    if (assistantContent || blocks.length) {
+      messages.push({
+        requestId,
+        sessionId,
+        messageId: assistantMessageId || uuidv4(),
+        role: "assistant",
+        content: assistantContent,
+        status: "done",
+        blocks,
+        createdAt: group[0]?.createdAt,
+      });
+    }
+  }
+
+  return { messages, latestTodo };
 };
 
 export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
@@ -77,7 +188,7 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
   /** 是否是当前轮次对话的AI消息 */
   const isCurAssistantMessage = (message: AIChatMessage) => {
     return message.role === "assistant" && message.requestId === activeAssistantIdRef.current;
-  }
+  };
 
   const markAssistantMessage = (status: AIChatMessage["status"]) => {
     const assistantMessageId = activeAssistantIdRef.current;
@@ -94,6 +205,35 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
         return {
           ...message,
           status,
+        };
+      }),
+    );
+  };
+
+  const appendToolBlock = (block: ToolUseBlock) => {
+    setMessages((prev) =>
+      prev.map((message) => {
+        if (!isCurAssistantMessage(message)) {
+          return message;
+        }
+        return { ...message, blocks: [...(message.blocks || []), block] };
+      }),
+    );
+  };
+
+  const updateToolBlock = (toolUseId: string, changes: Partial<ToolUseBlock>) => {
+    setMessages((prev) =>
+      prev.map((message) => {
+        if (!isCurAssistantMessage(message)) {
+          return message;
+        }
+        return {
+          ...message,
+          blocks: (message.blocks || []).map((block) =>
+            block.blockType === MessageBlockType.TOOL_USE && block.toolUseId === toolUseId
+              ? { ...block, ...changes }
+              : block,
+          ),
         };
       }),
     );
@@ -163,10 +303,19 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
         return;
       case StreamEventType.TOOL_USE_START:
         if (eventData.toolName === "todo") {
-          setTodoMap((prev) => ({
-            ...prev,
-            [sessionId]: (eventData.data as { items: TodoItem[] | null }).items as TodoItem[],
-          }));
+          const items = parseTodoItems(eventData.data);
+          if (items) {
+            setTodoMap((prev) => ({ ...prev, [sessionId]: items }));
+          }
+        } else {
+          appendToolBlock({
+            messageId: activeAssistantIdRef.current || "",
+            blockType: MessageBlockType.TOOL_USE,
+            toolName: eventData.toolName || "",
+            toolUseId: eventData.toolUseId || "",
+            status: "running",
+            input: eventData.data,
+          });
         }
         setStatusText(
           eventData.toolName ? `调用工具 ${eventData.toolName} 中...` : "AI 正在调用工具...",
@@ -174,10 +323,15 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
         return;
       case StreamEventType.TOOL_USE_DONE:
         if (eventData.toolName === "todo") {
-          setTodoMap((prev) => ({
-            ...prev,
-            [sessionId]: (eventData.data as { items: TodoItem[] | null }).items as TodoItem[],
-          }));
+          const items = parseTodoItems(eventData.data);
+          if (items) {
+            setTodoMap((prev) => ({ ...prev, [sessionId]: items }));
+          }
+        } else {
+          updateToolBlock(eventData.toolUseId || "", {
+            status: eventData.success ? "succeeded" : "failed",
+            output: eventData.data,
+          });
         }
         setStatusText(eventData.toolName ? `工具 ${eventData.toolName} 已完成` : "工具调用完成");
         return;
@@ -283,10 +437,12 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
         sessionId: targetSessionId,
         userId: currentUserId,
       });
-      const history = (result?.messages || [])
-        .map(fromSessionMessage)
-        .filter((message): message is AIChatMessage => message !== null);
-      setMessages(history);
+      const { messages: historyMessages, latestTodo } = buildHistoryMessages(
+        result?.messages || [],
+        targetSessionId,
+      );
+      setMessages(historyMessages);
+      setTodoMap((prev) => ({ ...prev, [targetSessionId]: latestTodo ?? [] }));
     } catch (_error) {
       message.error("加载历史消息失败，请稍后重试");
     }
@@ -327,9 +483,13 @@ export const AiChatContainer: FC<AiChatContainerProps> = ({ sessionId }) => {
           onPromptSelect={handlePromptSelect}
         />
       </Flex>
-      <Flex flex="none">
-        <AiChatInput value={draft} onChange={setDraft} onSubmit={onSubmit} loading={isStreaming} />
-      </Flex>
+      <AiChatInput
+        value={draft}
+        todoList={currentTodoList}
+        onChange={setDraft}
+        onSubmit={onSubmit}
+        loading={isStreaming}
+      />
     </Flex>
   );
 };
