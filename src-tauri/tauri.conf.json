@@ -43,7 +43,7 @@
   "productName": "chat-room",
   "mainBinaryName": "chat-room",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.douchat.dev",
   "plugins": {},
   "app": {
     "windows": [
