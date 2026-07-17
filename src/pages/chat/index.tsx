@@ -262,6 +262,7 @@ const MenuListWrapper = styled.div`
     flex: 1;
     position: relative;
     width: 100%;
+    overflow-y: scroll;
   }
 `
 const MenuItem = styled.div`

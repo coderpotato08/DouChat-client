@@ -109,6 +109,7 @@ const DraggableDivider = styled.div`
 
 export const GroupWrapper = styled.div`
   & {
+    box-sizing: border-box;
     position: relative;
     display: flex;
     flex-direction: column;
