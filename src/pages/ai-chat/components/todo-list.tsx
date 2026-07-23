@@ -1,7 +1,7 @@
 import { CheckCircleOutlined, ClockCircleOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Badge, Collapse, Flex, Typography } from "antd";
 import type { FC, ReactNode } from "react";
-import { type TodoItem, TodoStatus } from "../types/todo-list";
+import { TaskStatus, type TodoItem } from "../types/todo-list";
 
 type TodoListProps = {
   items: TodoItem[] | null;
@@ -13,10 +13,10 @@ type StatusConfig = {
   label: string;
 };
 
-const statusConfig: Record<TodoStatus, StatusConfig> = {
-  [TodoStatus.PENDING]: { icon: <ClockCircleOutlined />, color: "secondary", label: "待处理" },
-  [TodoStatus.IN_PROGRESS]: { icon: <LoadingOutlined spin />, color: undefined, label: "进行中" },
-  [TodoStatus.COMPLETED]: { icon: <CheckCircleOutlined />, color: "success", label: "已完成" },
+const statusConfig: Record<TaskStatus, StatusConfig> = {
+  [TaskStatus.PENDING]: { icon: <ClockCircleOutlined />, color: "secondary", label: "待处理" },
+  [TaskStatus.IN_PROGRESS]: { icon: <LoadingOutlined spin />, color: undefined, label: "进行中" },
+  [TaskStatus.COMPLETED]: { icon: <CheckCircleOutlined />, color: "success", label: "已完成" },
 };
 
 export const TodoList: FC<TodoListProps> = ({ items }) => {
@@ -24,8 +24,8 @@ export const TodoList: FC<TodoListProps> = ({ items }) => {
     return null;
   }
 
-  const isExpanded = items.some((item) => item.status === TodoStatus.IN_PROGRESS);
-  const pendingCount = items.filter((item) => item.status !== TodoStatus.COMPLETED).length;
+  const isExpanded = items.some((item) => item.status === TaskStatus.IN_PROGRESS);
+  const pendingCount = items.filter((item) => item.status !== TaskStatus.COMPLETED).length;
 
   return (
     <Collapse
@@ -48,10 +48,10 @@ export const TodoList: FC<TodoListProps> = ({ items }) => {
                 return (
                   <Flex key={`${item.content}-${index}`} align="center" gap="small">
                     <Typography.Text type={config.color}>{config.icon}</Typography.Text>
-                    <Typography.Text delete={item.status === TodoStatus.COMPLETED}>
+                    <Typography.Text delete={item.status === TaskStatus.COMPLETED}>
                       {item.content}
                     </Typography.Text>
-                    {item.status === TodoStatus.IN_PROGRESS && item.activeForm ? (
+                    {item.status === TaskStatus.IN_PROGRESS && item.activeForm ? (
                       <Typography.Text type="secondary">{item.activeForm}</Typography.Text>
                     ) : null}
                   </Flex>

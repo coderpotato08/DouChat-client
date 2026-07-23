@@ -42,25 +42,24 @@ export const buildHistoryMessages = (
   history: SessionMessageItem[],
   sessionId: string,
 ): HistoryBuildResult => {
-  const roundOrder: string[] = [];
   const rounds = new Map<string, SessionMessageItem[]>();
 
   for (const item of history) {
     if (!item.requestId) {
       continue;
     }
-    if (!rounds.has(item.requestId)) {
-      rounds.set(item.requestId, []);
-      roundOrder.push(item.requestId);
+    let group = rounds.get(item.requestId);
+    if (!group) {
+      group = [];
+      rounds.set(item.requestId, group);
     }
-    rounds.get(item.requestId)!.push(item);
+    group.push(item);
   }
 
   const messages: AIChatMessage[] = [];
   let latestTodo: TodoItem[] | null = null;
 
-  for (const requestId of roundOrder) {
-    const group = rounds.get(requestId)!;
+  for (const [requestId, group] of rounds) {
     let userMessage: AIChatMessage | null = null;
     let assistantContent = "";
     let assistantMessageId = "";

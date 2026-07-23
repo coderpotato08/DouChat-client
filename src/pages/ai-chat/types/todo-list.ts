@@ -1,12 +1,11 @@
-export enum TodoStatus {
+export enum TaskStatus {
   PENDING = "pending",
   IN_PROGRESS = "in_progress",
-  COMPLETED = "completed"
+  COMPLETED = "completed",
 }
 
 export type TodoItem = {
   content: string;
-  status: TodoStatus;
+  status: TaskStatus;
   activeForm: string;
 };
-
